@@ -1,0 +1,10 @@
+[
+  {
+    "id": "castello",
+    "title": "Castello Sforzesco",
+    "category": "Storia & Patrimonio",
+    "geometry": { "type": "Point", "coordinates": [9.1795, 45.47] },
+    "image": "/img/castello.jpg",
+    "teaser": "Fortezza simbolo degli Sforza."
+  }
+]
