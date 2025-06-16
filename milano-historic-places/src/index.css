@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import "maplibre-gl/dist/maplibre-gl.css";
+
+/* fa occupare tutta l’altezza alla root dell’app */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
