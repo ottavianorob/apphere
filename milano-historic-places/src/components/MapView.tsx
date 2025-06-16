@@ -14,13 +14,12 @@ export default function MapView() {
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // 1. Inizializza la mappa
     const map = new maplibregl.Map({
-      container: mapRef.current,
-      style: 'https://demotiles.maplibre.org/style.json',
-      center: [9.19, 45.464],   // Milano
-      zoom: 12,
-    });
+  container: mapRef.current!,
+  style: `https://api.maptiler.com/maps/streets/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`,
+  center: [9.19, 45.464],
+  zoom: 12,
+});
 
     // 2. Carica i dati JSON
     fetch('/places.json')
