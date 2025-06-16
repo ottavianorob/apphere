@@ -14,32 +14,49 @@ export default function MapView() {
   useEffect(() => {
     if (!mapRef.current) return;
 
+    /* 1. Inizializza la mappa ----------------------------------------- */
     const map = new maplibregl.Map({
-  container: mapRef.current!,
-  style: `https://api.maptiler.com/maps/streets/style.json?key=${import.meta.env.VITE_MAPTILER_KEY}`,
-  center: [9.19, 45.464],
-  zoom: 12,
-});
+      container: mapRef.current,
+      style: `https://api.maptiler.com/maps/streets/style.json?key=${
+        import.meta.env.VITE_MAPTILER_KEY
+      }`,
+      center: [9.19, 45.464], // Milano
+      zoom: 12
+    });
 
-    // 2. Carica i dati JSON
+    /* 2. Carica i luoghi dal JSON ------------------------------------- */
     fetch('/places.json')
       .then(r => r.json())
       .then((places: Place[]) => {
         places.forEach(place => {
           const [lon, lat] = place.geometry.coordinates;
 
-          // crea un elemento HTML per il marker
+          /* 2a. Crea marker */
           const el = document.createElement('div');
-          el.className = 'bg-blue-600 w-3 h-3 rounded-full';
+          el.className = 'bg-blue-600 w-3 h-3 rounded-full cursor-pointer';
 
-          new maplibregl.Marker(el)
+          const marker = new maplibregl.Marker(el)
             .setLngLat([lon, lat])
-            .setPopup(new maplibregl.Popup({ offset: 15 }).setText(place.title))
+            .setPopup(
+              new maplibregl.Popup({ offset: 15 }).setText(place.title)
+            )
             .addTo(map);
+
+          /* 2b. Al click → flyTo + apri popup */
+          el.addEventListener('click', () => {
+            const flyToOptions: maplibregl.FlyToOptions = {
+              // type assertion per evitare l’errore “Expected 1 argument”
+              center: [lon, lat] as maplibregl.LngLatLike,
+              zoom: 15,
+              essential: true
+            };
+            map.flyTo(flyToOptions);
+            marker.togglePopup();
+          });
         });
       });
 
-    // pulizia
+    /* 3. Pulizia all’unmount ----------------------------------------- */
     return () => map.remove();
   }, []);
 
