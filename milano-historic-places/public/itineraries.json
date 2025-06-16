@@ -1,6 +1,21 @@
 {
   "milano_sforza": {
     "title": "Milano degli Sforza",
-    "stops": ["castello"]
+    "stops": [
+      "castello",
+      "branca",
+      "grazie",
+      "san_maurizio",
+      "colonne"
+    ]
+  },
+  "liberty_milano": {
+    "title": "Liberty in Porta Venezia",
+    "stops": [
+      "castiglioni",
+      "galimberti",
+      "guazzoni",
+      "diurno"
+    ]
   }
 }
