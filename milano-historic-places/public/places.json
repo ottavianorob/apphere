@@ -7,4 +7,12 @@
     "image": "/img/castello.jpg",
     "teaser": "Fortezza simbolo degli Sforza."
   }
+  {
+  "id": "san_maurizio",
+  "title": "San Maurizio al Monastero Maggiore",
+  "category": "Storia & Patrimonio",
+  "geometry": { "type": "Point", "coordinates": [9.1779, 45.4653] },
+  "image": "/img/san_maurizio.jpg",
+  "teaser": "Affreschi rinascimentali straordinari."
+}
 ]
