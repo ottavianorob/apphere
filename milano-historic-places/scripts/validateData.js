@@ -21,6 +21,11 @@ const ids = new Set(places.map(p => p.id));
 let ok = true;
 
 for (const [slug, itin] of Object.entries(itineraries)) {
+  if (!Array.isArray(itin.stops)) {
+    console.error(`❌ itine­rario "${slug}" ha stops non valida`);
+    ok = false;
+    continue;
+  }
   itin.stops.forEach(id => {
     if (!ids.has(id)) {
       console.error(`❌  "${id}" non esiste (itinerario: ${slug})`);
