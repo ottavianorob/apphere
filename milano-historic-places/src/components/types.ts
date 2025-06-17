@@ -1,8 +1,10 @@
 export type Place = {
   id: string;
   title: string;
-  teaser: string;
-  image: string;
+  category: string; // una delle 5 macro-categorie
+  tags?: string[]; // tag secondari facoltativi
+  teaser?: string;
+  image?: string;
   geometry: { type: 'Point'; coordinates: [number, number] };
 };
 

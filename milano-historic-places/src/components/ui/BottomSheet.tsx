@@ -1,4 +1,5 @@
-import { AnimatePresence, motion, PanInfo } from 'framer-motion';
+// src/components/ui/BottomSheet.tsx
+import React from 'react';
 import type { Place } from '../types';
 
 type Props = {
@@ -7,50 +8,47 @@ type Props = {
 };
 
 export default function BottomSheet({ place, onClose }: Props) {
-  const variants = {
-    hidden: { y: '100%' },
-    visible: { y: 0 }
-  };
-  const handleDragEnd = (_: any, info: PanInfo) => {
-    if (info.offset.y > window.innerHeight * 0.3) onClose();
-  };
-
   return (
-    <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 bg-black"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0.5 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-      />
-      <motion.div
-        className="fixed bottom-0 left-0 right-0 z-50 rounded-t-lg bg-white p-4 shadow-lg"
-        style={{ height: '60vh' }}
-        drag="y"
-        dragConstraints={{ top: 0, bottom: 0 }}
-        onDragEnd={handleDragEnd}
-        initial="hidden"
-        animate="visible"
-        exit="hidden"
-        variants={variants}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      >
-        <div className="w-12 h-1.5 bg-gray-300 rounded mx-auto mb-4" />
-        <h2 className="text-xl font-semibold mb-2">{place.title}</h2>
+    <div className="fixed bottom-0 left-0 right-0 bg-white rounded-t-lg shadow-lg max-h-[90%] overflow-auto">
+      <div className="p-4 border-b flex justify-between items-center">
+        <div>
+          <h2 className="text-lg font-bold">{place.title}</h2>
+          <p className="text-sm font-semibold text-gray-600">{place.category}</p>
+          {place.tags && place.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {place.tags.map(tag => (
+                <span
+                  key={tag}
+                  className="text-xs uppercase bg-gray-200 px-2 py-1 rounded-full"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <button
+          onClick={onClose}
+          aria-label="Chiudi dettagli"
+          className="text-gray-500 hover:text-gray-700"
+        >
+          ✕
+        </button>
+      </div>
+
+      {place.image && (
         <img
           src={place.image}
           alt={place.title}
-          className="w-full h-40 object-cover rounded mb-2"
+          className="w-full h-48 object-cover"
         />
-        <p className="text-gray-700">{place.teaser}</p>
-        <button
-          onClick={onClose}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded"
-        >
-          Chiudi
-        </button>
-      </motion.div>
-    </AnimatePresence>
+      )}
+
+      {place.teaser && (
+        <p className="p-4 text-gray-800">{place.teaser}</p>
+      )}
+
+      {/* Qui puoi aggiungere altri dettagli: approfondimenti, link, etc. */}
+    </div>
   );
 }
