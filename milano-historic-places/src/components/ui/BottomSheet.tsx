@@ -17,6 +17,9 @@ export default function BottomSheet({ place, onClose }: Props) {
       <div className="flex items-center justify-between px-5 py-3 border-b">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">{place.title}</h2>
+          <p className="text-sm font-medium text-indigo-600 mt-1">
+            {place.category}
+          </p>
           <p className="text-sm font-medium text-indigo-600 mt-1">{place.category}</p>
           {place.tags && (
             <div className="flex flex-wrap gap-2 mt-2">
