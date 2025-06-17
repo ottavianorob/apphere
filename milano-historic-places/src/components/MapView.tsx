@@ -22,24 +22,50 @@ export default function MapView({ onSelect }: Props) {
       attributionControl: true,
     });
 
-    // Aggiunge i marker da places.json
-    fetch(import.meta.env.BASE_URL + 'places.json')
-      .then(res => res.json())
-      .then((places: Place[]) => {
-        places.forEach(place => {
-          const [lon, lat] = place.geometry.coordinates;
-          const el = document.createElement('div');
-          el.className =
-            'bg-blue-600 w-4 h-4 rounded-full border-2 border-white cursor-pointer shadow';
+    // On map load: add markers
+    map.on('load', () => {
+      console.log('✅ Map loaded successfully with Positron style');
 
-          el.addEventListener('click', () => onSelect(place));
+      fetch(import.meta.env.BASE_URL + 'places.json')
+        .then(res => res.json())
+        .then((places: Place[]) => {
+          places.forEach(place => {
+            const [lon, lat] = place.geometry.coordinates;
+            const el = document.createElement('div');
+            el.className =
+              'bg-blue-600 w-4 h-4 rounded-full border-2 border-white cursor-pointer shadow';
 
-          new maplibregl.Marker(el)
-            .setLngLat([lon, lat])
-            .addTo(map);
-        });
-      })
-      .catch(err => console.error('Error loading places.json:', err));
+            el.addEventListener('click', () => onSelect(place));
+
+            new maplibregl.Marker(el)
+              .setLngLat([lon, lat])
+              .addTo(map);
+          });
+        })
+        .catch(err => console.error('Error loading places.json:', err));
+    });
+
+    // Fallback to inline OSM raster style on any error
+    map.on('error', (e) => {
+      console.warn('⚠️ Map error, switching to OSM raster fallback style', e);
+      map.setStyle({
+        version: 8,
+        sources: {
+          osm: {
+            type: 'raster',
+            tiles: [
+              'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+              'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+              'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            ],
+            tileSize: 256
+          }
+        },
+        layers: [
+          { id: 'osm-layer', type: 'raster', source: 'osm' }
+        ]
+      });
+    });
 
     return () => {
       map.remove();
