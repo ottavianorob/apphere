@@ -13,17 +13,10 @@ export default function MapView({ onSelect }: Props) {
   useEffect(() => {
     if (!mapRef.current) return;
 
+    // Mappa con layer OSM raster inline (full-control, reliable)
     const map = new maplibregl.Map({
       container: mapRef.current,
-      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-      center: [9.19, 45.464],
-      zoom: 12,
-    });
-
-    // In caso di errore sul Positron style, fai fallback su OSM raster
-    map.on('error', (e) => {
-      console.warn('⚠️ Map error, switching to OSM raster fallback', e);
-      map.setStyle({
+      style: {
         version: 8,
         sources: {
           osm: {
@@ -33,23 +26,26 @@ export default function MapView({ onSelect }: Props) {
               'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
               'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
             ],
-            tileSize: 256,
-          },
+            tileSize: 256
+          }
         },
         layers: [
-          { id: 'osm-layer', type: 'raster', source: 'osm' },
-        ],
-      });
+          {
+            id: 'osm-layer',
+            type: 'raster',
+            source: 'osm'
+          }
+        ]
+      },
+      center: [9.19, 45.464], // Milano
+      zoom: 12
     });
 
-    // Solo quando lo style è caricato, fetch e aggiungi i marker
     map.on('load', () => {
-      console.log('✅ Map loaded, now fetching POIs');
-
-      fetch('/places.json')
+      // Carica i POI e li raggruppa in cluster
+      fetch(import.meta.env.BASE_URL + 'places.json')
         .then(res => res.json())
         .then((places: Place[]) => {
-          // Trasforma in GeoJSON
           const geojson = {
             type: 'FeatureCollection' as const,
             features: places.map(p => ({
@@ -59,21 +55,20 @@ export default function MapView({ onSelect }: Props) {
                 id: p.id,
                 title: p.title,
                 teaser: p.teaser,
-                image: p.image,
-              },
-            })),
+                image: p.image
+              }
+            }))
           };
 
-          // Aggiungi la fonte con clustering
           map.addSource('places', {
             type: 'geojson',
             data: geojson,
             cluster: true,
             clusterMaxZoom: 14,
-            clusterRadius: 50,
+            clusterRadius: 50
           });
 
-          // Layer dei cluster
+          // Cerchi dei cluster
           map.addLayer({
             id: 'clusters',
             type: 'circle',
@@ -81,11 +76,11 @@ export default function MapView({ onSelect }: Props) {
             filter: ['has', 'point_count'],
             paint: {
               'circle-color': '#51bbd6',
-              'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 30, 40],
-            },
+              'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 30, 40]
+            }
           });
 
-          // Etichette dei cluster
+          // Numero di elementi nel cluster
           map.addLayer({
             id: 'cluster-count',
             type: 'symbol',
@@ -94,11 +89,11 @@ export default function MapView({ onSelect }: Props) {
             layout: {
               'text-field': '{point_count_abbreviated}',
               'text-font': ['Arial Unicode MS Bold'],
-              'text-size': 12,
-            },
+              'text-size': 12
+            }
           });
 
-          // Punti singoli non clusterizzati
+          // Punti singoli
           map.addLayer({
             id: 'unclustered-point',
             type: 'circle',
@@ -108,25 +103,28 @@ export default function MapView({ onSelect }: Props) {
               'circle-color': '#f28cb1',
               'circle-radius': 8,
               'circle-stroke-width': 1,
-              'circle-stroke-color': '#fff',
-            },
+              'circle-stroke-color': '#fff'
+            }
           });
 
-          // Click sui cluster → zoom
-          map.on('click', 'clusters', e => {
+          // Click sui cluster → zoom in
+          map.on('click', 'clusters', (e) => {
             const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
             const clusterId = (features[0].properties as any).cluster_id;
-            ;(map.getSource('places') as any).getClusterExpansionZoom(clusterId, (err: any, zoom: number) => {
-              if (err) return;
-              map.easeTo({
-                center: (features[0].geometry as any).coordinates,
-                zoom,
-              });
-            });
+            (map.getSource('places') as any).getClusterExpansionZoom(
+              clusterId,
+              (err: any, zoom: number) => {
+                if (err) return;
+                map.easeTo({
+                  center: (features[0].geometry as any).coordinates,
+                  zoom
+                });
+              }
+            );
           });
 
-          // Click sui punti singoli → onSelect
-          map.on('click', 'unclustered-point', e => {
+          // Click sui punti singoli → apri BottomSheet
+          map.on('click', 'unclustered-point', (e) => {
             const features = map.queryRenderedFeatures(e.point, { layers: ['unclustered-point'] });
             const props = features[0].properties as any;
             const coords = (features[0].geometry as any).coordinates as [number, number];
@@ -135,12 +133,12 @@ export default function MapView({ onSelect }: Props) {
               title: props.title,
               teaser: props.teaser,
               image: props.image,
-              geometry: { type: 'Point', coordinates: coords },
+              geometry: { type: 'Point', coordinates: coords }
             };
             onSelect(place);
           });
 
-          // Cambio cursore
+          // Cambio cursore hover
           ['clusters', 'unclustered-point'].forEach(layer => {
             map.on('mouseenter', layer, () => map.getCanvas().style.cursor = 'pointer');
             map.on('mouseleave', layer, () => map.getCanvas().style.cursor = '');
@@ -149,7 +147,9 @@ export default function MapView({ onSelect }: Props) {
         .catch(err => console.error('Errore caricamento places.json:', err));
     });
 
-    return () => map.remove();
+    return () => {
+      map.remove();
+    };
   }, [onSelect]);
 
   return <div ref={mapRef} className="h-screen w-full" />;
