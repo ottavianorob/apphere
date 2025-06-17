@@ -3,7 +3,7 @@
     "id": "castello_sforzesco",
     "title": "Castello Sforzesco",
     "geometry": { "type": "Point", "coordinates": [9.1719, 45.4709] },
-    "image": "/img/castello_sforzesco.jpg",
+    "image": "/img/castello.jpg",
     "teaser": "Fortezza rinascimentale simbolo di Milano."
   },
   {
@@ -17,28 +17,28 @@
     "id": "galleria_vittorio_emanuele",
     "title": "Galleria Vittorio Emanuele II",
     "geometry": { "type": "Point", "coordinates": [9.1927, 45.4641] },
-    "image": "/img/galleria_vittorio_emanuele.jpg",
+    "image": "/img/guazzoni.jpg",
     "teaser": "Passaggio coperto ottocentesco, simbolo di eleganza."
   },
   {
     "id": "pinacoteca_brera",
     "title": "Pinacoteca di Brera",
     "geometry": { "type": "Point", "coordinates": [9.1872, 45.4728] },
-    "image": "/img/pinacoteca_brera.jpg",
+    "image": "/img/guazzoni.jpg",
     "teaser": "Una delle più importanti collezioni d’arte italiane."
   },
   {
     "id": "santa_maria_delle_grazie",
     "title": "Santa Maria delle Grazie",
     "geometry": { "type": "Point", "coordinates": [9.1758, 45.4660] },
-    "image": "/img/santa_maria_delle_grazie.jpg",
+    "image": "/img/grazie.jpg",
     "teaser": "Dove è custodita l’Ultima Cena di Leonardo da Vinci."
   },
   {
     "id": "teatro_alla_scala",
     "title": "Teatro alla Scala",
     "geometry": { "type": "Point", "coordinates": [9.1895, 45.4670] },
-    "image": "/img/teatro_alla_scala.jpg",
+    "image": "/img/castiglioni.jpg",
     "teaser": "Il celebre teatro d’opera di fama mondiale."
   },
   {
