@@ -2,6 +2,7 @@
   {
     "id": "castello_sforzesco",
     "title": "Castello Sforzesco",
+    "category": "Storia & Patrimonio",
     "geometry": { "type": "Point", "coordinates": [9.1719, 45.4709] },
     "image": "/img/castello.jpg",
     "teaser": "Fortezza rinascimentale simbolo di Milano."
@@ -9,6 +10,7 @@
   {
     "id": "duomo_milano",
     "title": "Duomo di Milano",
+    "category": "Storia & Patrimonio",
     "geometry": { "type": "Point", "coordinates": [9.1910, 45.4642] },
     "image": "/img/duomo_milano.jpg",
     "teaser": "La cattedrale gotica che domina Piazza del Duomo."
@@ -16,6 +18,7 @@
   {
     "id": "galleria_vittorio_emanuele",
     "title": "Galleria Vittorio Emanuele II",
+    "category": "Arte & Cultura",
     "geometry": { "type": "Point", "coordinates": [9.1927, 45.4641] },
     "image": "/img/guazzoni.jpg",
     "teaser": "Passaggio coperto ottocentesco, simbolo di eleganza."
@@ -23,6 +26,7 @@
   {
     "id": "pinacoteca_brera",
     "title": "Pinacoteca di Brera",
+    "category": "Arte & Cultura",
     "geometry": { "type": "Point", "coordinates": [9.1872, 45.4728] },
     "image": "/img/guazzoni.jpg",
     "teaser": "Una delle più importanti collezioni d’arte italiane."
@@ -30,6 +34,7 @@
   {
     "id": "santa_maria_delle_grazie",
     "title": "Santa Maria delle Grazie",
+    "category": "Arte & Cultura",
     "geometry": { "type": "Point", "coordinates": [9.1758, 45.4660] },
     "image": "/img/grazie.jpg",
     "teaser": "Dove è custodita l’Ultima Cena di Leonardo da Vinci."
@@ -37,6 +42,7 @@
   {
     "id": "teatro_alla_scala",
     "title": "Teatro alla Scala",
+    "category": "Musica & Spettacolo",
     "geometry": { "type": "Point", "coordinates": [9.1895, 45.4670] },
     "image": "/img/castiglioni.jpg",
     "teaser": "Il celebre teatro d’opera di fama mondiale."
@@ -44,6 +50,7 @@
   {
     "id": "castiglioni",
     "title": "Palazzo Castiglioni",
+    "category": "Storia & Patrimonio",
     "geometry": { "type": "Point", "coordinates": [9.2070, 45.4730] },
     "image": "/img/castiglioni.jpg",
     "teaser": "Capolavoro Liberty a Porta Venezia."
@@ -51,6 +58,7 @@
   {
     "id": "galimberti",
     "title": "Casa Galimberti",
+    "category": "Arte & Cultura",
     "geometry": { "type": "Point", "coordinates": [9.2040, 45.4750] },
     "image": "/img/galimberti.jpg",
     "teaser": "Eleganti mosaici e decorazioni floreali Liberty."
@@ -58,6 +66,7 @@
   {
     "id": "guazzoni",
     "title": "Casa Guazzoni",
+    "category": "Arte & Cultura",
     "geometry": { "type": "Point", "coordinates": [9.2020, 45.4760] },
     "image": "/img/guazzoni.jpg",
     "teaser": "Art Nouveau con stucchi e vetrate suggestive."
@@ -65,6 +74,7 @@
   {
     "id": "diurno",
     "title": "Albergo Diurno Venezia",
+    "category": "Storia & Patrimonio",
     "geometry": { "type": "Point", "coordinates": [9.2040, 45.4720] },
     "image": "/img/diurno.jpg",
     "teaser": "Storico spazio di relax pubblico in stile Liberty."
