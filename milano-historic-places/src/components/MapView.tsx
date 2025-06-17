@@ -13,33 +13,17 @@ export default function MapView({ onSelect }: Props) {
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Inline OSM raster style per un base map sempre coerente
+    // Stile Positron (pulito e moderno)
     const map = new maplibregl.Map({
       container: mapRef.current,
-      style: {
-        version: 8,
-        sources: {
-          osm: {
-            type: 'raster',
-            tiles: [
-              'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-              'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-              'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
-            ],
-            tileSize: 256
-          }
-        },
-        layers: [
-          { id: 'osm-layer', type: 'raster', source: 'osm' }
-        ]
-      },
-      center: [9.19, 45.464],
+      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+      center: [9.19, 45.464], // Milano
       zoom: 12,
-      attributionControl: true
+      attributionControl: true,
     });
 
     map.on('load', () => {
-      console.log('✅ Base map loaded, adding POIs and clusters');
+      console.log('✅ Positron style loaded, ora aggiungo i POI');
 
       fetch(import.meta.env.BASE_URL + 'places.json')
         .then(res => res.json())
@@ -53,21 +37,21 @@ export default function MapView({ onSelect }: Props) {
                 id: p.id,
                 title: p.title,
                 teaser: p.teaser,
-                image: p.image
-              }
-            }))
+                image: p.image,
+              },
+            })),
           };
 
-          // Aggiungi fonte con clustering
+          // Aggiungo la fonte con clustering
           map.addSource('places', {
             type: 'geojson',
             data: geojson,
             cluster: true,
             clusterMaxZoom: 14,
-            clusterRadius: 50
+            clusterRadius: 50,
           });
 
-          // Cerchi cluster
+          // Layer dei cluster (cerchi)
           map.addLayer({
             id: 'clusters',
             type: 'circle',
@@ -75,11 +59,19 @@ export default function MapView({ onSelect }: Props) {
             filter: ['has', 'point_count'],
             paint: {
               'circle-color': '#51bbd6',
-              'circle-radius': ['step', ['get', 'point_count'], 20, 10, 30, 30, 40]
-            }
+              'circle-radius': [
+                'step',
+                ['get', 'point_count'],
+                20,
+                10,
+                30,
+                30,
+                40,
+              ],
+            },
           });
 
-          // Numeri nei cluster
+          // Layer del conteggio nei cluster
           map.addLayer({
             id: 'cluster-count',
             type: 'symbol',
@@ -88,14 +80,14 @@ export default function MapView({ onSelect }: Props) {
             layout: {
               'text-field': '{point_count_abbreviated}',
               'text-font': ['Arial Unicode MS Bold'],
-              'text-size': 12
+              'text-size': 12,
             },
             paint: {
-              'text-color': '#ffffff'
-            }
+              'text-color': '#ffffff',
+            },
           });
 
-          // Punti singoli non clusterizzati
+          // Layer dei punti singoli
           map.addLayer({
             id: 'unclustered-point',
             type: 'circle',
@@ -105,13 +97,15 @@ export default function MapView({ onSelect }: Props) {
               'circle-color': '#f28cb1',
               'circle-radius': 8,
               'circle-stroke-width': 1,
-              'circle-stroke-color': '#fff'
-            }
+              'circle-stroke-color': '#fff',
+            },
           });
 
           // Click su cluster → zoom in
           map.on('click', 'clusters', e => {
-            const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+            const features = map.queryRenderedFeatures(e.point, {
+              layers: ['clusters'],
+            });
             const clusterId = (features[0].properties as any).cluster_id;
             (map.getSource('places') as any).getClusterExpansionZoom(
               clusterId,
@@ -119,7 +113,7 @@ export default function MapView({ onSelect }: Props) {
                 if (err) return;
                 map.easeTo({
                   center: (features[0].geometry as any).coordinates,
-                  zoom
+                  zoom,
                 });
               }
             );
@@ -127,23 +121,30 @@ export default function MapView({ onSelect }: Props) {
 
           // Click su punto singolo → onSelect
           map.on('click', 'unclustered-point', e => {
-            const features = map.queryRenderedFeatures(e.point, { layers: ['unclustered-point'] });
+            const features = map.queryRenderedFeatures(e.point, {
+              layers: ['unclustered-point'],
+            });
             const props = features[0].properties as any;
-            const coords = (features[0].geometry as any).coordinates as [number, number];
+            const coords = (features[0].geometry as any)
+              .coordinates as [number, number];
             const place: Place = {
               id: props.id,
               title: props.title,
               teaser: props.teaser,
               image: props.image,
-              geometry: { type: 'Point', coordinates: coords }
+              geometry: { type: 'Point', coordinates: coords },
             };
             onSelect(place);
           });
 
-          // Cambio cursore su hover
+          // Cambia cursore su hover
           ['clusters', 'unclustered-point'].forEach(layer => {
-            map.on('mouseenter', layer, () => map.getCanvas().style.cursor = 'pointer');
-            map.on('mouseleave', layer, () => map.getCanvas().style.cursor = '');
+            map.on('mouseenter', layer, () =>
+              (map.getCanvas().style.cursor = 'pointer')
+            );
+            map.on('mouseleave', layer, () =>
+              (map.getCanvas().style.cursor = '')
+            );
           });
         })
         .catch(err => console.error('Errore caricamento places.json:', err));
