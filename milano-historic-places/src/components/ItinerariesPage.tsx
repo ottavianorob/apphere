@@ -18,34 +18,45 @@ export default function ItinerariesPage({ onStart }: Props) {
   const [itineraries, setItineraries] = useState<Itinerary[]>([]);
   const [placesMap, setPlacesMap] = useState<Record<string, Place>>({});
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // Carica itineraries.json e places.json insieme
   useEffect(() => {
     Promise.all([
-      fetch('/itineraries.json').then(r => {
+      fetch(import.meta.env.BASE_URL + 'itineraries.json').then(r => {
         if (!r.ok) throw new Error('itineraries.json fetch failed: ' + r.status);
         return r.json();
       }),
-      fetch('/places.json').then(r => {
+      fetch(import.meta.env.BASE_URL + 'places.json').then(r => {
         if (!r.ok) throw new Error('places.json fetch failed: ' + r.status);
         return r.json();
       }),
     ]).then(([rawIt, rawPlaces]: [Record<string, any>, Place[]]) => {
+      console.log('Loaded itineraries keys:', Object.keys(rawIt));
+      console.log('Loaded places count:', rawPlaces.length);
       const list: Itinerary[] = Object.entries(rawIt).map(([id, it]) => ({ id, ...it }));
       setItineraries(list);
       const map: Record<string, Place> = {};
       rawPlaces.forEach(p => (map[p.id] = p));
       setPlacesMap(map);
+      setLoading(false);
     }).catch(err => {
       console.error('Error loading data:', err);
       setError('Errore caricamento itinerari o luoghi');
+      setLoading(false);
     });
   }, []);
 
   return (
     <div className="p-4 space-y-4">
+      {loading && !error && (
+        <p className="text-center text-gray-500">Caricamento itinerari...</p>
+      )}
       {error && <p className="text-red-500 text-center">{error}</p>}
-      {itineraries.map(it => (
+      {!loading && !error && itineraries.length === 0 && (
+        <p className="text-center text-gray-500">Nessun itinerario disponibile.</p>
+      )}
+      {!loading && itineraries.map(it => (
         <div
           key={it.id}
           className="bg-white shadow rounded-lg overflow-hidden flex"
@@ -75,9 +86,6 @@ export default function ItinerariesPage({ onStart }: Props) {
           </div>
         </div>
       ))}
-      {itineraries.length === 0 && !error && (
-        <p className="text-center text-gray-500">Nessun itinerario disponibile.</p>
-      )}
     </div>
   );
 }

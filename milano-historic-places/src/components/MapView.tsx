@@ -60,11 +60,13 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
     clusters.forEach(cluster => {
       const [lon, lat] = (cluster.geometry.coordinates as [number, number]);
       const el = document.createElement('div');
+      el.classList.add('map-marker-element');
 
       if ((cluster.properties as any).cluster) {
         const count = (cluster.properties as any).point_count;
         el.className = 'flex items-center justify-center bg-blue-600 text-white rounded-full';
-        const size = 20 + (count / filteredRef.current.length) * 30;
+        // Size based on count, bounded to avoid extremes
+        const size = 20 + Math.min(count, 20) * 2;
         el.style.width = el.style.height = `${size}px`;
         el.textContent = String(count);
         el.style.cursor = 'pointer';
@@ -114,7 +116,10 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
 
     map.on('load', () => {
       fetch('/places.json')
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) throw new Error('Fetch places.json failed: ' + res.status);
+          return res.json();
+        })
         .then((places: Place[]) => {
           console.log('Loaded places:', places.length, places);
           allPlacesRef.current = places;
