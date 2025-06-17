@@ -12,13 +12,32 @@ export default function MapView({ onSelect }: Props) {
 
   useEffect(() => {
     if (!mapRef.current) return;
+
+    // Initialize map with inline OSM raster style to avoid external dependencies
     const map = new maplibregl.Map({
       container: mapRef.current,
-      style: 'https://demotiles.maplibre.org/style.json',
+      style: {
+        version: 8,
+        sources: {
+          osm: {
+            type: 'raster',
+            tiles: [
+              'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+              'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+              'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            ],
+            tileSize: 256
+          }
+        },
+        layers: [
+          { id: 'osm-layer', type: 'raster', source: 'osm' }
+        ]
+      },
       center: [9.19, 45.464],
       zoom: 12
     });
 
+    // Fetch places and add markers
     fetch(import.meta.env.BASE_URL + 'places.json')
       .then(res => res.json())
       .then((places: Place[]) => {
@@ -27,13 +46,21 @@ export default function MapView({ onSelect }: Props) {
           const el = document.createElement('div');
           el.className =
             'bg-blue-600 w-4 h-4 rounded-full border-2 border-white cursor-pointer';
-          el.addEventListener('click', () => onSelect(place));
-          new maplibregl.Marker(el).setLngLat([lon, lat]).addTo(map);
+
+          el.addEventListener('click', () => {
+            onSelect(place);
+          });
+
+          new maplibregl.Marker(el)
+            .setLngLat([lon, lat])
+            .addTo(map);
         });
       })
-      .catch(err => console.error(err));
+      .catch(err => console.error('Error loading places.json:', err));
 
-    return () => map.remove();
+    return () => {
+      map.remove();
+    };
   }, [onSelect]);
 
   return <div ref={mapRef} className="h-screen w-full" />;
