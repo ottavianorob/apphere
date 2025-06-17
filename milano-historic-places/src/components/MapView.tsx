@@ -17,12 +17,19 @@ export default function MapView({ onSelect }: Props) {
 
     // 1. Inizializza la mappa con stile Positron
     const map = new maplibregl.Map({
-      container: mapRef.current,
-      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-      center: [9.19, 45.464],
-      zoom: 12,
-      attributionControl: true,
-    });
+    container: mapRef.current,
+    style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+    center: [9.19, 45.464],
+    zoom: 12,
+    // disabilito l’attribuzione di default
+    attributionControl: false,
+  });
+
+  // ri-aggiungo l’attribuzione in basso a sinistra in modalità compatta
+  map.addControl(
+    new maplibregl.AttributionControl({ compact: true }),
+    'bottom-left'
+  );
 
     // 2. Aggiungi controllo geolocalizzazione (posizione utente)
     const geolocateControl = new maplibregl.GeolocateControl({
