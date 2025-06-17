@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import Supercluster from 'supercluster';
-import type { Place } from './types';
+import type { Place } from '../types';
 
 type Props = { onSelect: (place: Place) => void };
 
@@ -102,13 +102,15 @@ export default function MapView({ onSelect }: Props) {
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
 
     map.on('load', () => {
-      fetch(import.meta.env.BASE_URL + 'places.json')
+      fetch('/places.json')
         .then(res => res.json())
         .then((places: Place[]) => {
+          console.log('Loaded places:', places.length, places);
           allPlacesRef.current = places;
           buildIndex(places);
           updateMarkers();
           map.on('moveend', updateMarkers);
+          map.on('zoomend', updateMarkers);
         })
         .catch(err => console.error('Error loading places.json:', err));
     });
