@@ -6,8 +6,8 @@
     "geometry": { "type": "Point", "coordinates": [9.1719, 45.4709] },
     "image": "/img/photos/photo.jpg",
     "teaser": "Fortezza rinascimentale simbolo di Milano.",
-    "photoIds": [],
-    "characterIds": [],
+    "photoIds": ["apertura_galleria_1867"],
+    "characterIds": ["vittorio_emanuele_ii"],
     "date": ""
   },
   {
@@ -17,8 +17,8 @@
     "geometry": { "type": "Point", "coordinates": [9.1910, 45.4642] },
     "image": "/img/photos/photo.jpg",
     "teaser": "La cattedrale gotica che domina Piazza del Duomo.",
-    "photoIds": [],
-    "characterIds": [],
+    "photoIds": ["ultima_cena", "prima_scala_1778"],
+    "characterIds": ["leonardo_da_vinci", "vittorio_emanuele_ii"],
     "date": ""
   },
   {
@@ -28,8 +28,8 @@
     "geometry": { "type": "Point", "coordinates": [9.1927, 45.4641] },
     "image": "/img/photos/photo.jpg",
     "teaser": "Passaggio coperto ottocentesco, simbolo di eleganza.",
-    "photoIds": [],
-    "characterIds": [],
+    "photoIds": ["apertura_galleria_1867"],
+    "characterIds": ["raffaello_sanzio"],
     "date": ""
   },
   {
@@ -39,8 +39,8 @@
     "geometry": { "type": "Point", "coordinates": [9.1872, 45.4728] },
     "image": "/img/photos/photo.jpg",
     "teaser": "Una delle più importanti collezioni d’arte italiane.",
-    "photoIds": [],
-    "characterIds": [],
+    "photoIds": ["inaugurazione_pinacoteca_1809"],
+    "characterIds": ["giuseppe_verdi"],
     "date": ""
   },
   {
@@ -50,8 +50,8 @@
     "geometry": { "type": "Point", "coordinates": [9.1758, 45.4660] },
     "image": "/img/photos/photo.jpg",
     "teaser": "Dove è custodita l’Ultima Cena di Leonardo da Vinci.",
-    "photoIds": [],
-    "characterIds": [],
+    "photoIds": ["ultima_cena"],
+    "characterIds": ["leonardo_da_vinci"],
     "date": ""
   },
   {
@@ -61,8 +61,8 @@
     "geometry": { "type": "Point", "coordinates": [9.1895, 45.4670] },
     "image": "/img/photos/photo.jpg",
     "teaser": "Il celebre teatro d’opera di fama mondiale.",
-    "photoIds": [],
-    "characterIds": [],
+    "photoIds": ["prima_scala_1778"],
+    "characterIds": ["maria_callas", "luciano_pavarotti"],
     "date": ""
   },
   {
@@ -73,7 +73,7 @@
     "image": "/img/photos/photo.jpg",
     "teaser": "Capolavoro Liberty a Porta Venezia.",
     "photoIds": [],
-    "characterIds": [],
+    "characterIds": ["enzo_ferrari"],
     "date": ""
   },
   {
@@ -105,8 +105,8 @@
     "geometry": { "type": "Point", "coordinates": [9.2040, 45.4720] },
     "image": "/img/photos/photo.jpg",
     "teaser": "Storico spazio di relax pubblico in stile Liberty.",
-    "photoIds": [],
-    "characterIds": [],
+    "photoIds": ["pizza_village_2018"],
+    "characterIds": ["giuseppe_verdi"],
     "date": ""
   }
 ]
