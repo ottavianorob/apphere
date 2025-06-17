@@ -13,7 +13,7 @@ export default function MapView({ onSelect }: Props) {
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Mappa con layer OSM raster inline (full-control, reliable)
+    // Inline OSM raster style per un base map sempre coerente
     const map = new maplibregl.Map({
       container: mapRef.current,
       style: {
@@ -30,19 +30,17 @@ export default function MapView({ onSelect }: Props) {
           }
         },
         layers: [
-          {
-            id: 'osm-layer',
-            type: 'raster',
-            source: 'osm'
-          }
+          { id: 'osm-layer', type: 'raster', source: 'osm' }
         ]
       },
-      center: [9.19, 45.464], // Milano
-      zoom: 12
+      center: [9.19, 45.464],
+      zoom: 12,
+      attributionControl: true
     });
 
     map.on('load', () => {
-      // Carica i POI e li raggruppa in cluster
+      console.log('✅ Base map loaded, adding POIs and clusters');
+
       fetch(import.meta.env.BASE_URL + 'places.json')
         .then(res => res.json())
         .then((places: Place[]) => {
@@ -60,6 +58,7 @@ export default function MapView({ onSelect }: Props) {
             }))
           };
 
+          // Aggiungi fonte con clustering
           map.addSource('places', {
             type: 'geojson',
             data: geojson,
@@ -68,7 +67,7 @@ export default function MapView({ onSelect }: Props) {
             clusterRadius: 50
           });
 
-          // Cerchi dei cluster
+          // Cerchi cluster
           map.addLayer({
             id: 'clusters',
             type: 'circle',
@@ -80,7 +79,7 @@ export default function MapView({ onSelect }: Props) {
             }
           });
 
-          // Numero di elementi nel cluster
+          // Numeri nei cluster
           map.addLayer({
             id: 'cluster-count',
             type: 'symbol',
@@ -90,10 +89,13 @@ export default function MapView({ onSelect }: Props) {
               'text-field': '{point_count_abbreviated}',
               'text-font': ['Arial Unicode MS Bold'],
               'text-size': 12
+            },
+            paint: {
+              'text-color': '#ffffff'
             }
           });
 
-          // Punti singoli
+          // Punti singoli non clusterizzati
           map.addLayer({
             id: 'unclustered-point',
             type: 'circle',
@@ -107,8 +109,8 @@ export default function MapView({ onSelect }: Props) {
             }
           });
 
-          // Click sui cluster → zoom in
-          map.on('click', 'clusters', (e) => {
+          // Click su cluster → zoom in
+          map.on('click', 'clusters', e => {
             const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
             const clusterId = (features[0].properties as any).cluster_id;
             (map.getSource('places') as any).getClusterExpansionZoom(
@@ -123,8 +125,8 @@ export default function MapView({ onSelect }: Props) {
             );
           });
 
-          // Click sui punti singoli → apri BottomSheet
-          map.on('click', 'unclustered-point', (e) => {
+          // Click su punto singolo → onSelect
+          map.on('click', 'unclustered-point', e => {
             const features = map.queryRenderedFeatures(e.point, { layers: ['unclustered-point'] });
             const props = features[0].properties as any;
             const coords = (features[0].geometry as any).coordinates as [number, number];
@@ -138,7 +140,7 @@ export default function MapView({ onSelect }: Props) {
             onSelect(place);
           });
 
-          // Cambio cursore hover
+          // Cambio cursore su hover
           ['clusters', 'unclustered-point'].forEach(layer => {
             map.on('mouseenter', layer, () => map.getCanvas().style.cursor = 'pointer');
             map.on('mouseleave', layer, () => map.getCanvas().style.cursor = '');
