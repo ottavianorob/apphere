@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Place } from './types'; // percorso corretto al tuo tipo
+import type { Place } from './types'; // o percorso corretto
 
 type Props = {
   onSelect: (place: Place) => void;
@@ -15,11 +15,9 @@ export default function MapView({ onSelect }: Props) {
 
     const map = new maplibregl.Map({
       container: mapRef.current,
-      style: `https://api.maptiler.com/maps/streets/style.json?key=${
-        import.meta.env.VITE_MAPTILER_KEY
-      }`,
+      style: 'https://demotiles.maplibre.org/style.json',
       center: [9.19, 45.464],
-      zoom: 12
+      zoom: 12,
     });
 
     fetch(import.meta.env.BASE_URL + 'places.json')
@@ -28,17 +26,24 @@ export default function MapView({ onSelect }: Props) {
         places.forEach(place => {
           const [lon, lat] = place.geometry.coordinates;
 
+          // Marker custom come <div>
           const el = document.createElement('div');
-          el.className = 'bg-blue-600 w-3 h-3 rounded-full cursor-pointer';
+          el.className = 'bg-blue-600 w-4 h-4 rounded-full border-2 border-white cursor-pointer';
 
-          const marker = new maplibregl.Marker(el)
+          // Log di debug
+          console.log('Register click listener on', place.id);
+
+          el.addEventListener('click', () => {
+            console.log('Clicked marker', place.id);
+            onSelect(place);
+          });
+
+          new maplibregl.Marker(el)
             .setLngLat([lon, lat])
             .addTo(map);
-
-          el.addEventListener('click', () => onSelect(place));
-          marker.getElement().addEventListener('click', () => onSelect(place));
         });
-      });
+      })
+      .catch(err => console.error('Errore caricamento places.json:', err));
 
     return () => map.remove();
   }, [onSelect]);
