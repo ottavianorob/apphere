@@ -22,22 +22,22 @@ let ok = true;
 
 for (const [slug, itin] of Object.entries(itineraries)) {
   if (!Array.isArray(itin.stops)) {
-    console.error(`❌ itine­rario "${slug}" ha stops non valida`);
+    console.error(`❌ Itinerario "${slug}" ha stops NON valido`);
     ok = false;
     continue;
   }
   itin.stops.forEach(id => {
     if (!ids.has(id)) {
-      console.error(`❌  "${id}" non esiste (itinerario: ${slug})`);
+      console.error(`❌ Tappa "${id}" non trovata (itinerario ${slug})`);
       ok = false;
     }
   });
 }
 
 if (ok) {
-  console.log('✅  Dati coerenti!');
+  console.log('✅ Dati coerenti!');
   process.exit(0);
 } else {
-  console.error('❌  Validazione fallita.');
+  console.error('❌ Validazione fallita.');
   process.exit(1);
 }

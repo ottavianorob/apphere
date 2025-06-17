@@ -1,15 +1,22 @@
-@import "maplibre-gl/dist/maplibre-gl.css";
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-
-
-/* fa occupare tutta l’altezza alla root dell’app */
-html,
-body,
-#root {
-  height: 100%;
+/* reset & styling globali */
+body {
   margin: 0;
+  font-family: system-ui, sans-serif;
+}
+#root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* MapLibre attribution styling */
+.maplibregl-ctrl-attrib {
+  font-size: 0.75rem !important;
+}
+.maplibregl-ctrl-attrib a {
+  color: #007bff !important;
 }

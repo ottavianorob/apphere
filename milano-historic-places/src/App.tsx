@@ -8,7 +8,7 @@ export default function App() {
 
   return (
     <>
-      <MapView onSelect={p => setSelected(p)} />
+      <MapView onSelect={setSelected} />
       {selected && (
         <BottomSheet place={selected} onClose={() => setSelected(null)} />
       )}

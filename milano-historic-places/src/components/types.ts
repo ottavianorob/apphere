@@ -1,10 +1,9 @@
-// src/components/types.ts
 export type Place = {
   id: string;
   title: string;
-  geometry: { type: 'Point'; coordinates: [number, number] };
-  image: string;
   teaser: string;
+  image: string;
+  geometry: { type: 'Point'; coordinates: [number, number] };
 };
 
 export type Itinerary = {
