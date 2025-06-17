@@ -1,8 +1,9 @@
+// src/components/MapView.tsx
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import type { Place } from './types';
 import Supercluster from 'supercluster';
+import type { Place } from './types';
 
 type Props = {
   onSelect: (place: Place) => void;
@@ -32,17 +33,21 @@ export default function MapView({ onSelect }: Props) {
     });
     map.addControl(geolocateControl, 'top-right');
 
-    // 3. Quando la mappa è caricata, carica POI e costruisci il clustering
     map.on('load', () => {
-      fetch(import.meta.env.BASE_URL + 'places.json')
-        .then((res) => res.json())
-        .then((places: Place[]) => {
-          const index = new Supercluster({
-            radius: 50,
-            maxZoom: 20,
-          });
+      console.log('✅ Positron style loaded, aggiungo POI e clustering');
 
-          const features = places.map((p) => ({
+      // Auto-trigger della geolocalizzazione
+      geolocateControl.trigger();
+
+      // 3. Carica i luoghi dal JSON
+      fetch(import.meta.env.BASE_URL + 'places.json')
+        .then(res => res.json())
+        .then((places: Place[]) => {
+          console.log(`🏷️  Loaded ${places.length} places`);
+
+          // Prepara dati per supercluster
+          const index = new Supercluster({ radius: 50, maxZoom: 20 });
+          const features = places.map(p => ({
             type: 'Feature' as const,
             geometry: p.geometry,
             properties: {
@@ -57,23 +62,21 @@ export default function MapView({ onSelect }: Props) {
           let markers: maplibregl.Marker[] = [];
 
           const updateMarkers = () => {
-            // rimuovi marker esistenti
-            markers.forEach((m) => m.remove());
+            markers.forEach(m => m.remove());
             markers = [];
 
             const bounds = map.getBounds().toArray().flat() as [number, number, number, number];
             const zoom = Math.floor(map.getZoom());
             const clusters = index.getClusters(bounds, zoom);
 
-            clusters.forEach((cluster) => {
+            clusters.forEach(cluster => {
               const [lon, lat] = (cluster.geometry.coordinates as [number, number]);
               const el = document.createElement('div');
 
               if ((cluster.properties as any).cluster) {
                 // Cluster
                 const count = (cluster.properties as any).point_count;
-                el.className =
-                  'flex items-center justify-center bg-blue-600 text-white rounded-full';
+                el.className = 'flex items-center justify-center bg-blue-600 text-white rounded-full';
                 const size = 20 + (count / places.length) * 30;
                 el.style.width = el.style.height = `${size}px`;
                 el.textContent = String(count);
@@ -81,27 +84,25 @@ export default function MapView({ onSelect }: Props) {
                 el.style.fontSize = '12px';
                 el.style.fontWeight = 'bold';
                 el.style.boxShadow = '0 0 2px rgba(0,0,0,0.5)';
+
                 el.addEventListener('click', () => {
                   const clusterId = (cluster.properties as any).cluster_id;
-                  index.getClusterExpansionZoom(clusterId, (err, expansionZoom) => {
-                    if (!err) {
-                      map.easeTo({ center: [lon, lat], zoom: expansionZoom });
-                    }
+                  index.getClusterExpansionZoom(clusterId, (_err, expansionZoom) => {
+                    // Zooma al livello +1 oltre a quello di espansione
+                    map.easeTo({ center: [lon, lat], zoom: expansionZoom + 1 });
                   });
                 });
               } else {
                 // Punto singolo
-                el.className =
-                  'bg-pink-400 w-10 h-10 rounded-full border-2 border-white cursor-pointer shadow-lg';
+                el.className = 'bg-pink-400 w-10 h-10 rounded-full border-2 border-white cursor-pointer shadow-lg';
                 el.addEventListener('click', () => {
                   const props = cluster.properties as any;
-                  const coords = (cluster.geometry.coordinates as [number, number]);
                   const place: Place = {
                     id: props.id,
                     title: props.title,
                     teaser: props.teaser,
                     image: props.image,
-                    geometry: { type: 'Point', coordinates: coords },
+                    geometry: { type: 'Point', coordinates: [lon, lat] },
                   };
                   onSelect(place);
                 });
@@ -115,7 +116,7 @@ export default function MapView({ onSelect }: Props) {
           map.on('moveend', updateMarkers);
           updateMarkers();
         })
-        .catch((err) => console.error('Errore caricamento places.json:', err));
+        .catch(err => console.error('Errore caricamento places.json:', err));
     });
 
     return () => {
