@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import type { Place } from './types'; // o percorso corretto
+import type { Place } from './types';
 
 type Props = {
   onSelect: (place: Place) => void;
@@ -12,7 +12,6 @@ export default function MapView({ onSelect }: Props) {
 
   useEffect(() => {
     if (!mapRef.current) return;
-
     const map = new maplibregl.Map({
       container: mapRef.current,
       style: 'https://demotiles.maplibre.org/style.json',
@@ -25,22 +24,14 @@ export default function MapView({ onSelect }: Props) {
       .then((places: Place[]) => {
         places.forEach(place => {
           const [lon, lat] = place.geometry.coordinates;
-
-          // Marker custom come <div>
           const el = document.createElement('div');
           el.className = 'bg-blue-600 w-4 h-4 rounded-full border-2 border-white cursor-pointer';
-
-          // Log di debug
           console.log('Register click listener on', place.id);
-
           el.addEventListener('click', () => {
             console.log('Clicked marker', place.id);
             onSelect(place);
           });
-
-          new maplibregl.Marker(el)
-            .setLngLat([lon, lat])
-            .addTo(map);
+          new maplibregl.Marker(el).setLngLat([lon, lat]).addTo(map);
         });
       })
       .catch(err => console.error('Errore caricamento places.json:', err));
