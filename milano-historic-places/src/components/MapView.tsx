@@ -45,7 +45,7 @@ export default function MapView({ onSelect }: Props) {
     // 2. Aggiungi controllo geolocalizzazione (posizione utente)
     const geolocateControl = new maplibregl.GeolocateControl({
       positionOptions: { enableHighAccuracy: true },
-      trackUserLocation: true,
+      trackUserLocation: false,
       showAccuracyCircle: true,
       showUserLocation: true,
     });
@@ -53,9 +53,6 @@ export default function MapView({ onSelect }: Props) {
 
     map.on('load', () => {
       console.log('✅ Positron style loaded, aggiungo POI e clustering');
-
-      // Auto-trigger della geolocalizzazione
-      geolocateControl.trigger();
 
       // 3. Carica i luoghi dal JSON
       fetch(import.meta.env.BASE_URL + 'places.json')
