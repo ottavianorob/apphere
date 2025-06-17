@@ -4,6 +4,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import Supercluster from 'supercluster';
 import type { Place } from '../types';
+import placesData from '../types/places.json';
 
 type Props = { onSelect: (place: Place) => void; selectedPlace?: Place };
 
@@ -115,20 +116,14 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-left');
 
     map.on('load', () => {
-      fetch('/places.json')
-        .then(res => {
-          if (!res.ok) throw new Error('Fetch places.json failed: ' + res.status);
-          return res.json();
-        })
-        .then((places: Place[]) => {
-          console.log('Loaded places:', places.length, places);
-          allPlacesRef.current = places;
-          buildIndex(places);
-          updateMarkers();
-          map.on('moveend', updateMarkers);
-          map.on('zoomend', updateMarkers);
-        })
-        .catch(err => console.error('Error loading places.json:', err));
+      // Use imported JSON data
+      const places: Place[] = placesData as Place[];
+      console.log('Loaded places from types:', places.length, places);
+      allPlacesRef.current = places;
+      buildIndex(places);
+      updateMarkers();
+      map.on('moveend', updateMarkers);
+      map.on('zoomend', updateMarkers);
     });
 
     return () => { map.remove(); };
