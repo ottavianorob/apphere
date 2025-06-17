@@ -52,8 +52,8 @@ export default function MapView({ onSelect }: Props) {
             type: 'geojson',
             data: geojson,
             cluster: true,
-            clusterMaxZoom: 14,
-            clusterRadius: 50,
+            clusterMaxZoom: 20,
+            clusterRadius: 40,
           });
 
           // Cerchi dei cluster
@@ -73,6 +73,8 @@ export default function MapView({ onSelect }: Props) {
                 30,
                 40,
               ],
+              'circle-stroke-width': 2,
+              'circle-stroke-color': '#ffffff',
             },
           });
 
@@ -89,6 +91,8 @@ export default function MapView({ onSelect }: Props) {
             },
             paint: {
               'text-color': '#ffffff',
+              'text-halo-color': '#51bbd6',
+              'text-halo-width': 2,
             },
           });
 
@@ -98,9 +102,10 @@ export default function MapView({ onSelect }: Props) {
             type: 'circle',
             source: 'places',
             filter: ['!', ['has', 'point_count']],
+            minzoom: 0,
             paint: {
               'circle-color': '#f28cb1',
-              'circle-radius': 8,
+              'circle-radius': 10,
               'circle-stroke-width': 1,
               'circle-stroke-color': '#fff',
             },
