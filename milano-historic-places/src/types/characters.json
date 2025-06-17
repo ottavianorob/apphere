@@ -3,7 +3,7 @@
     "id": "leonardo_da_vinci",
     "name": "Leonardo da Vinci",
     "bio": "Artista, inventore e scienziato del Rinascimento italiano.",
-    "image": "img/characters/char.jpg",
+    "image": "/img/characters/char.jpg",
     "birth": "1452-04-15",
     "death": "1519-05-02",
     "links": [
@@ -14,7 +14,7 @@
     "id": "alessandro_volta",
     "name": "Alessandro Volta",
     "bio": "Fisico e inventore, pioniere nello studio dell'elettricità.",
-    "image": "img/characters/char.jpg",
+    "image": "/img/characters/char.jpg",
     "birth": "1745-02-18",
     "death": "1827-03-05",
     "links": [
@@ -25,7 +25,7 @@
     "id": "giuseppe_verdi",
     "name": "Giuseppe Verdi",
     "bio": "Compositore operistico italiano, autore di capolavori lirici.",
-    "image": "img/characters/char.jpg",
+    "image": "/img/characters/char.jpg",
     "birth": "1813-10-10",
     "death": "1901-01-27",
     "links": [
@@ -36,7 +36,7 @@
     "id": "alessandro_manzoni",
     "name": "Alessandro Manzoni",
     "bio": "Poeta e romanziere, celebre per \"I Promessi Sposi\".",
-    "image": "img/characters/char.jpg",
+    "image": "/img/characters/char.jpg",
     "birth": "1785-03-07",
     "death": "1873-05-22",
     "links": [
@@ -47,7 +47,7 @@
     "id": "maria_callas",
     "name": "Maria Callas",
     "bio": "Iconica soprano greco-americana, protagonista del Teatro alla Scala.",
-    "image": "img/characters/char.jpg",
+    "image": "/img/characters/char.jpg",
     "birth": "1923-12-02",
     "death": "1977-09-16",
     "links": [
@@ -58,7 +58,7 @@
     "id": "luciano_pavarotti",
     "name": "Luciano Pavarotti",
     "bio": "Celebre tenore italiano, parte dei Tre Tenori.",
-    "image": "img/characters/char.jpg",
+    "image": "/img/characters/char.jpg",
     "birth": "1935-10-12",
     "death": "2007-09-06",
     "links": [
@@ -69,7 +69,7 @@
     "id": "enzo_ferrari",
     "name": "Enzo Ferrari",
     "bio": "Fondatore della casa automobilistica Ferrari.",
-    "image": "img/characters/char.jpg",
+    "image": "/img/characters/char.jpg",
     "birth": "1898-02-18",
     "death": "1988-08-14",
     "links": [
@@ -80,7 +80,7 @@
     "id": "vittorio_emanuele_ii",
     "name": "Vittorio Emanuele II",
     "bio": "Primo re d'Italia dopo l'unificazione nazionale.",
-    "image": "img/characters/char.jpg",
+    "image": "/img/characters/char.jpg",
     "birth": "1820-03-14",
     "death": "1878-01-09",
     "links": [
@@ -91,7 +91,7 @@
     "id": "raffaello_sanzio",
     "name": "Raffaello Sanzio",
     "bio": "Pittore e architetto del Rinascimento italiano.",
-    "image": "img/characters/char.jpg",
+    "image": "/img/characters/char.jpg",
     "birth": "1483-04-06",
     "death": "1520-04-06",
     "links": [
@@ -102,7 +102,7 @@
     "id": "camillo_benso_di_cavour",
     "name": "Camillo Benso di Cavour",
     "bio": "Statista e patriota, uno dei padri dell'unificazione italiana.",
-    "image": "img/characters/char.jpg",
+    "image": "/img/characters/char.jpg",
     "birth": "1810-08-10",
     "death": "1861-06-06",
     "links": [

@@ -5,9 +5,9 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import Supercluster from 'supercluster';
 import type { Place } from '../types';
 
-type Props = { onSelect: (place: Place) => void };
+type Props = { onSelect: (place: Place) => void; selectedPlace?: Place };
 
-export default function MapView({ onSelect }: Props) {
+export default function MapView({ onSelect, selectedPlace }: Props) {
   const categories = [
     'All',
     'Storia & Patrimonio',
@@ -31,7 +31,15 @@ export default function MapView({ onSelect }: Props) {
     const features = places.map(p => ({
       type: 'Feature' as const,
       geometry: p.geometry,
-      properties: { id: p.id, title: p.title, teaser: p.teaser, image: p.image },
+      properties: {
+        id: p.id,
+        title: p.title,
+        teaser: p.teaser,
+        category: p.category,
+        photoIds: p.photoIds || [],
+        characterIds: p.characterIds || [],
+        date: p.date || ''
+      },
     }));
     idx.load(features);
     indexRef.current = idx;
@@ -77,7 +85,10 @@ export default function MapView({ onSelect }: Props) {
             id: props.id,
             title: props.title,
             teaser: props.teaser,
-            image: props.image,
+            category: props.category,
+            photoIds: props.photoIds,
+            characterIds: props.characterIds,
+            date: props.date,
             geometry: { type: 'Point', coordinates: [lon, lat] },
           };
           onSelect(place);
@@ -126,6 +137,14 @@ export default function MapView({ onSelect }: Props) {
     buildIndex(filtered);
     updateMarkers();
   }, [filterCategory, updateMarkers]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (map && selectedPlace && selectedPlace.geometry?.coordinates) {
+      const [lon, lat] = selectedPlace.geometry.coordinates;
+      map.easeTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 14) });
+    }
+  }, [selectedPlace]);
 
   return (
     <div className="relative h-screen w-full">
