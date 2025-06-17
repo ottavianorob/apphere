@@ -21,7 +21,10 @@ export default function App() {
         {activeTab === 'profile' && <div>Profilo (placeholder)</div>}
         {selected && <BottomSheet place={selected} onClose={() => setSelected(null)} />}
       </div>
-      <BottomNav />
+      <BottomNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+      />
       {activeTab === 'map' && (
         <FloatingActionButton
           mode={fabMode}
