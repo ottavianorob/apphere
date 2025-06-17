@@ -1,33 +1,38 @@
 // src/components/ui/BottomSheet.tsx
 import React from 'react';
 import type { Place } from '../types';
+import type { Photo } from '../types';
+import type { Character } from '../types';
 
 interface Props {
   place: Place;
-  photos?: { id: string; url: string; caption: string }[];
-  characters?: { id: string; name: string; image: string }[];
+  photos?: Photo[];
+  characters?: Character[];
   onClose: () => void;
 }
 
 export default function BottomSheet({ place, photos = [], characters = [], onClose }: Props) {
+  const formattedDate = place.date ? new Date(place.date).toLocaleDateString() : null;
+
   return (
-    <div className="fixed inset-x-0 bottom-0 max-h-[90%] bg-white rounded-t-2xl shadow-2xl overflow-y-auto">
+    <div className="fixed inset-x-0 bottom-0 max-h-[90%] bg-white rounded-t-2xl shadow-2xl flex flex-col">
       {/* Drag handle */}
-      <div className="w-12 h-1.5 bg-gray-300 mx-auto mt-2 rounded-full" />
+      <div className="self-center w-12 h-1.5 bg-gray-300 mt-2 rounded-full" />
 
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-3 border-b">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">{place.title}</h2>
-          <p className="text-sm font-medium text-indigo-600 mt-1">
-            {place.category}
-          </p>
-          {place.tags && (
-            <div className="flex flex-wrap gap-2 mt-2">
+      <div className="px-6 py-4 flex items-center justify-between">
+        <div className="flex-1 pr-4">
+          <h2 className="text-2xl font-bold text-gray-900">{place.title}</h2>
+          <div className="mt-1 flex items-center space-x-4 text-sm">
+            <span className="font-medium text-indigo-600">{place.category}</span>
+            {formattedDate && <span className="text-gray-500">{formattedDate}</span>}
+          </div>
+          {place.tags && place.tags.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
               {place.tags.map(tag => (
                 <span
                   key={tag}
-                  className="text-xs uppercase bg-gray-100 text-gray-700 px-2 py-1 rounded-full" 
+                  className="text-xs uppercase bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
                 >
                   {tag}
                 </span>
@@ -37,49 +42,57 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
         </div>
         <button
           onClick={onClose}
-          aria-label="Chiudi"
-          className="text-gray-500 hover:text-gray-800"
+          aria-label="Chiudi dettagli"
+          className="text-gray-400 hover:text-gray-600"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
+               viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
 
-      {place.date && (
-        <p className="px-5 text-sm text-gray-500">{new Date(place.date).toLocaleDateString()}</p>
-      )}
-
+      {/* Photos carousel */}
       {photos.length > 0 && (
-        <div className="py-4">
-          <div className="flex overflow-x-auto space-x-2 px-5">
+        <div className="px-6 py-2">
+          <div className="flex overflow-x-auto space-x-3 pb-2">
             {photos.map(photo => (
-              <img
-                key={photo.id}
-                src={photo.url}
-                alt={photo.caption}
-                className="w-32 h-20 object-cover rounded-lg flex-shrink-0"
-              />
+              <div key={photo.id} className="flex-shrink-0">
+                <img
+                  src={photo.url}
+                  alt={photo.caption}
+                  className="w-40 h-24 object-cover rounded-lg"
+                />
+                {photo.caption && (
+                  <p className="mt-1 text-xs text-gray-600 text-center">{photo.caption}</p>
+                )}
+              </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Teaser */}
+      {/* Teaser / Description */}
       {place.teaser && (
-        <div className="p-5 text-gray-800 space-y-4">
-          <p className="text-base leading-relaxed">{place.teaser}</p>
+        <div className="px-6 py-3 border-t">
+          <p className="text-gray-800 leading-relaxed">{place.teaser}</p>
         </div>
       )}
 
+      {/* Characters list */}
       {characters.length > 0 && (
-        <div className="px-5 py-4">
+        <div className="px-6 py-4 border-t">
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Personaggi</h3>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex overflow-x-auto space-x-4">
             {characters.map(char => (
-              <div key={char.id} className="flex items-center space-x-2">
-                <img src={char.image} alt={char.name} className="w-8 h-8 rounded-full object-cover" />
-                <span className="text-sm text-gray-800">{char.name}</span>
+              <div key={char.id} className="flex-shrink-0 text-center">
+                <img
+                  src={char.image}
+                  alt={char.name}
+                  className="w-12 h-12 object-cover rounded-full mx-auto"
+                />
+                <span className="mt-1 block text-sm text-gray-800">{char.name}</span>
               </div>
             ))}
           </div>
@@ -87,7 +100,7 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
       )}
 
       {/* Actions */}
-      <div className="px-5 py-4 border-t flex justify-end">
+      <div className="px-6 py-4 border-t flex justify-end">
         <button
           onClick={() => window.open(place.links?.fullInfo || '#', '_blank')}
           className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition"
