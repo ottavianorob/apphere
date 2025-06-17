@@ -149,11 +149,11 @@ export default function MapView({ onSelect }: Props) {
 
   return (
     <div className="relative h-screen w-full">
-      <div className="absolute top-4 left-4 bg-white/90 p-2 rounded shadow">
+      <div className="absolute top-4 left-4 bg-white/90 p-2 rounded shadow z-20">
         <select
           value={filterCategory}
           onChange={e => setFilterCategory(e.target.value)}
-          className="text-sm"
+          className="text-sm w-full"
         >
           {categories.map(cat => (
             <option key={cat} value={cat}>{cat}</option>
