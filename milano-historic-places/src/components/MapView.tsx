@@ -1,5 +1,5 @@
 // src/components/MapView.tsx
-import { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import Supercluster from 'supercluster';
@@ -10,6 +10,17 @@ type Props = {
 };
 
 export default function MapView({ onSelect }: Props) {
+  // category filter state
+  const categories = [
+    'All',
+    'Storia & Patrimonio',
+    'Arte & Cultura',
+    'Cronaca & Società',
+    'Cinema & TV',
+    'Musica & Spettacolo'
+  ];
+  const [filterCategory, setFilterCategory] = useState<string>('All');
+
   const mapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -17,19 +28,19 @@ export default function MapView({ onSelect }: Props) {
 
     // 1. Inizializza la mappa con stile Positron
     const map = new maplibregl.Map({
-    container: mapRef.current,
-    style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-    center: [9.19, 45.464],
-    zoom: 12,
-    // disabilito l’attribuzione di default
-    attributionControl: false,
-  });
+      container: mapRef.current,
+      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+      center: [9.19, 45.464],
+      zoom: 12,
+      // disabilito l’attribuzione di default
+      attributionControl: false,
+    });
 
-  // ri-aggiungo l’attribuzione in basso a sinistra in modalità compatta
-  map.addControl(
-    new maplibregl.AttributionControl({ compact: true }),
-    'bottom-left'
-  );
+    // ri-aggiungo l’attribuzione in basso a sinistra in modalità compatta
+    map.addControl(
+      new maplibregl.AttributionControl({ compact: true }),
+      'bottom-left'
+    );
 
     // 2. Aggiungi controllo geolocalizzazione (posizione utente)
     const geolocateControl = new maplibregl.GeolocateControl({
@@ -52,9 +63,14 @@ export default function MapView({ onSelect }: Props) {
         .then((places: Place[]) => {
           console.log(`🏷️  Loaded ${places.length} places`);
 
+          // filter by category
+          const filteredPlaces = filterCategory === 'All'
+            ? places
+            : places.filter(p => p.category === filterCategory);
+
           // Prepara dati per supercluster
           const index = new Supercluster({ radius: 50, maxZoom: 20 });
-          const features = places.map(p => ({
+          const features = filteredPlaces.map(p => ({
             type: 'Feature' as const,
             geometry: p.geometry,
             properties: {
@@ -84,7 +100,7 @@ export default function MapView({ onSelect }: Props) {
                 // Cluster
                 const count = (cluster.properties as any).point_count;
                 el.className = 'flex items-center justify-center bg-blue-600 text-white rounded-full';
-                const size = 20 + (count / places.length) * 30;
+                const size = 20 + (count / filteredPlaces.length) * 30;
                 el.style.width = el.style.height = `${size}px`;
                 el.textContent = String(count);
                 el.style.cursor = 'pointer';
@@ -129,7 +145,22 @@ export default function MapView({ onSelect }: Props) {
     return () => {
       map.remove();
     };
-  }, [onSelect]);
+  }, [onSelect, filterCategory]);
 
-  return <div ref={mapRef} className="h-screen w-full" />;
+  return (
+    <div className="relative h-screen w-full">
+      <div className="absolute top-4 left-4 bg-white/90 p-2 rounded shadow">
+        <select
+          value={filterCategory}
+          onChange={e => setFilterCategory(e.target.value)}
+          className="text-sm"
+        >
+          {categories.map(cat => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+      </div>
+      <div ref={mapRef} className="h-full w-full" />
+    </div>
+  );
 }
