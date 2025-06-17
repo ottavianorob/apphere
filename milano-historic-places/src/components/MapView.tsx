@@ -149,16 +149,20 @@ export default function MapView({ onSelect }: Props) {
 
   return (
     <div className="relative h-screen w-full">
-      <div className="absolute top-4 left-4 bg-white/90 p-2 rounded shadow z-20">
-        <select
-          value={filterCategory}
-          onChange={e => setFilterCategory(e.target.value)}
-          className="text-sm w-full"
-        >
-          {categories.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
+      <div className="absolute top-4 left-4 bg-white/90 p-2 rounded-full shadow z-20 flex space-x-2 overflow-x-auto">
+        {categories.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setFilterCategory(cat)}
+            className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition ${
+              filterCategory === cat
+                ? 'bg-indigo-600 text-white'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
       </div>
       <div ref={mapRef} className="h-full w-full" />
     </div>
