@@ -4,79 +4,109 @@
     "title": "Castello Sforzesco",
     "category": "Storia & Patrimonio",
     "geometry": { "type": "Point", "coordinates": [9.1719, 45.4709] },
-    "image": "/img/castello.jpg",
-    "teaser": "Fortezza rinascimentale simbolo di Milano."
+    "image": "/img/photos/photo.jpg",
+    "teaser": "Fortezza rinascimentale simbolo di Milano.",
+    "photoIds": [],
+    "characterIds": [],
+    "date": ""
   },
   {
     "id": "duomo_milano",
     "title": "Duomo di Milano",
     "category": "Storia & Patrimonio",
     "geometry": { "type": "Point", "coordinates": [9.1910, 45.4642] },
-    "image": "/img/duomo_milano.jpg",
-    "teaser": "La cattedrale gotica che domina Piazza del Duomo."
+    "image": "/img/photos/photo.jpg",
+    "teaser": "La cattedrale gotica che domina Piazza del Duomo.",
+    "photoIds": [],
+    "characterIds": [],
+    "date": ""
   },
   {
     "id": "galleria_vittorio_emanuele",
     "title": "Galleria Vittorio Emanuele II",
     "category": "Arte & Cultura",
     "geometry": { "type": "Point", "coordinates": [9.1927, 45.4641] },
-    "image": "/img/guazzoni.jpg",
-    "teaser": "Passaggio coperto ottocentesco, simbolo di eleganza."
+    "image": "/img/photos/photo.jpg",
+    "teaser": "Passaggio coperto ottocentesco, simbolo di eleganza.",
+    "photoIds": [],
+    "characterIds": [],
+    "date": ""
   },
   {
     "id": "pinacoteca_brera",
     "title": "Pinacoteca di Brera",
     "category": "Arte & Cultura",
     "geometry": { "type": "Point", "coordinates": [9.1872, 45.4728] },
-    "image": "/img/guazzoni.jpg",
-    "teaser": "Una delle più importanti collezioni d’arte italiane."
+    "image": "/img/photos/photo.jpg",
+    "teaser": "Una delle più importanti collezioni d’arte italiane.",
+    "photoIds": [],
+    "characterIds": [],
+    "date": ""
   },
   {
     "id": "santa_maria_delle_grazie",
     "title": "Santa Maria delle Grazie",
     "category": "Arte & Cultura",
     "geometry": { "type": "Point", "coordinates": [9.1758, 45.4660] },
-    "image": "/img/grazie.jpg",
-    "teaser": "Dove è custodita l’Ultima Cena di Leonardo da Vinci."
+    "image": "/img/photos/photo.jpg",
+    "teaser": "Dove è custodita l’Ultima Cena di Leonardo da Vinci.",
+    "photoIds": [],
+    "characterIds": [],
+    "date": ""
   },
   {
     "id": "teatro_alla_scala",
     "title": "Teatro alla Scala",
     "category": "Musica & Spettacolo",
     "geometry": { "type": "Point", "coordinates": [9.1895, 45.4670] },
-    "image": "/img/castiglioni.jpg",
-    "teaser": "Il celebre teatro d’opera di fama mondiale."
+    "image": "/img/photos/photo.jpg",
+    "teaser": "Il celebre teatro d’opera di fama mondiale.",
+    "photoIds": [],
+    "characterIds": [],
+    "date": ""
   },
   {
     "id": "castiglioni",
     "title": "Palazzo Castiglioni",
     "category": "Storia & Patrimonio",
     "geometry": { "type": "Point", "coordinates": [9.2070, 45.4730] },
-    "image": "/img/castiglioni.jpg",
-    "teaser": "Capolavoro Liberty a Porta Venezia."
+    "image": "/img/photos/photo.jpg",
+    "teaser": "Capolavoro Liberty a Porta Venezia.",
+    "photoIds": [],
+    "characterIds": [],
+    "date": ""
   },
   {
     "id": "galimberti",
     "title": "Casa Galimberti",
     "category": "Arte & Cultura",
     "geometry": { "type": "Point", "coordinates": [9.2040, 45.4750] },
-    "image": "/img/galimberti.jpg",
-    "teaser": "Eleganti mosaici e decorazioni floreali Liberty."
+    "image": "/img/photos/photo.jpg",
+    "teaser": "Eleganti mosaici e decorazioni floreali Liberty.",
+    "photoIds": [],
+    "characterIds": [],
+    "date": ""
   },
   {
     "id": "guazzoni",
     "title": "Casa Guazzoni",
     "category": "Arte & Cultura",
     "geometry": { "type": "Point", "coordinates": [9.2020, 45.4760] },
-    "image": "/img/guazzoni.jpg",
-    "teaser": "Art Nouveau con stucchi e vetrate suggestive."
+    "image": "/img/photos/photo.jpg",
+    "teaser": "Art Nouveau con stucchi e vetrate suggestive.",
+    "photoIds": [],
+    "characterIds": [],
+    "date": ""
   },
   {
     "id": "diurno",
     "title": "Albergo Diurno Venezia",
     "category": "Storia & Patrimonio",
     "geometry": { "type": "Point", "coordinates": [9.2040, 45.4720] },
-    "image": "/img/diurno.jpg",
-    "teaser": "Storico spazio di relax pubblico in stile Liberty."
+    "image": "/img/photos/photo.jpg",
+    "teaser": "Storico spazio di relax pubblico in stile Liberty.",
+    "photoIds": [],
+    "characterIds": [],
+    "date": ""
   }
 ]

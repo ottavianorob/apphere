@@ -1,0 +1,112 @@
+[
+  {
+    "id": "leonardo_da_vinci",
+    "name": "Leonardo da Vinci",
+    "bio": "Artista, inventore e scienziato del Rinascimento italiano.",
+    "image": "/img/characters/leonardo_da_vinci.jpg",
+    "birth": "1452-04-15",
+    "death": "1519-05-02",
+    "links": [
+      { "label": "Wikipedia", "url": "https://it.wikipedia.org/wiki/Leonardo_da_Vinci" }
+    ]
+  },
+  {
+    "id": "alessandro_volta",
+    "name": "Alessandro Volta",
+    "bio": "Fisico e inventore, pioniere nello studio dell'elettricità.",
+    "image": "/img/characters/alessandro_volta.jpg",
+    "birth": "1745-02-18",
+    "death": "1827-03-05",
+    "links": [
+      { "label": "Wikipedia", "url": "https://it.wikipedia.org/wiki/Alessandro_Volta" }
+    ]
+  },
+  {
+    "id": "giuseppe_verdi",
+    "name": "Giuseppe Verdi",
+    "bio": "Compositore operistico italiano, autore di capolavori lirici.",
+    "image": "/img/characters/giuseppe_verdi.jpg",
+    "birth": "1813-10-10",
+    "death": "1901-01-27",
+    "links": [
+      { "label": "Wikipedia", "url": "https://it.wikipedia.org/wiki/Giuseppe_Verdi" }
+    ]
+  },
+  {
+    "id": "alessandro_manzoni",
+    "name": "Alessandro Manzoni",
+    "bio": "Poeta e romanziere, celebre per \"I Promessi Sposi\".",
+    "image": "/img/characters/alessandro_manzoni.jpg",
+    "birth": "1785-03-07",
+    "death": "1873-05-22",
+    "links": [
+      { "label": "Wikipedia", "url": "https://it.wikipedia.org/wiki/Alessandro_Manzoni" }
+    ]
+  },
+  {
+    "id": "maria_callas",
+    "name": "Maria Callas",
+    "bio": "Iconica soprano greco-americana, protagonista del Teatro alla Scala.",
+    "image": "/img/characters/maria_callas.jpg",
+    "birth": "1923-12-02",
+    "death": "1977-09-16",
+    "links": [
+      { "label": "Wikipedia", "url": "https://it.wikipedia.org/wiki/Maria_Callas" }
+    ]
+  },
+  {
+    "id": "luciano_pavarotti",
+    "name": "Luciano Pavarotti",
+    "bio": "Celebre tenore italiano, parte dei Tre Tenori.",
+    "image": "/img/characters/luciano_pavarotti.jpg",
+    "birth": "1935-10-12",
+    "death": "2007-09-06",
+    "links": [
+      { "label": "Wikipedia", "url": "https://it.wikipedia.org/wiki/Luciano_Pavarotti" }
+    ]
+  },
+  {
+    "id": "enzo_ferrari",
+    "name": "Enzo Ferrari",
+    "bio": "Fondatore della casa automobilistica Ferrari.",
+    "image": "/img/characters/enzo_ferrari.jpg",
+    "birth": "1898-02-18",
+    "death": "1988-08-14",
+    "links": [
+      { "label": "Wikipedia", "url": "https://it.wikipedia.org/wiki/Enzo_Ferrari" }
+    ]
+  },
+  {
+    "id": "vittorio_emanuele_ii",
+    "name": "Vittorio Emanuele II",
+    "bio": "Primo re d'Italia dopo l'unificazione nazionale.",
+    "image": "/img/characters/vittorio_emanuele_ii.jpg",
+    "birth": "1820-03-14",
+    "death": "1878-01-09",
+    "links": [
+      { "label": "Wikipedia", "url": "https://it.wikipedia.org/wiki/Vittorio_Emanuele_II" }
+    ]
+  },
+  {
+    "id": "raffaello_sanzio",
+    "name": "Raffaello Sanzio",
+    "bio": "Pittore e architetto del Rinascimento italiano.",
+    "image": "/img/characters/raffaello_sanzio.jpg",
+    "birth": "1483-04-06",
+    "death": "1520-04-06",
+    "links": [
+      { "label": "Wikipedia", "url": "https://it.wikipedia.org/wiki/Raffaello_Sanzio" }
+    ]
+  },
+  {
+    "id": "camillo_benso_di_cavour",
+    "name": "Camillo Benso di Cavour",
+    "bio": "Statista e patriota, uno dei padri dell'unificazione italiana.",
+    "image": "/img/characters/cavour.jpg",
+    "birth": "1810-08-10",
+    "death": "1861-06-06",
+    "links": [
+      { "label": "Wikipedia", "url": "https://it.wikipedia.org/wiki/Camillo_Benso,_conte_di_Cavour" }
+    ]
+  }
+]

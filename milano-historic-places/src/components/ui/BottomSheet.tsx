@@ -4,10 +4,12 @@ import type { Place } from '../types';
 
 interface Props {
   place: Place;
+  photos?: { id: string; url: string; caption: string }[];
+  characters?: { id: string; name: string; image: string }[];
   onClose: () => void;
 }
 
-export default function BottomSheet({ place, onClose }: Props) {
+export default function BottomSheet({ place, photos = [], characters = [], onClose }: Props) {
   return (
     <div className="fixed inset-x-0 bottom-0 max-h-[90%] bg-white rounded-t-2xl shadow-2xl overflow-y-auto">
       {/* Drag handle */}
@@ -44,13 +46,23 @@ export default function BottomSheet({ place, onClose }: Props) {
         </button>
       </div>
 
-      {/* Image */}
-      {place.image && (
-        <img
-          src={place.image}
-          alt={place.title}
-          className="w-full h-48 object-cover"
-        />
+      {place.date && (
+        <p className="px-5 text-sm text-gray-500">{new Date(place.date).toLocaleDateString()}</p>
+      )}
+
+      {photos.length > 0 && (
+        <div className="py-4">
+          <div className="flex overflow-x-auto space-x-2 px-5">
+            {photos.map(photo => (
+              <img
+                key={photo.id}
+                src={photo.url}
+                alt={photo.caption}
+                className="w-32 h-20 object-cover rounded-lg flex-shrink-0"
+              />
+            ))}
+          </div>
+        </div>
       )}
 
       {/* Teaser */}
@@ -60,10 +72,24 @@ export default function BottomSheet({ place, onClose }: Props) {
         </div>
       )}
 
+      {characters.length > 0 && (
+        <div className="px-5 py-4">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Personaggi</h3>
+          <div className="flex flex-wrap gap-3">
+            {characters.map(char => (
+              <div key={char.id} className="flex items-center space-x-2">
+                <img src={char.image} alt={char.name} className="w-8 h-8 rounded-full object-cover" />
+                <span className="text-sm text-gray-800">{char.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="px-5 py-4 border-t flex justify-end">
         <button
-          onClick={() => window.open(place.image || '#', '_blank')}
+          onClick={() => window.open(place.links?.fullInfo || '#', '_blank')}
           className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition"
         >
           Approfondisci

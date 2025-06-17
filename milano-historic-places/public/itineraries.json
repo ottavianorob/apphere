@@ -18,3 +18,87 @@
     ]
   }
 }
+{
+  "milano_sforza": {
+    "title": "Milano degli Sforza",
+    "stops": [
+      "castello_sforzesco",
+      "pinacoteca_brera",
+      "santa_maria_delle_grazie",
+      "colonne"
+    ]
+  },
+  "liberty_milano": {
+    "title": "Liberty in Porta Venezia",
+    "stops": [
+      "castiglioni",
+      "galimberti",
+      "guazzoni",
+      "diurno"
+    ]
+  },
+  "duomo_walk": {
+    "title": "Alla scoperta del Duomo",
+    "stops": [
+      "duomo_milano",
+      "galleria_vittorio_emanuele",
+      "pinacoteca_brera"
+    ]
+  },
+  "arte_brera": {
+    "title": "Tour dell'Arte a Brera",
+    "stops": [
+      "pinacoteca_brera",
+      "galleria_vittorio_emanuele",
+      "duomo_milano"
+    ]
+  },
+  "cinema_tv": {
+    "title": "Itinerario Cinema & TV",
+    "stops": [
+      "duomo_milano",
+      "santa_maria_delle_grazie",
+      "castello_sforzesco"
+    ]
+  },
+  "musica_spettacolo": {
+    "title": "Musica & Spettacolo",
+    "stops": [
+      "teatro_alla_scala",
+      "castello_sforzesco",
+      "duomo_milano"
+    ]
+  },
+  "cronaca_societa": {
+    "title": "Cronaca & Società",
+    "stops": [
+      "castello_sforzesco",
+      "santa_maria_delle_grazie",
+      "duomo_milano"
+    ]
+  },
+  "storia_antica": {
+    "title": "Storia Antica",
+    "stops": [
+      "castello_sforzesco",
+      "santa_maria_delle_grazie",
+      "pinacoteca_brera"
+    ]
+  },
+  "architettura_modern": {
+    "title": "Architettura Moderna",
+    "stops": [
+      "galleria_vittorio_emanuele",
+      "teatro_alla_scala",
+      "castiglioni"
+    ]
+  },
+  "expo_e_rassegne": {
+    "title": "Expo e Grandi Eventi",
+    "stops": [
+      "duomo_milano",
+      "teatro_alla_scala",
+      "pinacoteca_brera"
+    ]
+  }
+}
