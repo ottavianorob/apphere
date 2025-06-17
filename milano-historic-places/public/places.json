@@ -1,45 +1,66 @@
 [
   {
     "id": "branca",
-    "title": "Monumento a Leonardo da Vinci",
-    "geometry": { "type": "Point", "coordinates": [9.19, 45.464] },
-    "image": "/img/monumento_leonardo.jpg",
-    "teaser": "Il celebre monumento nel cuore di Milano"
+    "title": "Torre Branca",
+    "category": "Storia & Patrimonio",
+    "geometry": { "type": "Point", "coordinates": [9.1701, 45.4720] },
+    "image": "/img/castiglioni.jpg",
+    "teaser": "La torre panoramica in Acciaio simbolo della Triennale (1933)."
   },
   {
     "id": "grazie",
     "title": "Santa Maria delle Grazie",
-    "geometry": { "type": "Point", "coordinates": [9.177, 45.466] },
-    "image": "/img/santa_maria_delle_grazie.jpg",
-    "teaser": "Dove si trova l’Ultima Cena di Leonardo"
+    "category": "Storia & Patrimonio",
+    "geometry": { "type": "Point", "coordinates": [9.1719, 45.4661] },
+    "image": "/img/grazie.jpg",
+    "teaser": "Il celebre convento che ospita l’Ultima Cena di Leonardo."
   },
-  /* … tutti gli altri POI originali … */
+  {
+    "id": "san_maurizio",
+    "title": "San Maurizio al Monastero Maggiore",
+    "category": "Storia & Patrimonio",
+    "geometry": { "type": "Point", "coordinates": [9.1765, 45.4650] },
+    "image": "/img/san_maurizio.jpg",
+    "teaser": "La 'Cappella Sistina' di Milano: affreschi rinascimentali spettacolari."
+  },
+  {
+    "id": "colonne",
+    "title": "Colonne di San Lorenzo",
+    "category": "Storia & Patrimonio",
+    "geometry": { "type": "Point", "coordinates": [9.1834, 45.4569] },
+    "image": "/img/diurno.jpg",
+    "teaser": "Raro complesso romano del IV secolo ancora visibile in città."
+  },
   {
     "id": "castiglioni",
     "title": "Palazzo Castiglioni",
-    "geometry": { "type": "Point", "coordinates": [9.207, 45.473] },
+    "category": "Arte & Cultura",
+    "geometry": { "type": "Point", "coordinates": [9.2039, 45.4770] },
     "image": "/img/castiglioni.jpg",
-    "teaser": "Un esempio di architettura Liberty a Porta Venezia"
+    "teaser": "Capolavoro Liberty di Giuseppe Sommaruga (1903)."
   },
   {
     "id": "galimberti",
     "title": "Casa Galimberti",
-    "geometry": { "type": "Point", "coordinates": [9.204, 45.475] },
+    "category": "Arte & Cultura",
+    "geometry": { "type": "Point", "coordinates": [9.2086, 45.4759] },
     "image": "/img/galimberti.jpg",
-    "teaser": "Decorazioni floreali e vetrate liberty"
+    "teaser": "Facciata in piastrelle policrome, un’icona dell’Art Nouveau milanese."
   },
   {
     "id": "guazzoni",
     "title": "Casa Guazzoni",
-    "geometry": { "type": "Point", "coordinates": [9.202, 45.476] },
+    "category": "Arte & Cultura",
+    "geometry": { "type": "Point", "coordinates": [9.2080, 45.4763] },
     "image": "/img/guazzoni.jpg",
-    "teaser": "Imponenti mosaici e stucchi liberty"
+    "teaser": "Decorazioni floreali in ferro battuto e ceramica smaltata (1906)."
   },
   {
     "id": "diurno",
     "title": "Albergo Diurno Venezia",
-    "geometry": { "type": "Point", "coordinates": [9.204, 45.472] },
+    "category": "Arte & Cultura",
+    "geometry": { "type": "Point", "coordinates": [9.2048, 45.4790] },
     "image": "/img/diurno.jpg",
-    "teaser": "Un raro spazio pubblico in stile liberty"
+    "teaser": "Bagni pubblici e servizi di lusso sotto Piazza Oberdan, 1925."
   }
 ]
