@@ -1,26 +1,7 @@
 {
   "milano_sforza": {
     "title": "Milano degli Sforza",
-    "stops": [
-      "branca",
-      "grazie",
-      "san_maurizio",
-      "colonne"
-    ]
-  },
-  "liberty_milano": {
-    "title": "Liberty in Porta Venezia",
-    "stops": [
-      "castiglioni",
-      "galimberti",
-      "guazzoni",
-      "diurno"
-    ]
-  }
-}
-{
-  "milano_sforza": {
-    "title": "Milano degli Sforza",
+    "image": "/img/paths/path.jpg",
     "stops": [
       "castello_sforzesco",
       "pinacoteca_brera",
@@ -30,6 +11,7 @@
   },
   "liberty_milano": {
     "title": "Liberty in Porta Venezia",
+    "image": "/img/paths/path.jpg",
     "stops": [
       "castiglioni",
       "galimberti",
@@ -39,6 +21,7 @@
   },
   "duomo_walk": {
     "title": "Alla scoperta del Duomo",
+    "image": "/img/paths/path.jpg",
     "stops": [
       "duomo_milano",
       "galleria_vittorio_emanuele",
@@ -47,6 +30,7 @@
   },
   "arte_brera": {
     "title": "Tour dell'Arte a Brera",
+    "image": "/img/paths/path.jpg",
     "stops": [
       "pinacoteca_brera",
       "galleria_vittorio_emanuele",
@@ -55,6 +39,7 @@
   },
   "cinema_tv": {
     "title": "Itinerario Cinema & TV",
+    "image": "/img/paths/path.jpg",
     "stops": [
       "duomo_milano",
       "santa_maria_delle_grazie",
@@ -63,6 +48,7 @@
   },
   "musica_spettacolo": {
     "title": "Musica & Spettacolo",
+    "image": "/img/paths/path.jpg",
     "stops": [
       "teatro_alla_scala",
       "castello_sforzesco",
@@ -71,6 +57,7 @@
   },
   "cronaca_societa": {
     "title": "Cronaca & Società",
+    "image": "/img/paths/path.jpg",
     "stops": [
       "castello_sforzesco",
       "santa_maria_delle_grazie",
@@ -79,6 +66,7 @@
   },
   "storia_antica": {
     "title": "Storia Antica",
+    "image": "/img/paths/path.jpg",
     "stops": [
       "castello_sforzesco",
       "santa_maria_delle_grazie",
@@ -87,6 +75,7 @@
   },
   "architettura_modern": {
     "title": "Architettura Moderna",
+    "image": "/img/paths/path.jpg",
     "stops": [
       "galleria_vittorio_emanuele",
       "teatro_alla_scala",
@@ -95,6 +84,7 @@
   },
   "expo_e_rassegne": {
     "title": "Expo e Grandi Eventi",
+    "image": "/img/paths/path.jpg",
     "stops": [
       "duomo_milano",
       "teatro_alla_scala",

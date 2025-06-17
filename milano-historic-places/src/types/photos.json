@@ -1,7 +1,7 @@
 [
   {
     "id": "ultima_cena",
-    "url": "/img/photos/photo.jpg",
+    "url": "img/photos/photo.jpg",
     "caption": "L'Ultima Cena di Leonardo da Vinci, 1498",
     "date": "1498-01-01",
     "credit": "Leonardo da Vinci",
@@ -9,14 +9,14 @@
   },
   {
     "id": "prima_scala_1778",
-    "url": "/img/photos/photo.jpg",
+    "url": "img/photos/photo.jpg",
     "caption": "Inaugurazione Teatro alla Scala, 1778",
     "date": "1778-08-03",
     "credit": "Archivio Storico Teatro alla Scala"
   },
   {
     "id": "apertura_galleria_1867",
-    "url": "/img/photos/photo.jpg",
+    "url": "img/photos/photo.jpg",
     "caption": "Apertura della Galleria Vittorio Emanuele II, 1867",
     "date": "1867-09-15",
     "credit": "Archivio Storico Comunale",
@@ -24,14 +24,14 @@
   },
   {
     "id": "inaugurazione_pinacoteca_1809",
-    "url": "/img/photos/photo.jpg",
+    "url": "img/photos/photo.jpg",
     "caption": "Inaugurazione della Pinacoteca di Brera, 1809",
     "date": "1809-01-13",
     "credit": "Pinacoteca di Brera"
   },
   {
     "id": "expo_milano_2015",
-    "url": "/img/photos/photo.jpg",
+    "url": "img/photos/photo.jpg",
     "caption": "Esposizione Universale Milano Expo 2015",
     "date": "2015-05-01",
     "credit": "Comune di Milano",
@@ -39,14 +39,14 @@
   },
   {
     "id": "pizza_village_2018",
-    "url": "/img/photos/photo.jpg",
+    "url": "img/photos/photo.jpg",
     "caption": "Pizza Village Milano, 2018",
     "date": "2018-06-15",
     "credit": "Eventi Alimentari"
   },
   {
     "id": "coca_cola_idays_2019",
-    "url": "/img/photos/photo.jpg",
+    "url": "img/photos/photo.jpg",
     "caption": "Coca-Cola I-Days, 2019",
     "date": "2019-06-20",
     "credit": "Coca-Cola Company"
