@@ -25,15 +25,15 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen">
       <div className="flex-1 relative">
-        {activeTab === 'map' && <MapView onSelect={setSelected} />}
+        {activeTab === 'map' && <MapView selectedPlace={selected} onSelect={setSelected} />}
         {activeTab === 'playlists' && (
           <ItinerariesPage
             itineraries={itinerariesData}
             places={placesData}
             onStart={(it, stops) => {
-              // Example: center map on first stop
               const firstPlace = placesData.find(p => p.id === stops[0]);
               if (firstPlace) {
+                setActiveTab('map');
                 setSelected(firstPlace);
               }
             }}
