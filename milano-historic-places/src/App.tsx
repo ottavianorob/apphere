@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import MapView from './components/MapView';
 import BottomSheet from './components/ui/BottomSheet';
+import BottomNav from './components/ui/BottomNav';
 import type { Place } from './components/types';
 
 export default function App() {
@@ -12,6 +13,7 @@ export default function App() {
       {selected && (
         <BottomSheet place={selected} onClose={() => setSelected(null)} />
       )}
+      <BottomNav />
     </>
   );
 }
