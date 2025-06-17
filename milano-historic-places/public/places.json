@@ -1,66 +1,72 @@
 [
   {
-    "id": "branca",
-    "title": "Torre Branca",
-    "category": "Storia & Patrimonio",
-    "geometry": { "type": "Point", "coordinates": [9.1701, 45.4720] },
-    "image": "/img/castiglioni.jpg",
-    "teaser": "La torre panoramica in Acciaio simbolo della Triennale (1933)."
+    "id": "castello_sforzesco",
+    "title": "Castello Sforzesco",
+    "geometry": { "type": "Point", "coordinates": [9.1719, 45.4709] },
+    "image": "/img/castello_sforzesco.jpg",
+    "teaser": "Fortezza rinascimentale simbolo di Milano."
   },
   {
-    "id": "grazie",
+    "id": "duomo_milano",
+    "title": "Duomo di Milano",
+    "geometry": { "type": "Point", "coordinates": [9.1910, 45.4642] },
+    "image": "/img/duomo_milano.jpg",
+    "teaser": "La cattedrale gotica che domina Piazza del Duomo."
+  },
+  {
+    "id": "galleria_vittorio_emanuele",
+    "title": "Galleria Vittorio Emanuele II",
+    "geometry": { "type": "Point", "coordinates": [9.1927, 45.4641] },
+    "image": "/img/galleria_vittorio_emanuele.jpg",
+    "teaser": "Passaggio coperto ottocentesco, simbolo di eleganza."
+  },
+  {
+    "id": "pinacoteca_brera",
+    "title": "Pinacoteca di Brera",
+    "geometry": { "type": "Point", "coordinates": [9.1872, 45.4728] },
+    "image": "/img/pinacoteca_brera.jpg",
+    "teaser": "Una delle più importanti collezioni d’arte italiane."
+  },
+  {
+    "id": "santa_maria_delle_grazie",
     "title": "Santa Maria delle Grazie",
-    "category": "Storia & Patrimonio",
-    "geometry": { "type": "Point", "coordinates": [9.1719, 45.4661] },
-    "image": "/img/grazie.jpg",
-    "teaser": "Il celebre convento che ospita l’Ultima Cena di Leonardo."
+    "geometry": { "type": "Point", "coordinates": [9.1758, 45.4660] },
+    "image": "/img/santa_maria_delle_grazie.jpg",
+    "teaser": "Dove è custodita l’Ultima Cena di Leonardo da Vinci."
   },
   {
-    "id": "san_maurizio",
-    "title": "San Maurizio al Monastero Maggiore",
-    "category": "Storia & Patrimonio",
-    "geometry": { "type": "Point", "coordinates": [9.1765, 45.4650] },
-    "image": "/img/san_maurizio.jpg",
-    "teaser": "La 'Cappella Sistina' di Milano: affreschi rinascimentali spettacolari."
-  },
-  {
-    "id": "colonne",
-    "title": "Colonne di San Lorenzo",
-    "category": "Storia & Patrimonio",
-    "geometry": { "type": "Point", "coordinates": [9.1834, 45.4569] },
-    "image": "/img/diurno.jpg",
-    "teaser": "Raro complesso romano del IV secolo ancora visibile in città."
+    "id": "teatro_alla_scala",
+    "title": "Teatro alla Scala",
+    "geometry": { "type": "Point", "coordinates": [9.1895, 45.4670] },
+    "image": "/img/teatro_alla_scala.jpg",
+    "teaser": "Il celebre teatro d’opera di fama mondiale."
   },
   {
     "id": "castiglioni",
     "title": "Palazzo Castiglioni",
-    "category": "Arte & Cultura",
-    "geometry": { "type": "Point", "coordinates": [9.2039, 45.4770] },
+    "geometry": { "type": "Point", "coordinates": [9.2070, 45.4730] },
     "image": "/img/castiglioni.jpg",
-    "teaser": "Capolavoro Liberty di Giuseppe Sommaruga (1903)."
+    "teaser": "Capolavoro Liberty a Porta Venezia."
   },
   {
     "id": "galimberti",
     "title": "Casa Galimberti",
-    "category": "Arte & Cultura",
-    "geometry": { "type": "Point", "coordinates": [9.2086, 45.4759] },
+    "geometry": { "type": "Point", "coordinates": [9.2040, 45.4750] },
     "image": "/img/galimberti.jpg",
-    "teaser": "Facciata in piastrelle policrome, un’icona dell’Art Nouveau milanese."
+    "teaser": "Eleganti mosaici e decorazioni floreali Liberty."
   },
   {
     "id": "guazzoni",
     "title": "Casa Guazzoni",
-    "category": "Arte & Cultura",
-    "geometry": { "type": "Point", "coordinates": [9.2080, 45.4763] },
+    "geometry": { "type": "Point", "coordinates": [9.2020, 45.4760] },
     "image": "/img/guazzoni.jpg",
-    "teaser": "Decorazioni floreali in ferro battuto e ceramica smaltata (1906)."
+    "teaser": "Art Nouveau con stucchi e vetrate suggestive."
   },
   {
     "id": "diurno",
     "title": "Albergo Diurno Venezia",
-    "category": "Arte & Cultura",
-    "geometry": { "type": "Point", "coordinates": [9.2048, 45.4790] },
+    "geometry": { "type": "Point", "coordinates": [9.2040, 45.4720] },
     "image": "/img/diurno.jpg",
-    "teaser": "Bagni pubblici e servizi di lusso sotto Piazza Oberdan, 1925."
+    "teaser": "Storico spazio di relax pubblico in stile Liberty."
   }
 ]
