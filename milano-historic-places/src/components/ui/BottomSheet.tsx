@@ -1,8 +1,8 @@
 // src/components/ui/BottomSheet.tsx
 import React from 'react';
-import type { Place } from '../types';
-import type { Photo } from '../types';
-import type { Character } from '../types';
+import type { Place } from '../../types';
+import type { Photo } from '../../types';
+import type { Character } from '../../types';
 
 interface Props {
   place: Place;
