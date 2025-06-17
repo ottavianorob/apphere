@@ -4,7 +4,7 @@
     "title": "Torre Branca",
     "category": "Storia & Patrimonio",
     "geometry": { "type": "Point", "coordinates": [9.1701, 45.4720] },
-    "image": "/img/branca.jpg",
+    "image": "/img/castiglioni.jpg",
     "teaser": "La torre panoramica in Acciaio simbolo della Triennale (1933)."
   },
   {
@@ -28,7 +28,7 @@
     "title": "Colonne di San Lorenzo",
     "category": "Storia & Patrimonio",
     "geometry": { "type": "Point", "coordinates": [9.1834, 45.4569] },
-    "image": "/img/colonne.jpg",
+    "image": "/img/diurno.jpg",
     "teaser": "Raro complesso romano del IV secolo ancora visibile in città."
   },
   {
