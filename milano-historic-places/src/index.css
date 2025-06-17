@@ -1,8 +1,10 @@
+@import "maplibre-gl/dist/maplibre-gl.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import "maplibre-gl/dist/maplibre-gl.css";
+
 
 /* fa occupare tutta l’altezza alla root dell’app */
 html,
