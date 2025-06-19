@@ -54,14 +54,14 @@ export default function ItinerariesPage({ onStart }: Props) {
       {loading && !error && (
         <p className="text-center text-text-secondary">Caricamento itinerari...</p>
       )}
-      {error && <p className="text-red-600 text-center">{error}</p>}
+      {error && <p className="text-accent-bordeaux text-center">{error}</p>}
       {!loading && !error && itineraries.length === 0 && (
         <p className="text-center text-text-secondary">Nessun itinerario disponibile.</p>
       )}
       {!loading && itineraries.map(it => (
         <div
           key={it.id}
-          className="bg-white border border-neutral-light shadow rounded-lg overflow-hidden flex"
+          className="bg-newspaper-bg border border-neutral-light shadow rounded-lg overflow-hidden flex"
         >
           {it.image ? (
             <img src={it.image} alt={it.title} className="w-24 h-24 object-cover flex-shrink-0" />
@@ -90,7 +90,7 @@ export default function ItinerariesPage({ onStart }: Props) {
             </div>
             <button
               onClick={() => onStart(it, it.stops.map(id => placesMap[id]).filter(Boolean) as Place[])}
-              className="mt-3 inline-block bg-accent-blue text-white px-4 py-2 rounded-lg hover:bg-accent-blue/90 transition"
+              className="mt-3 inline-block bg-accent-bordeaux text-white px-4 py-2 rounded-lg hover:bg-accent-gold hover:text-accent-bordeaux transition"
             >
               Avvia tour
             </button>

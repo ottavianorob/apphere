@@ -1,9 +1,6 @@
 // src/components/ui/BottomSheet.tsx
-import React from 'react';
 import CategoryIcon from '../../components/CategoryIcon';
-import type { Place } from '../../types';
-import type { Photo } from '../../types';
-import type { Character } from '../../types';
+import type { Place, Photo, Character } from '../types';
 
 interface Props {
   place: Place;
@@ -16,7 +13,7 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
   const formattedDate = place.date ? new Date(place.date).toLocaleDateString() : null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 max-h-[90%] bg-warm-bg rounded-t-2xl shadow-2xl flex flex-col
+    <div className="fixed inset-x-0 bottom-0 max-h-[90%] bg-newspaper-bg rounded-t-2xl shadow-2xl flex flex-col
       md:fixed md:top-1/2 md:right-4 md:transform md:-translate-y-1/2 md:w-1/3 md:max-h-[80%] md:rounded-l-2xl">
       {/* Drag handle */}
       <div className="self-center w-12 h-1.5 bg-neutral-light mt-2 rounded-full" />
@@ -27,15 +24,15 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
           <h2 className="text-2xl font-heading text-text-primary">{place.title}</h2>
           <div className="mt-1 flex items-center space-x-2 text-sm">
             <CategoryIcon category={place.category} className="w-5 h-5" ariaLabel={place.category} />
-            <span className="font-medium text-accent-blue">{place.category}</span>
+            <span className="font-medium text-accent-bordeaux">{place.category}</span>
             {formattedDate && <span className="text-text-secondary">{formattedDate}</span>}
           </div>
           {place.tags && place.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
-              {place.tags.map(tag => (
+              {place.tags.map((tag: string) => (
                 <span
                   key={tag}
-                  className="text-xs uppercase bg-neutral-light text-text-primary px-2 py-1 rounded-full"
+                  className="text-xs uppercase bg-neutral-light text-text-primary px-2 py-1 rounded-full border border-accent-gold"
                 >
                   {tag}
                 </span>
@@ -104,12 +101,16 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
 
       {/* Actions */}
       <div className="px-6 py-4 border-t flex justify-end">
-        <button
-          onClick={() => window.open(place.links?.fullInfo || '#', '_blank')}
-          className="bg-accent-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-accent-blue/90 transition"
-        >
-          Approfondisci
-        </button>
+        {place.teaser && (
+          <button
+            // Sostituisci con un link reale se disponibile, oppure lascia il bottone disabilitato
+            onClick={() => {}}
+            className="bg-accent-bordeaux text-white px-4 py-2 rounded-lg font-medium hover:bg-accent-gold hover:text-accent-bordeaux transition opacity-50 cursor-not-allowed"
+            disabled
+          >
+            Approfondisci
+          </button>
+        )}
       </div>
     </div>
   );

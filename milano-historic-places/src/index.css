@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+Pro:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,12 +6,12 @@
 
 /* reset & styling globali */
 body {
-  @apply bg-warm-bg font-body text-text-primary;
+  @apply bg-newspaper-bg font-body text-text-primary;
   margin: 0;
   padding: 0;
 }
 a {
-  @apply text-accent-blue hover:underline;
+  @apply text-accent-bordeaux hover:text-accent-gold underline-offset-2 transition-colors;
 }
 h1, h2, h3, h4, h5, h6 {
   @apply font-heading text-text-primary;
@@ -27,12 +27,12 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.75rem !important;
 }
 .maplibregl-ctrl-attrib a {
-  color: #007bff !important;
+  color: #7c2f35 !important; /* bordeaux */
 }
 
 /* Override styling per MapLibre popup per tema */
 .maplibregl-popup-content-wrapper {
-  @apply bg-warm-bg border border-neutral-light rounded-lg;
+  @apply bg-newspaper-bg border border-neutral-light rounded-lg;
 }
 .maplibregl-popup-content {
   @apply font-body text-text-primary p-4;
