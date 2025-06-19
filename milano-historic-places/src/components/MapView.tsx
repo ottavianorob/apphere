@@ -66,15 +66,18 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
 
       if ((cluster.properties as any).cluster) {
         const count = (cluster.properties as any).point_count;
-        el.className = 'flex items-center justify-center bg-accent-blue text-white rounded-full';
+        el.className = 'flex items-center justify-center bg-accent-bordeaux text-white rounded border border-accent-gold shadow-sm';
         // Size based on count, bounded to avoid extremes
-        const size = 20 + Math.min(count, 20) * 2;
+        const size = 24 + Math.min(count, 20) * 2;
         el.style.width = el.style.height = `${size}px`;
         el.textContent = String(count);
         el.style.cursor = 'pointer';
-        el.style.fontSize = '12px';
+        el.style.fontSize = '13px';
         el.style.fontWeight = 'bold';
-        el.style.boxShadow = '0 0 2px rgba(0,0,0,0.5)';
+        el.style.boxShadow = '0 1px 4px rgba(80,40,20,0.12)';
+        el.style.transition = 'box-shadow 0.2s';
+        el.addEventListener('mouseenter', () => { el.style.boxShadow = '0 2px 8px rgba(80,40,20,0.18)'; });
+        el.addEventListener('mouseleave', () => { el.style.boxShadow = '0 1px 4px rgba(80,40,20,0.12)'; });
         el.addEventListener('click', () => {
           const clusterId = (cluster.properties as any).cluster_id;
           indexRef.current!.getClusterExpansionZoom(clusterId, (_err, expZoom) => {
@@ -82,7 +85,7 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
           });
         });
       } else {
-        el.className = 'bg-accent-brown w-10 h-10 rounded-full border-2 border-white cursor-pointer shadow-lg';
+        el.className = 'bg-accent-gold w-10 h-10 rounded border border-accent-bordeaux cursor-pointer shadow';
         el.addEventListener('click', () => {
           const props = cluster.properties as any;
           const place: Place = {
@@ -99,12 +102,17 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
 
           // Creazione popup
           const popupContent = document.createElement('div');
-          popupContent.className = 'bg-warm-bg text-text-primary font-body p-4 rounded-lg shadow-lg max-w-xs';
+          popupContent.className = 'bg-newspaper-bg text-text-primary font-body p-4 rounded border border-accent-gold shadow max-w-xs';
           // Titolo in serif
           const titleEl = document.createElement('h3');
           titleEl.className = 'font-heading text-lg mb-2';
           titleEl.textContent = place.title;
           popupContent.appendChild(titleEl);
+          // Categoria in negativo
+          const catEl = document.createElement('span');
+          catEl.className = 'inline-block px-2 py-1 bg-accent-bordeaux text-white font-heading text-xs rounded mb-2';
+          catEl.textContent = place.category;
+          popupContent.appendChild(catEl);
           // Teaser
           if (place.teaser) {
             const teaserEl = document.createElement('p');
@@ -114,11 +122,10 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
           }
           // Bottone dettagli
           const btn = document.createElement('button');
-          btn.className = 'btn btn-primary text-sm';
+          btn.className = 'btn btn-primary text-sm mt-2';
           btn.textContent = 'Vedi dettagli';
           btn.addEventListener('click', () => {
             onSelect(place);
-            popup.remove();
           });
           popupContent.appendChild(btn);
 
