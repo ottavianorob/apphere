@@ -1,6 +1,7 @@
 // src/components/ItinerariesPage.tsx
 import React, { useEffect, useState } from 'react';
 import type { Place } from './types';
+import CategoryIcon from '../components/CategoryIcon';
 
 // Definizione locale di Itinerary
 interface Itinerary {
