@@ -16,7 +16,8 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
   const formattedDate = place.date ? new Date(place.date).toLocaleDateString() : null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 max-h-[90%] bg-warm-bg rounded-t-2xl shadow-2xl flex flex-col">
+    <div className="fixed inset-x-0 bottom-0 max-h-[90%] bg-warm-bg rounded-t-2xl shadow-2xl flex flex-col
+      md:inset-y-0 md:bottom-auto md:top-0 md:right-0 md:w-1/3 md:max-h-full md:rounded-l-2xl">
       {/* Drag handle */}
       <div className="self-center w-12 h-1.5 bg-neutral-light mt-2 rounded-full" />
 
@@ -64,10 +65,10 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
                 <img
                   src={photo.url}
                   alt={photo.caption}
-                  className="w-40 h-24 object-cover rounded-lg border border-neutral-light"
+                  className="w-40 h-24 object-cover rounded-xl border border-neutral-light"
                 />
                 {photo.caption && (
-                  <p className="mt-1 text-xs text-text-secondary text-center">{photo.caption}</p>
+                  <p className="font-body mt-1 text-xs text-text-secondary text-center">{photo.caption}</p>
                 )}
               </div>
             ))}
@@ -78,7 +79,7 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
       {/* Teaser / Description */}
       {place.teaser && (
         <div className="px-6 py-3 border-t">
-          <p className="text-text-primary leading-relaxed">{place.teaser}</p>
+          <p className="font-body text-text-primary leading-relaxed">{place.teaser}</p>
         </div>
       )}
 
@@ -94,7 +95,7 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
                   alt={char.name}
                   className="w-12 h-12 object-cover rounded-full mx-auto"
                 />
-                <span className="mt-1 block text-sm text-text-primary">{char.name}</span>
+                <span className="font-body mt-1 block text-sm text-text-primary">{char.name}</span>
               </div>
             ))}
           </div>
