@@ -5,6 +5,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import Supercluster from 'supercluster';
 import type { Place } from '../types';
 import placesData from '../types/places.json';
+import CategoryIcon from './CategoryIcon';
 
 type Props = { onSelect: (place: Place) => void; selectedPlace?: Place };
 
@@ -184,13 +185,17 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
           <button
             key={cat}
             onClick={() => setFilterCategory(cat)}
-            className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition ${
+            className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition flex items-center space-x-1 ${
               filterCategory === cat
-                ? 'bg-indigo-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                ? 'bg-accent-blue text-white'
+                : 'bg-neutral-light text-text-primary hover:bg-accent-blue/10'
             }`}
           >
-            {cat}
+            <CategoryIcon
+              category={cat}
+              className={`${filterCategory === cat ? 'text-white' : 'text-accent-blue'}`}
+            />
+            <span>{cat}</span>
           </button>
         ))}
       </div>

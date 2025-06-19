@@ -50,5 +50,5 @@ h1, h2, h3, h4, h5, h6 {
 }
 .maplibregl-popup-tip {
   /* Personalizza il colore della punta del popup per armonizzare con bg-warm-bg */
-  fill: #faf3e0;
+  fill: var(--color-warm-bg);
 }

@@ -9,6 +9,7 @@ interface Itinerary {
   title: string;
   image?: string;
   stops: string[];
+  category?: string;
 }
 
 type Props = {
@@ -70,7 +71,16 @@ export default function ItinerariesPage({ onStart }: Props) {
             </div>
           )}
           <div className="p-4 flex-1">
-            <h3 className="text-lg font-heading text-text-primary">{it.title}</h3>
+            {(() => {
+              // Determina categoria: usa it.category se presente, altrimenti prima tappa se disponibile
+              const cat = it.category || (placesMap[it.stops[0]]?.category ?? '');
+              return (
+                <div className="flex items-center space-x-2">
+                  {cat && <CategoryIcon category={cat} className="w-5 h-5" ariaLabel={cat} />}
+                  <h3 className="text-lg font-heading text-text-primary">{it.title}</h3>
+                </div>
+              );
+            })()}
             <div className="mt-2 space-y-1 text-sm text-text-secondary">
               {it.stops.slice(0, 3).map(stopId => {
                 if (!placesMap[stopId]) console.warn(`Itinerario ${it.id}: tappa non trovata: ${stopId}`);

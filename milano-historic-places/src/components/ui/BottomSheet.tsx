@@ -1,5 +1,6 @@
 // src/components/ui/BottomSheet.tsx
 import React from 'react';
+import CategoryIcon from '../../components/CategoryIcon';
 import type { Place } from '../../types';
 import type { Photo } from '../../types';
 import type { Character } from '../../types';
@@ -23,7 +24,8 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
       <div className="px-6 py-4 flex items-center justify-between">
         <div className="flex-1 pr-4">
           <h2 className="text-2xl font-heading text-text-primary">{place.title}</h2>
-          <div className="mt-1 flex items-center space-x-4 text-sm">
+          <div className="mt-1 flex items-center space-x-2 text-sm">
+            <CategoryIcon category={place.category} className="w-5 h-5" ariaLabel={place.category} />
             <span className="font-medium text-accent-blue">{place.category}</span>
             {formattedDate && <span className="text-text-secondary">{formattedDate}</span>}
           </div>

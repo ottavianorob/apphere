@@ -6,9 +6,11 @@ type Props = {
   category: string;
   className?: string;
   withBackground?: boolean; // se true, mostra icona con sfondo circolare
+  size?: number; // dimensione icona in px, default 20
+  ariaLabel?: string; // etichetta per screen reader
 };
 
-export default function CategoryIcon({ category, className = '', withBackground = false }: Props) {
+export default function CategoryIcon({ category, className = '', withBackground = false, size = 20, ariaLabel }: Props) {
   const key = category as CategoryKey;
   const cfg = categoryConfig[key];
   if (!cfg) {
@@ -19,17 +21,27 @@ export default function CategoryIcon({ category, className = '', withBackground 
   // Assicura di avere i file SVG in src/assets/icons con i nomi corretti
   const iconPath = new URL(`../assets/icons/${cfg.icon}`, import.meta.url).href;
 
-  // Costruisci classi per icona
-  const iconClasses = `w-5 h-5 ${cfg.colorClass} ${className}`;
+  const iconStyle = { width: `${size}px`, height: `${size}px` };
 
   if (withBackground) {
-    // Sfondo circolare chiaro con bordo neutro
+    const bgSize = size + 4;
     return (
-      <div className={`w-6 h-6 flex items-center justify-center rounded-full bg-warm-bg border border-neutral-light ${className}`}>
-        <img src={iconPath} alt={category} className="w-4 h-4" />
+      <div
+        className={`flex items-center justify-center rounded-full bg-warm-bg border border-neutral-light ${className}`}
+        style={{ width: `${bgSize}px`, height: `${bgSize}px` }}
+        aria-label={ariaLabel || category}
+      >
+        <img src={iconPath} alt="" style={iconStyle} className={cfg.colorClass} aria-hidden="true" />
       </div>
     );
   }
 
-  return <img src={iconPath} alt={category} className={iconClasses} />;
+  return (
+    <img
+      src={iconPath}
+      alt={ariaLabel || category}
+      style={iconStyle}
+      className={cfg.colorClass + ' ' + className}
+    />
+  );
 }
