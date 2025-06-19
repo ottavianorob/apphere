@@ -65,7 +65,7 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
 
       if ((cluster.properties as any).cluster) {
         const count = (cluster.properties as any).point_count;
-        el.className = 'flex items-center justify-center bg-blue-600 text-white rounded-full';
+        el.className = 'flex items-center justify-center bg-accent-blue text-white rounded-full';
         // Size based on count, bounded to avoid extremes
         const size = 20 + Math.min(count, 20) * 2;
         el.style.width = el.style.height = `${size}px`;
@@ -81,7 +81,7 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
           });
         });
       } else {
-        el.className = 'bg-pink-400 w-10 h-10 rounded-full border-2 border-white cursor-pointer shadow-lg';
+        el.className = 'bg-accent-brown w-10 h-10 rounded-full border-2 border-white cursor-pointer shadow-lg';
         el.addEventListener('click', () => {
           const props = cluster.properties as any;
           const place: Place = {
@@ -95,6 +95,37 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
             geometry: { type: 'Point', coordinates: [lon, lat] },
           };
           onSelect(place);
+
+          // Creazione popup
+          const popupContent = document.createElement('div');
+          popupContent.className = 'bg-warm-bg text-text-primary font-body p-4 rounded-lg shadow-lg max-w-xs';
+          // Titolo in serif
+          const titleEl = document.createElement('h3');
+          titleEl.className = 'font-heading text-lg mb-2';
+          titleEl.textContent = place.title;
+          popupContent.appendChild(titleEl);
+          // Teaser
+          if (place.teaser) {
+            const teaserEl = document.createElement('p');
+            teaserEl.className = 'text-text-secondary text-sm mb-2';
+            teaserEl.textContent = place.teaser;
+            popupContent.appendChild(teaserEl);
+          }
+          // Bottone dettagli
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-primary text-sm';
+          btn.textContent = 'Vedi dettagli';
+          btn.addEventListener('click', () => {
+            onSelect(place);
+            popup.remove();
+          });
+          popupContent.appendChild(btn);
+
+          // Aggiungi popup alla mappa
+          const popup = new maplibregl.Popup({ offset: 25, className: '' })
+            .setLngLat([lon, lat])
+            .setDOMContent(popupContent)
+            .addTo(mapInstanceRef.current!);
         });
       }
 

@@ -15,24 +15,24 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
   const formattedDate = place.date ? new Date(place.date).toLocaleDateString() : null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 max-h-[90%] bg-white rounded-t-2xl shadow-2xl flex flex-col">
+    <div className="fixed inset-x-0 bottom-0 max-h-[90%] bg-warm-bg rounded-t-2xl shadow-2xl flex flex-col">
       {/* Drag handle */}
-      <div className="self-center w-12 h-1.5 bg-gray-300 mt-2 rounded-full" />
+      <div className="self-center w-12 h-1.5 bg-neutral-light mt-2 rounded-full" />
 
       {/* Header */}
       <div className="px-6 py-4 flex items-center justify-between">
         <div className="flex-1 pr-4">
-          <h2 className="text-2xl font-bold text-gray-900">{place.title}</h2>
+          <h2 className="text-2xl font-heading text-text-primary">{place.title}</h2>
           <div className="mt-1 flex items-center space-x-4 text-sm">
-            <span className="font-medium text-indigo-600">{place.category}</span>
-            {formattedDate && <span className="text-gray-500">{formattedDate}</span>}
+            <span className="font-medium text-accent-blue">{place.category}</span>
+            {formattedDate && <span className="text-text-secondary">{formattedDate}</span>}
           </div>
           {place.tags && place.tags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
               {place.tags.map(tag => (
                 <span
                   key={tag}
-                  className="text-xs uppercase bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+                  className="text-xs uppercase bg-neutral-light text-text-primary px-2 py-1 rounded-full"
                 >
                   {tag}
                 </span>
@@ -43,7 +43,7 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
         <button
           onClick={onClose}
           aria-label="Chiudi dettagli"
-          className="text-gray-400 hover:text-gray-600"
+          className="text-text-secondary hover:text-text-primary"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
                viewBox="0 0 24 24" stroke="currentColor">
@@ -62,10 +62,10 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
                 <img
                   src={photo.url}
                   alt={photo.caption}
-                  className="w-40 h-24 object-cover rounded-lg"
+                  className="w-40 h-24 object-cover rounded-lg border border-neutral-light"
                 />
                 {photo.caption && (
-                  <p className="mt-1 text-xs text-gray-600 text-center">{photo.caption}</p>
+                  <p className="mt-1 text-xs text-text-secondary text-center">{photo.caption}</p>
                 )}
               </div>
             ))}
@@ -76,14 +76,14 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
       {/* Teaser / Description */}
       {place.teaser && (
         <div className="px-6 py-3 border-t">
-          <p className="text-gray-800 leading-relaxed">{place.teaser}</p>
+          <p className="text-text-primary leading-relaxed">{place.teaser}</p>
         </div>
       )}
 
       {/* Characters list */}
       {characters.length > 0 && (
         <div className="px-6 py-4 border-t">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Personaggi</h3>
+          <h3 className="text-sm font-semibold text-text-primary mb-2">Personaggi</h3>
           <div className="flex overflow-x-auto space-x-4">
             {characters.map(char => (
               <div key={char.id} className="flex-shrink-0 text-center">
@@ -92,7 +92,7 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
                   alt={char.name}
                   className="w-12 h-12 object-cover rounded-full mx-auto"
                 />
-                <span className="mt-1 block text-sm text-gray-800">{char.name}</span>
+                <span className="mt-1 block text-sm text-text-primary">{char.name}</span>
               </div>
             ))}
           </div>
@@ -103,7 +103,7 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
       <div className="px-6 py-4 border-t flex justify-end">
         <button
           onClick={() => window.open(place.links?.fullInfo || '#', '_blank')}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 transition"
+          className="bg-accent-blue text-white px-4 py-2 rounded-lg font-medium hover:bg-accent-blue/90 transition"
         >
           Approfondisci
         </button>

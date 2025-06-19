@@ -29,3 +29,26 @@ h1, h2, h3, h4, h5, h6 {
 .maplibregl-ctrl-attrib a {
   color: #007bff !important;
 }
+
+/* Override styling per MapLibre popup per tema */
+.maplibregl-popup-content-wrapper {
+  @apply bg-warm-bg border border-neutral-light rounded-lg;
+}
+.maplibregl-popup-content {
+  @apply font-body text-text-primary p-4;
+}
+.maplibregl-popup-content h1,
+.maplibregl-popup-content h2,
+.maplibregl-popup-content h3,
+.maplibregl-popup-content h4,
+.maplibregl-popup-content h5,
+.maplibregl-popup-content h6 {
+  @apply font-heading text-text-primary;
+}
+.maplibregl-popup-content p {
+  @apply text-text-secondary;
+}
+.maplibregl-popup-tip {
+  /* Personalizza il colore della punta del popup per armonizzare con bg-warm-bg */
+  fill: #faf3e0;
+}

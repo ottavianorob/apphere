@@ -50,27 +50,27 @@ export default function ItinerariesPage({ onStart }: Props) {
   return (
     <div className="p-4 space-y-4">
       {loading && !error && (
-        <p className="text-center text-gray-500">Caricamento itinerari...</p>
+        <p className="text-center text-text-secondary">Caricamento itinerari...</p>
       )}
-      {error && <p className="text-red-500 text-center">{error}</p>}
+      {error && <p className="text-red-600 text-center">{error}</p>}
       {!loading && !error && itineraries.length === 0 && (
-        <p className="text-center text-gray-500">Nessun itinerario disponibile.</p>
+        <p className="text-center text-text-secondary">Nessun itinerario disponibile.</p>
       )}
       {!loading && itineraries.map(it => (
         <div
           key={it.id}
-          className="bg-white shadow rounded-lg overflow-hidden flex"
+          className="bg-white border border-neutral-light shadow rounded-lg overflow-hidden flex"
         >
           {it.image ? (
             <img src={it.image} alt={it.title} className="w-24 h-24 object-cover flex-shrink-0" />
           ) : (
-            <div className="w-24 h-24 bg-gray-200 flex items-center justify-center flex-shrink-0">
-              <span className="text-xs text-gray-500">{it.stops.length} tappe</span>
+            <div className="w-24 h-24 bg-neutral-light flex items-center justify-center flex-shrink-0">
+              <span className="text-xs text-text-secondary">{it.stops.length} tappe</span>
             </div>
           )}
           <div className="p-4 flex-1">
-            <h3 className="text-lg font-semibold text-gray-800">{it.title}</h3>
-            <div className="mt-2 space-y-1 text-sm text-gray-600">
+            <h3 className="text-lg font-heading text-text-primary">{it.title}</h3>
+            <div className="mt-2 space-y-1 text-sm text-text-secondary">
               {it.stops.slice(0, 3).map(stopId => {
                 if (!placesMap[stopId]) console.warn(`Itinerario ${it.id}: tappa non trovata: ${stopId}`);
                 return <div key={stopId}>{placesMap[stopId]?.title || stopId}</div>;
@@ -79,7 +79,7 @@ export default function ItinerariesPage({ onStart }: Props) {
             </div>
             <button
               onClick={() => onStart(it, it.stops.map(id => placesMap[id]).filter(Boolean) as Place[])}
-              className="mt-3 inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+              className="mt-3 inline-block bg-accent-blue text-white px-4 py-2 rounded-lg hover:bg-accent-blue/90 transition"
             >
               Avvia tour
             </button>
