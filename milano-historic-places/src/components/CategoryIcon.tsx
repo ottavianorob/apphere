@@ -1,6 +1,6 @@
 // src/components/CategoryIcon.tsx
-import React from 'react';
-import { categoryConfig, CategoryKey } from '../config/categories';
+import { categoryConfig } from '../config/categories';
+import type { CategoryKey } from '../config/categories';
 
 type Props = {
   category: string;

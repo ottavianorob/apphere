@@ -23,7 +23,7 @@ export default function BottomNav({ activeTab, onTabChange }: Props) {
     if (darkMode === 'auto') {
       document.body.classList.remove('dark');
       // Rilancia la funzione auto dark mode
-      if (window.applyAutoDarkMode) window.applyAutoDarkMode();
+      if ((window as any).applyAutoDarkMode) (window as any).applyAutoDarkMode();
     } else if (darkMode === 'dark') {
       document.body.classList.add('dark');
     } else {

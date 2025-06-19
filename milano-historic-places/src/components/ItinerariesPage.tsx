@@ -1,7 +1,6 @@
 // src/components/ItinerariesPage.tsx
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import type { Place } from './types';
-import CategoryIcon from '../components/CategoryIcon';
 import ItineraryCard from './ItineraryCard';
 
 // Definizione locale di Itinerary

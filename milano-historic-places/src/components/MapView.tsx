@@ -4,7 +4,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import Supercluster from 'supercluster';
 import type { ClusterFeature, PointFeature } from 'supercluster';
-import type { Place } from '../types';
+import type { Place } from './types';
 import placesData from '../types/places.json';
 import CategoryIcon from './CategoryIcon';
 
@@ -22,9 +22,9 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
   const [filterCategory, setFilterCategory] = useState<string>('All');
 
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<maplibregl.Map>();
+  const mapInstanceRef = useRef<maplibregl.Map | null>(null);
   const allPlacesRef = useRef<Place[]>([]);
-  const indexRef = useRef<Supercluster>();
+  const indexRef = useRef<Supercluster | null>(null);
   const filteredRef = useRef<Place[]>([]);
   const markersRef = useRef<maplibregl.Marker[]>([]);
 
@@ -87,12 +87,12 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
         });
         el.addEventListener('click', () => {
           const clusterId = (cluster.properties as any).cluster_id;
-          indexRef.current!.getClusterExpansionZoom(clusterId, (expZoom: number) => {
-            map.easeTo({ center: [lon, lat], zoom: expZoom + 1.5, duration: 600, essential: true });
-            setTimeout(() => {
-              updateMarkers();
-            }, 700);
-          });
+          // getClusterExpansionZoom ora restituisce una Promise
+          const expZoom = indexRef.current!.getClusterExpansionZoom(clusterId);
+          map.easeTo({ center: [lon, lat], zoom: expZoom + 1.5, duration: 600, essential: true });
+          setTimeout(() => {
+            updateMarkers();
+          }, 700);
         });
         el.addEventListener('keydown', (e: KeyboardEvent) => {
           if (e.key === 'Enter' || e.key === ' ') {
