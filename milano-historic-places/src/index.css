@@ -10,11 +10,21 @@ body {
   margin: 0;
   padding: 0;
 }
+body.dark {
+  background: linear-gradient(135deg, #18151a 0%, #23202a 100%) !important;
+  color: #f9f6f1;
+}
 a {
   @apply text-accent-bordeaux hover:text-accent-gold underline-offset-2 transition-colors;
 }
+a.dark {
+  @apply text-accent-gold hover:text-accent-bordeaux;
+}
 h1, h2, h3, h4, h5, h6 {
   @apply font-heading text-text-primary;
+}
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  @apply text-accent-gold;
 }
 #root {
   width: 100vw;
@@ -29,13 +39,22 @@ h1, h2, h3, h4, h5, h6 {
 .maplibregl-ctrl-attrib a {
   color: #7c2f35 !important; /* bordeaux */
 }
+.dark .maplibregl-ctrl-attrib a {
+  color: #bfa76f !important;
+}
 
 /* Override styling per MapLibre popup per tema */
 .maplibregl-popup-content-wrapper {
   @apply bg-newspaper-bg border border-neutral-light rounded-lg;
 }
+.dark .maplibregl-popup-content-wrapper {
+  @apply bg-[#18151a] border-accent-gold;
+}
 .maplibregl-popup-content {
   @apply font-body text-text-primary p-4;
+}
+.dark .maplibregl-popup-content {
+  @apply text-accent-gold;
 }
 .maplibregl-popup-content h1,
 .maplibregl-popup-content h2,
@@ -45,8 +64,19 @@ h1, h2, h3, h4, h5, h6 {
 .maplibregl-popup-content h6 {
   @apply font-heading text-text-primary;
 }
+.dark .maplibregl-popup-content h1,
+.dark .maplibregl-popup-content h2,
+.dark .maplibregl-popup-content h3,
+.dark .maplibregl-popup-content h4,
+.dark .maplibregl-popup-content h5,
+.dark .maplibregl-popup-content h6 {
+  @apply text-accent-gold;
+}
 .maplibregl-popup-content p {
   @apply text-text-secondary;
+}
+.dark .maplibregl-popup-content p {
+  @apply text-accent-gold;
 }
 .maplibregl-popup-tip {
   /* Personalizza il colore della punta del popup per armonizzare con bg-warm-bg */

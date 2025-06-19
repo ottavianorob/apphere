@@ -1,8 +1,9 @@
 // src/components/MapView.tsx
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import Supercluster from 'supercluster';
+import type { ClusterFeature, PointFeature } from 'supercluster';
 import type { Place } from '../types';
 import placesData from '../types/places.json';
 import CategoryIcon from './CategoryIcon';
@@ -59,14 +60,14 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
     const zoom = Math.floor(map.getZoom());
     const clusters = idx.getClusters(boundsArr, zoom);
 
-    clusters.forEach(cluster => {
+    clusters.forEach((cluster: ClusterFeature<any> | PointFeature<any>) => {
       const [lon, lat] = (cluster.geometry.coordinates as [number, number]);
       const el = document.createElement('div');
       el.classList.add('map-marker-element');
 
       if ((cluster.properties as any).cluster) {
         const count = (cluster.properties as any).point_count;
-        el.className = 'flex items-center justify-center bg-accent-bordeaux text-white rounded-full border border-accent-gold shadow-sm';
+        el.className = 'flex items-center justify-center bg-accent-bordeaux text-white rounded-full border border-accent-gold shadow-sm transition-all duration-200';
         // Size based on count, bounded to avoid extremes
         const size = 24 + Math.min(count, 20) * 2;
         el.style.width = el.style.height = `${size}px`;
@@ -75,7 +76,9 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
         el.style.fontSize = '13px';
         el.style.fontWeight = 'bold';
         el.style.boxShadow = '0 1px 4px rgba(80,40,20,0.12)';
-        el.style.transition = 'box-shadow 0.2s';
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('role', 'button');
+        el.setAttribute('aria-label', `Cluster di ${count} luoghi, clicca per zoommare`);
         el.addEventListener('mouseenter', () => {
           el.style.boxShadow = '0 4px 16px rgba(80,40,20,0.22)';
         });
@@ -84,12 +87,23 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
         });
         el.addEventListener('click', () => {
           const clusterId = (cluster.properties as any).cluster_id;
-          indexRef.current!.getClusterExpansionZoom(clusterId, (_err, expZoom) => {
+          indexRef.current!.getClusterExpansionZoom(clusterId, (expZoom: number) => {
             map.easeTo({ center: [lon, lat], zoom: expZoom + 1.5, duration: 600, essential: true });
+            setTimeout(() => {
+              updateMarkers();
+            }, 700);
           });
         });
+        el.addEventListener('keydown', (e: KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            el.click();
+          }
+        });
       } else {
-        el.className = 'bg-accent-gold w-10 h-10 rounded-full border border-accent-bordeaux cursor-pointer shadow';
+        el.className = 'bg-accent-gold w-10 h-10 rounded-full border border-accent-bordeaux cursor-pointer shadow transition-all duration-200';
+        el.setAttribute('tabindex', '0');
+        el.setAttribute('role', 'button');
+        el.setAttribute('aria-label', `Luogo: ${(cluster.properties as any).title}`);
         el.addEventListener('click', () => {
           const props = cluster.properties as any;
           const place: Place = {
@@ -103,54 +117,28 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
             geometry: { type: 'Point', coordinates: [lon, lat] },
           };
           onSelect(place);
-
-          // Creazione popup
-          const popupContent = document.createElement('div');
-          popupContent.className = 'bg-newspaper-bg text-text-primary font-body p-4 rounded border border-accent-gold shadow max-w-xs';
-          // Titolo in serif
-          const titleEl = document.createElement('h3');
-          titleEl.className = 'font-heading text-lg mb-2';
-          titleEl.textContent = place.title;
-          popupContent.appendChild(titleEl);
-          // Categoria in negativo
-          const catEl = document.createElement('span');
-          catEl.className = 'inline-block px-2 py-1 bg-accent-bordeaux text-white font-heading text-xs rounded mb-2';
-          catEl.textContent = place.category;
-          popupContent.appendChild(catEl);
-          // Teaser
-          if (place.teaser) {
-            const teaserEl = document.createElement('p');
-            teaserEl.className = 'text-text-secondary text-sm mb-2';
-            teaserEl.textContent = place.teaser;
-            popupContent.appendChild(teaserEl);
+        });
+        el.addEventListener('keydown', (e: KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            el.click();
           }
-          // Bottone dettagli
-          const btn = document.createElement('button');
-          btn.className = 'btn btn-primary text-sm mt-2';
-          btn.textContent = 'Vedi dettagli';
-          btn.addEventListener('click', () => {
-            onSelect(place);
-          });
-          popupContent.appendChild(btn);
-
-          // Aggiungi popup alla mappa
-          const popup = new maplibregl.Popup({ offset: 25, className: '' })
-            .setLngLat([lon, lat])
-            .setDOMContent(popupContent)
-            .addTo(mapInstanceRef.current!);
         });
       }
-
-      const marker = new maplibregl.Marker(el).setLngLat([lon, lat]).addTo(map);
-      markersRef.current.push(marker);
+      new maplibregl.Marker(el).setLngLat([lon, lat]).addTo(map);
+      markersRef.current.push(new maplibregl.Marker(el));
     });
   }, [onSelect]);
 
   useEffect(() => {
     if (!mapRef.current) return;
+    // Scegli stile mappa in base a dark mode
+    const isDark = document.body.classList.contains('dark');
+    const styleUrl = isDark
+      ? 'https://api.maptiler.com/maps/01978930-5897-70b1-8db4-af3d9bc8d76a/style.json?key=gH3DLPa6Gtu1j6wgHTNx'
+      : 'https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=gH3DLPa6Gtu1j6wgHTNx';
     const map = new maplibregl.Map({
       container: mapRef.current,
-      style: 'https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=gH3DLPa6Gtu1j6wgHTNx',
+      style: styleUrl,
       center: [9.19, 45.464],
       zoom: 12,
       attributionControl: false,
@@ -172,6 +160,23 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
     return () => { map.remove(); };
   }, [updateMarkers]);
 
+  // Aggiorna stile mappa se cambia dark mode
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    const observer = new MutationObserver(() => {
+      const isDark = document.body.classList.contains('dark');
+      const styleUrl = isDark
+        ? 'https://api.maptiler.com/maps/01978930-5897-70b1-8db4-af3d9bc8d76a/style.json?key=gH3DLPa6Gtu1j6wgHTNx'
+        : 'https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=gH3DLPa6Gtu1j6wgHTNx';
+      if (map.getStyle().sprite && !map.getStyle().sprite?.includes(isDark ? '8db4' : 'b738')) {
+        map.setStyle(styleUrl);
+      }
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
   useEffect(() => {
     const filtered =
       filterCategory === 'All'
@@ -190,18 +195,18 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
   }, [selectedPlace]);
 
   return (
-    <div className="relative h-screen w-full">
-      <div className="absolute top-4 inset-x-4 bg-newspaper-bg/95 p-2 rounded shadow border border-accent-gold z-20 flex flex-wrap gap-2 overflow-x-auto md:gap-4 md:justify-center">
+    <div className="relative h-screen w-full bg-newspaper-bg dark:bg-gradient-to-br dark:from-[#18151a] dark:to-[#23202a]">
+      <div className="absolute top-4 inset-x-4 bg-newspaper-bg/95 dark:bg-[#23202a]/95 p-2 rounded shadow border border-accent-gold dark:border-accent-gold z-20 flex flex-wrap gap-2 overflow-x-auto md:gap-4 md:justify-center">
         {categories.map(cat => (
           <button
             key={cat}
             onClick={() => setFilterCategory(cat)}
             className={`px-3 py-1 rounded text-sm whitespace-nowrap transition flex items-center space-x-1 font-heading tracking-wide
-              ${filterCategory === cat ? 'bg-accent-bordeaux text-white' : 'bg-neutral-light text-text-primary hover:bg-accent-gold'}`}
+              ${filterCategory === cat ? 'bg-accent-bordeaux dark:bg-accent-gold text-white dark:text-accent-bordeaux' : 'bg-neutral-light dark:bg-[#23202a] text-text-primary dark:text-accent-gold hover:bg-accent-gold dark:hover:bg-accent-bordeaux'}`}
           >
             <CategoryIcon
               category={cat}
-              className={`${filterCategory === cat ? 'text-white' : 'text-accent-bordeaux font-heading'}`}
+              className={`${filterCategory === cat ? 'text-white dark:text-accent-bordeaux' : 'text-accent-bordeaux dark:text-accent-gold font-heading'}`}
             />
             <span>{cat}</span>
           </button>

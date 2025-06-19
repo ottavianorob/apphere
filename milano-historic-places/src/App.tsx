@@ -1,14 +1,17 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import MapView from './components/MapView';
 import BottomSheet from './components/ui/BottomSheet';
 import BottomNav from './components/ui/BottomNav';
 import FloatingActionButton from './components/ui/FloatingActionButton';
 import type { Place } from './components/types';
 import ItinerariesPage from './components/ItinerariesPage';
-import placesData from './types/places.json';
+import placesDataRaw from './types/places.json';
 import photosData from './types/photos.json';
 import charactersData from './types/characters.json';
 import itinerariesData from './types/itineraries.json';
+import { AnimatePresence, motion } from 'framer-motion';
+
+const placesData: Place[] = (placesDataRaw as any[]).map(p => ({ ...p, geometry: { ...p.geometry, type: 'Point' } }));
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'map' | 'playlists' | 'profile'>('map');
@@ -26,7 +29,7 @@ export default function App() {
   const itinerariesArray = Object.entries(itinerariesData).map(([id, it]) => ({ id, ...it }));
 
   return (
-    <div className="min-h-screen bg-newspaper-bg flex flex-col md:flex-row md:items-stretch">
+    <div className="min-h-screen bg-newspaper-bg flex flex-col">
       {/* Navbar: topbar su desktop, bottomnav su mobile */}
       <div className="md:w-full md:fixed md:top-0 md:left-0 md:right-0 md:z-30">
         <BottomNav
@@ -34,13 +37,13 @@ export default function App() {
           onTabChange={setActiveTab}
         />
       </div>
-      {/* Main content: flex-row su desktop */}
-      <div className="flex-1 flex flex-col md:flex-row md:pt-16 max-w-full md:max-w-[1600px] mx-auto w-full">
-        {/* Mappa: occupa 2/3 su desktop */}
+      {/* Main content: mappa full width, overlay modale su mobile */}
+      <div className="flex-1 flex flex-col md:pt-16 w-full relative">
+        {/* Mappa sempre a tutta larghezza */}
         {activeTab === 'map' && (
-          <div className="flex-1 min-h-[60vh] md:min-h-screen md:w-2/3">
+          <div className="flex-1 min-h-[60vh] md:min-h-screen w-full">
             <MapView selectedPlace={selected} onSelect={setSelected} />
-            {activeTab === 'map' && (
+            <div className="fixed bottom-20 right-4 z-40 md:bottom-8">
               <FloatingActionButton
                 mode={fabMode}
                 onClick={() => {
@@ -48,13 +51,23 @@ export default function App() {
                     // ...azione add...
                   }
                 }}
+                aria-label={fabMode === 'add' ? 'Aggiungi nuovo luogo' : 'Modifica luogo'}
               />
-            )}
+            </div>
           </div>
         )}
-        {/* Pannello laterale: itinerari, profilo, dettagli */}
-        <div className="w-full md:w-1/3 bg-newspaper-bg border-l border-neutral-light flex flex-col md:min-h-screen">
-          {activeTab === 'playlists' && (
+        {/* Overlay modale per itinerari su mobile, laterale su desktop */}
+        <AnimatePresence>
+        {activeTab === 'playlists' && (
+          <motion.div
+            key="itineraries"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="fixed inset-0 md:top-16 md:right-0 w-full h-full md:w-[420px] md:h-[calc(100vh-4rem)] bg-newspaper-bg border-t md:border-t-0 md:border-l border-neutral-light shadow-lg z-40 overflow-y-auto"
+            aria-label="Pannello itinerari"
+          >
             <ItinerariesPage
               itineraries={itinerariesArray}
               places={placesData}
@@ -65,31 +78,35 @@ export default function App() {
                 }
               }}
             />
-          )}
-          {activeTab === 'profile' && <div className="py-8 text-center text-text-secondary text-lg font-heading">Profilo (in arrivo)</div>}
-          {/* Dettaglio place: laterale su desktop, overlay su mobile */}
-          {selected && (
-            <div className="hidden md:block">
-              <BottomSheet
-                place={selected}
-                photos={selectedPhotos}
-                characters={selectedChars}
-                onClose={() => setSelected(null)}
-              />
-            </div>
-          )}
-        </div>
-        {/* Dettaglio place overlay su mobile */}
+          </motion.div>
+        )}
+        {/* Overlay modale per dettaglio place su mobile, laterale su desktop */}
         {selected && (
-          <div className="block md:hidden">
+          <motion.div
+            key="details"
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            className="fixed inset-0 md:top-16 md:right-0 w-full h-full md:w-[420px] md:h-[calc(100vh-4rem)] bg-newspaper-bg border-t md:border-t-0 md:border-l border-neutral-light shadow-lg z-50 overflow-y-auto"
+            aria-label="Dettaglio luogo"
+          >
             <BottomSheet
               place={selected}
               photos={selectedPhotos}
               characters={selectedChars}
               onClose={() => setSelected(null)}
             />
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
+      </div>
+      {/* Navbar mobile sempre visibile in basso */}
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden">
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
       </div>
     </div>
   );

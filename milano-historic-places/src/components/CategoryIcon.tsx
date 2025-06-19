@@ -27,21 +27,20 @@ export default function CategoryIcon({ category, className = '', withBackground 
     const bgSize = size + 8;
     return (
       <div
-        className={`flex items-center justify-center rounded-full bg-newspaper-bg border border-accent-gold shadow-sm ${className}`}
+        className={`flex items-center justify-center rounded-full bg-newspaper-bg dark:bg-[#18151a] border border-accent-gold shadow-sm ${className}`}
         style={{ width: `${bgSize}px`, height: `${bgSize}px` }}
         aria-label={ariaLabel || category}
       >
-        <img src={iconPath} alt="" style={iconStyle} className={cfg.colorClass} aria-hidden="true" />
+        <img src={iconPath} alt="" style={iconStyle} className={cfg.colorClass + ' dark:' + cfg.colorClass.replace('text-', 'text-accent-gold ')} aria-hidden="true" />
       </div>
     );
   }
-
   return (
     <img
       src={iconPath}
       alt={ariaLabel || category}
       style={iconStyle}
-      className={cfg.colorClass + ' ' + className}
+      className={cfg.colorClass + ' ' + className + ' dark:text-accent-gold'}
     />
   );
 }
