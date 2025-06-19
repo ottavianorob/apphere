@@ -22,24 +22,28 @@ export default function App() {
     ? charactersData.filter(c => selected.characterIds?.includes(c.id))
     : [];
 
+  // Converto itinerariesData (oggetto) in array per ItinerariesPage
+  const itinerariesArray = Object.entries(itinerariesData).map(([id, it]) => ({ id, ...it }));
+
   return (
-    <div className="flex flex-col h-screen">
-      <div className="flex-1 relative">
+    <div className="min-h-screen bg-newspaper-bg flex flex-col">
+      {/* Container centrale per desktop, padding su mobile/tablet */}
+      <div className="flex-1 w-full max-w-4xl mx-auto px-2 sm:px-4 md:px-8 flex flex-col relative">
+        {/* Layout a colonne o griglia per desktop, stack su mobile */}
         {activeTab === 'map' && <MapView selectedPlace={selected} onSelect={setSelected} />}
         {activeTab === 'playlists' && (
           <ItinerariesPage
-            itineraries={itinerariesData}
+            itineraries={itinerariesArray}
             places={placesData}
             onStart={(it, stops) => {
-              const firstPlace = placesData.find(p => p.id === stops[0]);
-              if (firstPlace) {
+              if (stops.length > 0) {
                 setActiveTab('map');
-                setSelected(firstPlace);
+                setSelected(stops[0] || null);
               }
             }}
           />
         )}
-        {activeTab === 'profile' && <div>Profilo (placeholder)</div>}
+        {activeTab === 'profile' && <div className="py-8 text-center text-text-secondary text-lg font-heading">Profilo (in arrivo)</div>}
         {selected && (
           <BottomSheet
             place={selected}
@@ -49,10 +53,12 @@ export default function App() {
           />
         )}
       </div>
+      {/* Navbar mobile in basso, su desktop può diventare topbar o sidebar */}
       <BottomNav
         activeTab={activeTab}
         onTabChange={setActiveTab}
       />
+      {/* FloatingActionButton solo su map, posizionato in basso a destra */}
       {activeTab === 'map' && (
         <FloatingActionButton
           mode={fabMode}

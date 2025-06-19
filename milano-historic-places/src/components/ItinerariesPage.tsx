@@ -1,5 +1,5 @@
 // src/components/ItinerariesPage.tsx
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import type { Place } from './types';
 import CategoryIcon from '../components/CategoryIcon';
 
@@ -12,53 +12,28 @@ interface Itinerary {
   category?: string;
 }
 
-type Props = {
+interface Props {
+  itineraries: Itinerary[];
+  places: Place[];
   onStart: (itinerary: Itinerary, places: Place[]) => void;
-};
+}
 
-export default function ItinerariesPage({ onStart }: Props) {
-  const [itineraries, setItineraries] = useState<Itinerary[]>([]);
-  const [placesMap, setPlacesMap] = useState<Record<string, Place>>({});
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+export default function ItinerariesPage({ itineraries, places, onStart }: Props) {
+  // Mappa id->Place per lookup veloce
+  const placesMap: Record<string, Place> = {};
+  places.forEach(p => (placesMap[p.id] = p));
 
-  // Carica itineraries.json e places.json insieme
-  useEffect(() => {
-    Promise.all([
-      fetch(import.meta.env.BASE_URL + 'itineraries.json').then(r => {
-        if (!r.ok) throw new Error('itineraries.json fetch failed: ' + r.status);
-        return r.json();
-      }),
-      fetch(import.meta.env.BASE_URL + 'places.json').then(r => {
-        if (!r.ok) throw new Error('places.json fetch failed: ' + r.status);
-        return r.json();
-      }),
-    ]).then(([rawIt, rawPlaces]: [Record<string, any>, Place[]]) => {
-      console.log('Loaded itineraries keys:', Object.keys(rawIt));
-      console.log('Loaded places count:', rawPlaces.length);
-      const list: Itinerary[] = Object.entries(rawIt).map(([id, it]) => ({ id, ...it }));
-      setItineraries(list);
-      const map: Record<string, Place> = {};
-      rawPlaces.forEach(p => (map[p.id] = p));
-      setPlacesMap(map);
-      setLoading(false);
-    }).catch(err => {
-      console.error('Error loading data:', err);
-      setError('Errore caricamento itinerari o luoghi');
-      setLoading(false);
-    });
-  }, []);
+  if (!itineraries || itineraries.length === 0) {
+    return (
+      <div className="p-4">
+        <p className="text-center text-text-secondary">Nessun itinerario disponibile.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 space-y-4">
-      {loading && !error && (
-        <p className="text-center text-text-secondary">Caricamento itinerari...</p>
-      )}
-      {error && <p className="text-accent-bordeaux text-center">{error}</p>}
-      {!loading && !error && itineraries.length === 0 && (
-        <p className="text-center text-text-secondary">Nessun itinerario disponibile.</p>
-      )}
-      {!loading && itineraries.map(it => (
+      {itineraries.map(it => (
         <div
           key={it.id}
           className="bg-newspaper-bg border border-neutral-light shadow rounded-lg overflow-hidden flex"

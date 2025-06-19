@@ -24,10 +24,10 @@ export default function CategoryIcon({ category, className = '', withBackground 
   const iconStyle = { width: `${size}px`, height: `${size}px` };
 
   if (withBackground) {
-    const bgSize = size + 4;
+    const bgSize = size + 8;
     return (
       <div
-        className={`flex items-center justify-center rounded-full bg-warm-bg border border-neutral-light ${className}`}
+        className={`flex items-center justify-center rounded-full bg-newspaper-bg border border-accent-gold shadow-sm ${className}`}
         style={{ width: `${bgSize}px`, height: `${bgSize}px` }}
         aria-label={ariaLabel || category}
       >
