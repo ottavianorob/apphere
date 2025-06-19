@@ -62,7 +62,7 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
                 <img
                   src={photo.url}
                   alt={photo.caption}
-                  className="w-40 h-24 object-cover rounded border border-neutral-light"
+                  className="w-40 h-24 object-cover rounded-xl border border-neutral-light"
                 />
                 {photo.caption && (
                   <p className="font-body mt-1 text-xs text-text-secondary text-center">{photo.caption}</p>
@@ -90,7 +90,7 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
                 <img
                   src={char.image}
                   alt={char.name}
-                  className="w-12 h-12 object-cover rounded mx-auto"
+                  className="w-12 h-12 object-cover rounded-full mx-auto"
                 />
                 <span className="font-body mt-1 block text-sm text-text-primary">{char.name}</span>
               </div>

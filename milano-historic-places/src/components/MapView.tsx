@@ -66,7 +66,7 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
 
       if ((cluster.properties as any).cluster) {
         const count = (cluster.properties as any).point_count;
-        el.className = 'flex items-center justify-center bg-accent-bordeaux text-white rounded border border-accent-gold shadow-sm';
+        el.className = 'flex items-center justify-center bg-accent-bordeaux text-white rounded-full border border-accent-gold shadow-sm';
         // Size based on count, bounded to avoid extremes
         const size = 24 + Math.min(count, 20) * 2;
         el.style.width = el.style.height = `${size}px`;
@@ -85,7 +85,7 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
           });
         });
       } else {
-        el.className = 'bg-accent-gold w-10 h-10 rounded border border-accent-bordeaux cursor-pointer shadow';
+        el.className = 'bg-accent-gold w-10 h-10 rounded-full border border-accent-bordeaux cursor-pointer shadow';
         el.addEventListener('click', () => {
           const props = cluster.properties as any;
           const place: Place = {
@@ -146,7 +146,7 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
     if (!mapRef.current) return;
     const map = new maplibregl.Map({
       container: mapRef.current,
-      style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+      style: '/map-warm-style.json',
       center: [9.19, 45.464],
       zoom: 12,
       attributionControl: false,

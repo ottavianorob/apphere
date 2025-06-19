@@ -1,0 +1,35 @@
+{
+  "version": 8,
+  "name": "Warm Journal",
+  "sources": {
+    "osm": {
+      "type": "raster",
+      "tiles": [
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+      ],
+      "tileSize": 256,
+      "attribution": "© OpenStreetMap contributors"
+    }
+  },
+  "glyphs": "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf",
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#f9f6f1"
+      }
+    },
+    {
+      "id": "raster-tiles",
+      "type": "raster",
+      "source": "osm",
+      "minzoom": 0,
+      "maxzoom": 19
+    }
+  ],
+  "metadata": {
+    "mapbox:autocomposite": false,
+    "mapbox:type": "default"
+  }
+}
