@@ -150,7 +150,7 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
     if (!mapRef.current) return;
     const map = new maplibregl.Map({
       container: mapRef.current,
-      style: 'https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=gH3DLPa6Gtu1j6wgHTNx',
+      style: 'https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/?key=gH3DLPa6Gtu1j6wgHTNx',
       center: [9.19, 45.464],
       zoom: 12,
       attributionControl: false,
