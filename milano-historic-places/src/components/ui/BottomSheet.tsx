@@ -17,7 +17,7 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
 
   return (
     <div className="fixed inset-x-0 bottom-0 max-h-[90%] bg-warm-bg rounded-t-2xl shadow-2xl flex flex-col
-      md:inset-y-0 md:bottom-auto md:top-0 md:right-0 md:w-1/3 md:max-h-full md:rounded-l-2xl">
+      md:fixed md:top-1/2 md:right-4 md:transform md:-translate-y-1/2 md:w-1/3 md:max-h-[80%] md:rounded-l-2xl">
       {/* Drag handle */}
       <div className="self-center w-12 h-1.5 bg-neutral-light mt-2 rounded-full" />
 
