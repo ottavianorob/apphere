@@ -187,12 +187,12 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
 
   return (
     <div className="relative h-screen w-full">
-      <div className="absolute top-4 inset-x-4 bg-newspaper-bg/95 p-2 rounded-full shadow border border-accent-gold z-20 flex flex-wrap gap-2 overflow-x-auto md:gap-4 md:justify-center">
+      <div className="absolute top-4 inset-x-4 bg-newspaper-bg/95 p-2 rounded shadow border border-accent-gold z-20 flex flex-wrap gap-2 overflow-x-auto md:gap-4 md:justify-center">
         {categories.map(cat => (
           <button
             key={cat}
             onClick={() => setFilterCategory(cat)}
-            className={`px-3 py-1 rounded-full text-sm whitespace-nowrap transition flex items-center space-x-1 font-heading tracking-wide
+            className={`px-3 py-1 rounded text-sm whitespace-nowrap transition flex items-center space-x-1 font-heading tracking-wide
               ${filterCategory === cat ? 'bg-accent-bordeaux text-white' : 'bg-neutral-light text-text-primary hover:bg-accent-gold'}`}
           >
             <CategoryIcon

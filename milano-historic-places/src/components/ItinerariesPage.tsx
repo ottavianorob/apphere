@@ -36,7 +36,7 @@ export default function ItinerariesPage({ itineraries, places, onStart }: Props)
       {itineraries.map(it => (
         <div
           key={it.id}
-          className="bg-newspaper-bg border border-neutral-light shadow rounded-lg overflow-hidden flex"
+          className="bg-newspaper-bg border border-neutral-light shadow rounded overflow-hidden flex"
         >
           {it.image ? (
             <img src={it.image} alt={it.title} className="w-24 h-24 object-cover flex-shrink-0" />
@@ -65,7 +65,7 @@ export default function ItinerariesPage({ itineraries, places, onStart }: Props)
             </div>
             <button
               onClick={() => onStart(it, it.stops.map(id => placesMap[id]).filter(Boolean) as Place[])}
-              className="mt-3 inline-block bg-accent-bordeaux text-white px-4 py-2 rounded-lg hover:bg-accent-gold hover:text-accent-bordeaux transition"
+              className="mt-3 inline-block bg-accent-bordeaux text-white px-4 py-2 rounded hover:bg-accent-gold hover:text-accent-bordeaux transition"
             >
               Avvia tour
             </button>

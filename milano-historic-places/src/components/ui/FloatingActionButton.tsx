@@ -16,7 +16,7 @@ export default function FloatingActionButton({ mode, onClick }: Props) {
       aria-label={
         mode === 'add' ? 'Aggiungi nuovo pin' : 'Modifica pin selezionato'
       }
-      className="fixed bottom-16 right-4 bg-accent-bordeaux p-4 rounded-full shadow-lg text-white hover:bg-accent-gold focus:outline-none focus:ring-2 focus:ring-accent-bordeaux"
+      className="fixed bottom-16 right-4 bg-accent-bordeaux p-4 rounded shadow-lg text-white hover:bg-accent-gold focus:outline-none focus:ring-2 focus:ring-accent-bordeaux"
     >
       {mode === 'add' ? <PlusIcon size={24} /> : <Edit2Icon size={24} />}
     </motion.button>

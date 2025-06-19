@@ -27,7 +27,7 @@ export default function CategoryIcon({ category, className = '', withBackground 
     const bgSize = size + 8;
     return (
       <div
-        className={`flex items-center justify-center rounded-full bg-newspaper-bg border border-accent-gold shadow-sm ${className}`}
+        className={`flex items-center justify-center rounded-sm bg-newspaper-bg border border-accent-gold shadow-sm ${className}`}
         style={{ width: `${bgSize}px`, height: `${bgSize}px` }}
         aria-label={ariaLabel || category}
       >
