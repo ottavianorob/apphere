@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MapView from './components/MapView';
 import BottomSheet from './components/ui/BottomSheet';
 import BottomNav from './components/ui/BottomNav';
@@ -28,6 +28,11 @@ export default function App() {
   // Converto itinerariesData (oggetto) in array per ItinerariesPage
   const itinerariesArray = Object.entries(itinerariesData).map(([id, it]) => ({ id, ...it }));
 
+  // Chiudi il dettaglio quando si cambia tab
+  useEffect(() => {
+    setSelected(null);
+  }, [activeTab]);
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navbar: topbar su desktop, bottomnav su mobile */}
@@ -42,7 +47,7 @@ export default function App() {
         {/* Mappa sempre a tutta larghezza */}
         {activeTab === 'map' && (
           <div className="flex-1 min-h-[60vh] md:min-h-screen w-full">
-            <MapView selectedPlace={selected} onSelect={setSelected} />
+            <MapView selectedPlace={selected || undefined} onSelect={setSelected} />
             <div className="fixed bottom-20 right-4 z-40 md:bottom-8">
               <FloatingActionButton
                 mode={fabMode}
@@ -65,13 +70,13 @@ export default function App() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed inset-0 md:top-16 md:right-0 w-full h-full md:w-[420px] md:h-[calc(100vh-4rem)] bg-newspaper-bg border-t md:border-t-0 md:border-l border-neutral-light shadow-lg z-40 overflow-y-auto"
+            style={{ position: 'fixed', inset: 0, top: '4rem', right: 0, width: '100%', height: '100%', maxWidth: '420px', background: 'var(--color-newspaper-bg)', zIndex: 40, boxShadow: '0 0 16px rgba(0,0,0,0.1)' }}
             aria-label="Pannello itinerari"
           >
             <ItinerariesPage
               itineraries={itinerariesArray}
               places={placesData}
-              onStart={(it, stops) => {
+              onStart={(_it, stops) => {
                 if (stops.length > 0) {
                   setActiveTab('map');
                   setSelected(stops[0] || null);
@@ -80,7 +85,7 @@ export default function App() {
             />
           </motion.div>
         )}
-        {/* Overlay modale per dettaglio place su mobile, bottomsheet su mobile, laterale su desktop */}
+        {/* Overlay modale per dettaglio place su mobile, side-panel su desktop */}
         {selected && (
           <motion.div
             key="details"
@@ -88,7 +93,7 @@ export default function App() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed inset-x-0 bottom-0 top-auto h-[90%] w-full md:top-16 md:right-0 md:bottom-auto md:w-[420px] md:h-[calc(100vh-4rem)] bg-newspaper-bg border-t md:border-t-0 md:border-l border-neutral-light shadow-lg z-50 overflow-y-auto md:inset-0 md:top-16 md:right-0 md:w-[420px] md:h-[calc(100vh-4rem)]"
+            style={{ position: 'fixed', inset: 0, top: '4rem', right: 0, width: '100%', height: '100%', maxWidth: '420px', background: 'var(--color-newspaper-bg)', zIndex: 50, boxShadow: '0 0 16px rgba(0,0,0,0.1)' }}
             aria-label="Dettaglio luogo"
           >
             <BottomSheet
