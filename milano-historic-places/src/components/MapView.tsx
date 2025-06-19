@@ -75,13 +75,19 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
         el.style.fontSize = '13px';
         el.style.fontWeight = 'bold';
         el.style.boxShadow = '0 1px 4px rgba(80,40,20,0.12)';
-        el.style.transition = 'box-shadow 0.2s';
-        el.addEventListener('mouseenter', () => { el.style.boxShadow = '0 2px 8px rgba(80,40,20,0.18)'; });
-        el.addEventListener('mouseleave', () => { el.style.boxShadow = '0 1px 4px rgba(80,40,20,0.12)'; });
+        el.style.transition = 'box-shadow 0.2s, transform 0.2s';
+        el.addEventListener('mouseenter', () => {
+          el.style.boxShadow = '0 4px 16px rgba(80,40,20,0.22)';
+          el.style.transform = 'scale(1.08)';
+        });
+        el.addEventListener('mouseleave', () => {
+          el.style.boxShadow = '0 1px 4px rgba(80,40,20,0.12)';
+          el.style.transform = 'scale(1)';
+        });
         el.addEventListener('click', () => {
           const clusterId = (cluster.properties as any).cluster_id;
           indexRef.current!.getClusterExpansionZoom(clusterId, (_err, expZoom) => {
-            map.easeTo({ center: [lon, lat], zoom: expZoom + 1 });
+            map.easeTo({ center: [lon, lat], zoom: expZoom + 1.5, duration: 600, essential: true });
           });
         });
       } else {

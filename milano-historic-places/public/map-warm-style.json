@@ -1,6 +1,6 @@
 {
   "version": 8,
-  "name": "Warm Journal",
+  "name": "Warm Journal Modern",
   "sources": {
     "osm": {
       "type": "raster",
@@ -11,13 +11,33 @@
       "attribution": "© OpenStreetMap contributors"
     }
   },
-  "glyphs": "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf",
   "layers": [
     {
       "id": "background",
       "type": "background",
       "paint": {
         "background-color": "#f9f6f1"
+      }
+    },
+    {
+      "id": "water",
+      "type": "background",
+      "paint": {
+        "background-color": "#f5e6ca"
+      }
+    },
+    {
+      "id": "urban-area",
+      "type": "background",
+      "paint": {
+        "background-color": "#ede6dd"
+      }
+    },
+    {
+      "id": "park",
+      "type": "background",
+      "paint": {
+        "background-color": "#ffeccc"
       }
     },
     {
