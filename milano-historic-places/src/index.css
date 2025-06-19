@@ -1,11 +1,20 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+Pro:wght@400;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* reset & styling globali */
 body {
+  @apply bg-warm-bg font-body text-text-primary;
   margin: 0;
-  font-family: system-ui, sans-serif;
+  padding: 0;
+}
+a {
+  @apply text-accent-blue hover:underline;
+}
+h1, h2, h3, h4, h5, h6 {
+  @apply font-heading text-text-primary;
 }
 #root {
   width: 100vw;
