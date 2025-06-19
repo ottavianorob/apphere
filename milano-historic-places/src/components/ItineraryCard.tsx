@@ -16,16 +16,17 @@ interface Props {
   placesMap: Record<string, Place>;
   idx: number;
   onStart: (itinerary: Itinerary, places: Place[]) => void;
+  className?: string; // aggiunta
 }
 
-export default function ItineraryCard({ itinerary: it, placesMap, idx, onStart }: Props) {
+export default function ItineraryCard({ itinerary: it, placesMap, idx, onStart, className }: Props) {
   const cat = it.category || (placesMap[it.stops[0]]?.category ?? '');
   return (
     <div
       tabIndex={0}
       role="button"
       aria-label={`Itinerario: ${it.title}`}
-      className={`bg-newspaper-bg dark:bg-gradient-to-br dark:from-[#18151a] dark:to-[#23202a] border border-neutral-light dark:border-accent-gold shadow rounded-xl overflow-hidden flex focus:ring-2 focus:ring-accent-bordeaux dark:focus:ring-accent-gold transition-all duration-200 hover:shadow-lg hover:border-accent-gold outline-none group w-full`}
+      className={`bg-newspaper-bg dark:bg-gradient-to-br dark:from-[#18151a] dark:to-[#23202a] border border-neutral-light dark:border-accent-gold shadow rounded-xl overflow-hidden flex focus:ring-2 focus:ring-accent-bordeaux dark:focus:ring-accent-gold transition-all duration-200 hover:shadow-lg hover:border-accent-gold outline-none group w-full ${className || ''}`}
     >
       <motion.div
         key={it.id}

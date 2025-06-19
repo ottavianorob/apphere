@@ -16,7 +16,7 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
   return (
     <div
       className="fixed inset-x-0 bottom-0 max-h-[90%] bg-newspaper-bg dark:bg-gradient-to-br dark:from-[#18151a] dark:to-[#23202a] rounded-t-2xl shadow-2xl flex flex-col overflow-hidden z-50
-        md:fixed md:top-1/2 md:right-4 md:transform md:-translate-y-1/2 md:w-1/3 md:max-h-[80%] md:rounded-l-2xl md:rounded-t-none border border-accent-gold dark:border-accent-gold"
+        md:fixed md:top-1/2 md:left-8 md:transform md:-translate-y-1/2 md:w-[35%] md:max-h-[85%] md:rounded-xl md:border md:border-accent-gold dark:border-accent-gold md:overflow-auto"
       role="dialog"
       aria-modal="true"
       tabIndex={-1}
