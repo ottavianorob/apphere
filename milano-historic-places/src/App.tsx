@@ -29,7 +29,7 @@ export default function App() {
   const itinerariesArray = Object.entries(itinerariesData).map(([id, it]) => ({ id, ...it }));
 
   return (
-    <div className="min-h-screen bg-newspaper-bg flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Navbar: topbar su desktop, bottomnav su mobile */}
       <div className="md:w-full md:fixed md:top-0 md:left-0 md:right-0 md:z-30">
         <BottomNav
@@ -80,7 +80,7 @@ export default function App() {
             />
           </motion.div>
         )}
-        {/* Overlay modale per dettaglio place su mobile, laterale su desktop */}
+        {/* Overlay modale per dettaglio place su mobile, bottomsheet su mobile, laterale su desktop */}
         {selected && (
           <motion.div
             key="details"
@@ -88,7 +88,7 @@ export default function App() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            className="fixed inset-0 md:top-16 md:right-0 w-full h-full md:w-[420px] md:h-[calc(100vh-4rem)] bg-newspaper-bg border-t md:border-t-0 md:border-l border-neutral-light shadow-lg z-50 overflow-y-auto"
+            className="fixed inset-x-0 bottom-0 top-auto h-[90%] w-full md:top-16 md:right-0 md:bottom-auto md:w-[420px] md:h-[calc(100vh-4rem)] bg-newspaper-bg border-t md:border-t-0 md:border-l border-neutral-light shadow-lg z-50 overflow-y-auto md:inset-0 md:top-16 md:right-0 md:w-[420px] md:h-[calc(100vh-4rem)]"
             aria-label="Dettaglio luogo"
           >
             <BottomSheet
