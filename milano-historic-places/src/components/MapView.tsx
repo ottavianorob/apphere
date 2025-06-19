@@ -196,13 +196,15 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
 
   return (
     <div className="relative h-screen w-full bg-newspaper-bg dark:bg-gradient-to-br dark:from-[#18151a] dark:to-[#23202a]">
-      <div className="absolute top-4 inset-x-4 bg-newspaper-bg/95 dark:bg-[#23202a]/95 p-2 rounded shadow border border-accent-gold dark:border-accent-gold z-20 flex flex-wrap gap-2 overflow-x-auto md:gap-4 md:justify-center">
+      {/* Filtri: mobile barra orizzontale, desktop card verticale in alto a sinistra, senza bordi, solo ombra e padding */}
+      <div className="absolute z-20 top-4 left-1/2 -translate-x-1/2 w-[95vw] max-w-xl flex gap-2 overflow-x-auto p-2 rounded shadow-lg bg-white/95 dark:bg-[#18151a]/95 md:static md:top-auto md:left-auto md:translate-x-0 md:w-auto md:max-w-none md:flex-col md:items-start md:gap-2 md:p-6 md:rounded-2xl md:shadow-2xl md:bg-white/95 md:dark:bg-[#18151a]/95 md:absolute md:left-16 md:top-12 md:right-auto">
         {categories.map(cat => (
           <button
             key={cat}
             onClick={() => setFilterCategory(cat)}
-            className={`px-3 py-1 rounded text-sm whitespace-nowrap transition flex items-center space-x-1 font-heading tracking-wide
+            className={`px-4 py-2 rounded-lg text-base whitespace-nowrap transition flex items-center space-x-2 font-heading tracking-wide shadow-sm
               ${filterCategory === cat ? 'bg-accent-bordeaux dark:bg-accent-gold text-white dark:text-accent-bordeaux' : 'bg-neutral-light dark:bg-[#23202a] text-text-primary dark:text-accent-gold hover:bg-accent-gold dark:hover:bg-accent-bordeaux'}`}
+            style={{ minWidth: 110, border: 'none' }}
           >
             <CategoryIcon
               category={cat}

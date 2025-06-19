@@ -44,9 +44,9 @@ export default function App() {
       </div>
       {/* Main content: mappa full width, overlay modale su mobile */}
       <div className="flex-1 flex flex-col md:pt-16 w-full relative">
-        {/* Mappa sempre a tutta larghezza */}
+        {/* Mappa sempre a pieno schermo */}
         {activeTab === 'map' && (
-          <div className="flex-1 min-h-[60vh] md:min-h-screen w-full">
+          <div className="fixed inset-0 z-0">
             <MapView selectedPlace={selected || undefined} onSelect={setSelected} />
             <div className="fixed bottom-20 right-4 z-40 md:bottom-8">
               <FloatingActionButton
@@ -70,7 +70,7 @@ export default function App() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            style={{ position: 'fixed', inset: 0, top: '4rem', right: 0, width: '100%', height: '100%', maxWidth: '420px', background: 'var(--color-newspaper-bg)', zIndex: 40, boxShadow: '0 0 16px rgba(0,0,0,0.1)' }}
+            style={{ position: 'fixed', inset: 0, top: '4rem', right: 0, width: '100%', height: '100%', maxWidth: '480px', background: 'var(--color-newspaper-bg)', zIndex: 40, boxShadow: '0 0 16px rgba(0,0,0,0.1)' }}
             aria-label="Pannello itinerari"
           >
             <ItinerariesPage
@@ -85,7 +85,7 @@ export default function App() {
             />
           </motion.div>
         )}
-        {/* Overlay modale per dettaglio place su mobile, side-panel su desktop */}
+        {/* Overlay modale per dettaglio place: bottomsheet su mobile, side-panel ampio e leggibile su desktop */}
         {selected && (
           <motion.div
             key="details"
@@ -93,7 +93,55 @@ export default function App() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            style={{ position: 'fixed', inset: 0, top: '4rem', right: 0, width: '100%', height: '100%', maxWidth: '420px', background: 'var(--color-newspaper-bg)', zIndex: 50, boxShadow: '0 0 16px rgba(0,0,0,0.1)' }}
+            style={{
+              position: 'fixed',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              top: 'auto',
+              width: '100%',
+              height: '90%',
+              maxWidth: '100vw',
+              background: 'var(--color-newspaper-bg)',
+              zIndex: 50,
+              boxShadow: '0 0 16px rgba(0,0,0,0.1)',
+              borderTopLeftRadius: '1.5rem',
+              borderTopRightRadius: '1.5rem',
+              overflowY: 'auto',
+              padding: 0,
+              /* Desktop: side-panel molto ampio e leggibile */
+              ...(window.innerWidth >= 1024 ? {
+                left: 'auto',
+                right: 0,
+                top: '4rem',
+                bottom: 0,
+                width: 'min(1000px, 100vw)',
+                height: 'calc(100vh - 4rem)',
+                borderTopLeftRadius: '2rem',
+                borderBottomLeftRadius: '2rem',
+                borderTopRightRadius: 0,
+                borderBottomRightRadius: 0,
+                marginRight: '2vw',
+                marginBottom: '2vh',
+                marginTop: '2vh',
+                background: 'var(--color-newspaper-bg)',
+              } : window.innerWidth >= 768 ? {
+                left: 'auto',
+                right: 0,
+                top: '4rem',
+                bottom: 0,
+                width: 'min(600px, 100vw)',
+                height: 'calc(100vh - 4rem)',
+                borderTopLeftRadius: '1.5rem',
+                borderBottomLeftRadius: '1.5rem',
+                borderTopRightRadius: 0,
+                borderBottomRightRadius: 0,
+                marginRight: '2vw',
+                marginBottom: '2vh',
+                marginTop: '2vh',
+                background: 'var(--color-newspaper-bg)',
+              } : {})
+            }}
             aria-label="Dettaglio luogo"
           >
             <BottomSheet

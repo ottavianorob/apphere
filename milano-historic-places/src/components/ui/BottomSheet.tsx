@@ -27,8 +27,8 @@ export default function BottomSheet({ place, photos = [], characters = [], onClo
         exit={{ y: 80, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
-        {/* Drag handle */}
-        <div className="self-center w-12 h-1.5 bg-neutral-light dark:bg-accent-gold mt-2 rounded-full mb-2" />
+        {/* Drag handle solo su mobile */}
+        <div className="block md:hidden self-center w-12 h-1.5 bg-neutral-light dark:bg-accent-gold mt-2 rounded-full mb-2" />
         <div className="flex-1 overflow-y-auto flex flex-col">
           {/* Header */}
           <div className="px-6 pt-2 pb-4 flex items-center justify-between">
