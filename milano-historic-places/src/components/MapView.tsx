@@ -124,8 +124,8 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
           }
         });
       }
-      new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([lon, lat]).addTo(map);
-      markersRef.current.push(new maplibregl.Marker({ element: el, anchor: 'bottom' }));
+      const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([lon, lat]).addTo(map);
+      markersRef.current.push(marker);
     });
   }, [onSelect]);
 
