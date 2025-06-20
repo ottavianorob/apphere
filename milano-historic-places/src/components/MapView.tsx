@@ -124,8 +124,8 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
           }
         });
       }
-      new maplibregl.Marker(el).setLngLat([lon, lat]).addTo(map);
-      markersRef.current.push(new maplibregl.Marker(el));
+      new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([lon, lat]).addTo(map);
+      markersRef.current.push(new maplibregl.Marker({ element: el, anchor: 'bottom' }));
     });
   }, [onSelect]);
 
@@ -197,7 +197,7 @@ export default function MapView({ onSelect, selectedPlace }: Props) {
   return (
     <div className="relative h-screen w-full bg-newspaper-bg dark:bg-gradient-to-br dark:from-[#18151a] dark:to-[#23202a]">
       {/* Filtri: mobile barra orizzontale, desktop card verticale in alto a sinistra, senza bordi, solo ombra e padding */}
-      <div className="absolute z-20 top-4 left-1/2 -translate-x-1/2 w-[95vw] max-w-xl flex gap-2 overflow-x-auto p-2 rounded shadow-lg bg-white/95 dark:bg-[#18151a]/95 md:static md:top-auto md:left-auto md:translate-x-0 md:w-auto md:max-w-none md:flex-col md:items-start md:gap-2 md:p-6 md:rounded-2xl md:shadow-2xl md:bg-white/95 md:dark:bg-[#18151a]/95 md:absolute md:left-16 md:top-12 md:right-auto">
+      <div className="absolute z-20 top-4 left-1/2 -translate-x-1/2 w-[95vw] max-w-xl flex gap-2 overflow-x-auto p-2 rounded shadow-lg bg-white/95 dark:bg-[#18151a]/95 md:static md:top-auto md:left-auto md:translate-x-0 md:w-auto md:max-w-none md:flex-col md:items-start md:gap-2 md:p-6 md:rounded-2xl md:shadow-2xl md:bg-white/95 md:dark:bg-[#18151a]/95 md:absolute md:left-16 md:top-12 md:right-auto md:ml-4 md:mr-4">
         {categories.map(cat => (
           <button
             key={cat}

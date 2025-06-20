@@ -87,70 +87,75 @@ export default function App() {
         )}
         {/* Overlay modale per dettaglio place: bottomsheet su mobile, side-panel ampio e leggibile su desktop */}
         {selected && (
-          <motion.div
-            key="details"
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            style={{
-              position: 'fixed',
-              left: 0,
-              right: 0,
-              bottom: 0,
-              top: 'auto',
-              width: '100%',
-              height: '90%',
-              maxWidth: '100vw',
-              background: 'var(--color-newspaper-bg)',
-              zIndex: 50,
-              boxShadow: '0 0 16px rgba(0,0,0,0.1)',
-              borderTopLeftRadius: '1.5rem',
-              borderTopRightRadius: '1.5rem',
-              overflowY: 'auto',
-              padding: 0,
-              /* Desktop: side-panel molto ampio e leggibile */
-              ...(window.innerWidth >= 1024 ? {
-                left: 'auto',
-                right: 0,
-                top: '4rem',
+          <>
+            {/* Overlay solo su mobile per evitare che il dettaglio venga coperto */}
+            <motion.div
+              key="details"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              style={{
+                position: 'fixed',
+                left: '50%',
+                transform: 'translateX(-50%)',
                 bottom: 0,
-                width: 'min(1000px, 100vw)',
+                width: '95vw',
+                maxWidth: '600px',
+                height: '70%',
+                zIndex: 50,
+                background: 'var(--color-newspaper-bg)',
+                boxShadow: '0 0 16px rgba(0,0,0,0.1)',
+                borderTopLeftRadius: '1.5rem',
+                borderTopRightRadius: '1.5rem',
+                overflowY: 'auto',
+                padding: 0,
+                display: window.innerWidth < 768 ? 'block' : 'none',
+              }}
+              aria-label="Dettaglio luogo"
+            >
+              <BottomSheet
+                place={selected}
+                photos={selectedPhotos}
+                characters={selectedChars}
+                onClose={() => setSelected(null)}
+              />
+            </motion.div>
+            {/* Side-panel desktop, non blocca la mappa */}
+            <motion.div
+              key="details-desktop"
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              style={{
+                position: 'fixed',
+                top: '4rem',
+                right: 0,
+                bottom: 0,
+                width: 'min(1000px,40vw)',
                 height: 'calc(100vh - 4rem)',
+                zIndex: 50,
+                background: 'var(--color-newspaper-bg)',
+                boxShadow: '0 0 16px rgba(0,0,0,0.1)',
                 borderTopLeftRadius: '2rem',
                 borderBottomLeftRadius: '2rem',
                 borderTopRightRadius: 0,
                 borderBottomRightRadius: 0,
-                marginRight: '2vw',
-                marginBottom: '2vh',
-                marginTop: '2vh',
-                background: 'var(--color-newspaper-bg)',
-              } : window.innerWidth >= 768 ? {
-                left: 'auto',
-                right: 0,
-                top: '4rem',
-                bottom: 0,
-                width: 'min(600px, 100vw)',
-                height: 'calc(100vh - 4rem)',
-                borderTopLeftRadius: '1.5rem',
-                borderBottomLeftRadius: '1.5rem',
-                borderTopRightRadius: 0,
-                borderBottomRightRadius: 0,
-                marginRight: '2vw',
-                marginBottom: '2vh',
-                marginTop: '2vh',
-                background: 'var(--color-newspaper-bg)',
-              } : {})
-            }}
-            aria-label="Dettaglio luogo"
-          >
-            <BottomSheet
-              place={selected}
-              photos={selectedPhotos}
-              characters={selectedChars}
-              onClose={() => setSelected(null)}
-            />
-          </motion.div>
+                overflowY: 'auto',
+                padding: 0,
+                display: window.innerWidth >= 768 ? 'block' : 'none',
+              }}
+              aria-label="Dettaglio luogo desktop"
+            >
+              <BottomSheet
+                place={selected}
+                photos={selectedPhotos}
+                characters={selectedChars}
+                onClose={() => setSelected(null)}
+              />
+            </motion.div>
+          </>
         )}
         </AnimatePresence>
       </div>
