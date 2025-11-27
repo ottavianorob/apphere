@@ -1,0 +1,7 @@
+{
+  "name": "Cosa è successo qui?",
+  "description": "An interactive web app that allows users to explore and rediscover their territory through collective memory. The app displays geolocalized places linked to historical, social, cultural, or artistic events, providing descriptive, photographic, and narrative content about what happened in those spots in the past.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
