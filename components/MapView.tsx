@@ -54,18 +54,39 @@ const PointListItem: React.FC<{ point: Point; distance?: number | null; onSelect
   </div>
 );
 
+// Color mapping for category buttons
+const categoryColors: { [key: string]: { selected: string; unselected: string; ring: string; } } = {
+  'storia':   { selected: 'bg-sky-700 text-white', unselected: 'text-sky-700 border border-sky-700 bg-transparent', ring: 'focus:ring-sky-500' },
+  'arte':     { selected: 'bg-amber-600 text-white', unselected: 'text-amber-600 border border-amber-600 bg-transparent', ring: 'focus:ring-amber-500' },
+  'societa':  { selected: 'bg-red-700 text-white', unselected: 'text-red-700 border border-red-700 bg-transparent', ring: 'focus:ring-red-500' },
+  'cinema':   { selected: 'bg-emerald-600 text-white', unselected: 'text-emerald-600 border border-emerald-600 bg-transparent', ring: 'focus:ring-emerald-500' },
+  'musica':   { selected: 'bg-indigo-600 text-white', unselected: 'text-indigo-600 border border-indigo-600 bg-transparent', ring: 'focus:ring-indigo-500' },
+};
+const defaultColors = { selected: 'bg-gray-600 text-white', unselected: 'text-gray-600 border border-gray-600 bg-transparent', ring: 'focus:ring-gray-500' };
+
 const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, periods }) => {
   const { data: userLocation, loading, error } = useGeolocation();
-  const [filterCategory, setFilterCategory] = useState<string>('all');
-  const [filterPeriod, setFilterPeriod] = useState<string>('all');
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
   const periodMap = useMemo(() => new Map(periods.map(p => [p.id, p.name])), [periods]);
 
+  const handleCategoryClick = (categoryId: string) => {
+    setSelectedCategories(prev => {
+      const isSelected = prev.includes(categoryId);
+      if (isSelected) {
+        return prev.filter(id => id !== categoryId);
+      } else {
+        return [...prev, categoryId];
+      }
+    });
+  };
+
   const filteredAndSortedPoints = useMemo(() => {
+    const isFilteringActive = selectedCategories.length > 0;
+    
     let filtered = points.filter(p => 
-      (filterCategory === 'all' || p.categoryId === filterCategory) &&
-      (filterPeriod === 'all' || p.periodId === filterPeriod)
+      !isFilteringActive || selectedCategories.includes(p.categoryId)
     );
 
     if (userLocation) {
@@ -78,7 +99,7 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
     }
     
     return filtered.map(point => ({ ...point, distance: undefined }));
-  }, [points, userLocation, filterCategory, filterPeriod]);
+  }, [points, userLocation, selectedCategories]);
 
   return (
     <div>
@@ -93,20 +114,28 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
         Mappa Interattiva
       </div>
 
-      <div className="border-t border-b border-gray-300 py-4 mb-6 flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
-          <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">Filtra per Categoria</label>
-          <select id="category-filter" value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="w-full bg-white/50 border-gray-300 rounded-sm text-[#1C1C1C] focus:ring-[#134A79] focus:border-[#134A79]">
-            <option value="all">Tutte le categorie</option>
-            {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        </div>
-        <div className="flex-1">
-          <label htmlFor="period-filter" className="block text-sm font-medium text-gray-700 mb-1">Filtra per Periodo</label>
-          <select id="period-filter" value={filterPeriod} onChange={e => setFilterPeriod(e.target.value)} className="w-full bg-white/50 border-gray-300 rounded-sm text-[#1C1C1C] focus:ring-[#134A79] focus:border-[#134A79]">
-            <option value="all">Tutti i periodi</option>
-            {periods.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
+      <div className="border-t border-b border-gray-300 py-4 mb-6">
+        <p className="text-sm font-medium text-gray-700 mb-3 text-center sm:text-left">Filtra per Categoria</p>
+        <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+          {categories.map(category => {
+            const isSelected = selectedCategories.includes(category.id);
+            const noFilterActive = selectedCategories.length === 0;
+            const colors = categoryColors[category.id] || defaultColors;
+            
+            const buttonClasses = (isSelected || noFilterActive) 
+              ? colors.selected 
+              : colors.unselected;
+            
+            return (
+              <button 
+                key={category.id}
+                onClick={() => handleCategoryClick(category.id)}
+                className={`px-4 py-2 text-sm font-semibold rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#EDE5D0] ${buttonClasses} ${colors.ring}`}
+              >
+                {category.name}
+              </button>
+            );
+          })}
         </div>
       </div>
 
