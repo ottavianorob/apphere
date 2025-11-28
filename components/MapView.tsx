@@ -143,7 +143,7 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
     longitude: 12.496366, // Rome
     latitude: 41.902782,
     zoom: 5,
-    pitch: 0,
+    pitch: 50,
     bearing: 0,
   });
 
@@ -209,8 +209,6 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
     return filtered.map(point => ({ ...point, distance: undefined, bearing: undefined }));
   }, [points, userLocation, selectedCategories]);
 
-  const isHeadingAvailable = userLocation?.heading !== null && userLocation?.heading !== undefined;
-
   return (
     <div>
       <header className="mb-8 border-b-2 border-black pb-4 text-center">
@@ -218,11 +216,6 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
         <p className="font-serif-display italic text-lg text-gray-700 mt-2">{capitalizedDate}</p>
         {loading && <p className="font-sans-display text-[#134A79] text-sm mt-2">Acquisizione della posizione in corso...</p>}
         {error && <p className="font-sans-display text-[#B1352E] text-sm mt-2">Impossibile ottenere la posizione: {error.message}</p>}
-        {!loading && userLocation && !isHeadingAvailable && (
-            <p className="font-sans-display text-gray-500 text-xs mt-2">
-                Direzione non disponibile sul dispositivo.
-            </p>
-        )}
       </header>
 
       <div className="h-96 w-full mb-8 bg-gray-200 relative">
