@@ -45,7 +45,7 @@ const App: React.FC = () => {
       </main>
       <BottomNav currentView={currentView} setCurrentView={setCurrentView} />
       {selectedPoint && (
-        <PointDetailModal point={selectedPoint} onClose={() => setSelectedPoint(null)} />
+        <PointDetailModal point={selectedPoint} onClose={() => setSelectedPoint(null)} categories={categories} />
       )}
     </div>
   );

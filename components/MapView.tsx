@@ -74,8 +74,8 @@ const PointListItem: React.FC<{ point: Point; distance?: number | null; bearing?
       {/* Left: Directional Circle */}
       {distance !== undefined && distance !== null && bearing !== undefined && bearing !== null ? (
         <div className="flex-shrink-0 w-24 h-24 bg-gray-200/50 rounded-full flex flex-col items-center justify-center relative border-2 border-gray-300/80">
-          <div className="absolute inset-0" style={{ transform: `rotate(${bearing}deg)` }}>
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[2px] transition-transform duration-500 ease-in-out">
+          <div className="absolute inset-0 transition-transform duration-500 ease-in-out" style={{ transform: `rotate(${bearing}deg)` }}>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[4px]">
               <DirectionTriangleIcon className="text-gray-800" />
             </div>
           </div>
@@ -191,11 +191,18 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
 
     if (userLocation) {
       return filtered
-        .map(point => ({
-          ...point,
-          distance: getDistance(userLocation, point.coordinates),
-          bearing: getBearing(userLocation, point.coordinates),
-        }))
+        .map(point => {
+          const absoluteBearing = getBearing(userLocation, point.coordinates);
+          const relativeBearing = (userLocation.heading !== null && userLocation.heading !== undefined)
+            ? absoluteBearing - userLocation.heading
+            : absoluteBearing;
+          
+          return {
+            ...point,
+            distance: getDistance(userLocation, point.coordinates),
+            bearing: relativeBearing,
+          };
+        })
         .sort((a, b) => a.distance - b.distance);
     }
     
@@ -244,7 +251,7 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
       </div>
 
       <div className="border-t border-b border-gray-300 py-4 mb-6">
-        <div className="font-sans-display flex flex-wrap gap-2 justify-center sm:justify-start">
+        <div className="font-sans-display flex flex-wrap gap-2 justify-center">
           {categories.map(category => {
             const isSelected = selectedCategories.includes(category.id);
             const noFilterActive = selectedCategories.length === 0;
