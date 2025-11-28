@@ -6,6 +6,7 @@ import useGeolocation from '../hooks/useGeolocation';
 import MapPinIcon from './icons/MapPinIcon';
 import DirectionTriangleIcon from './icons/DirectionTriangleIcon';
 import CalendarIcon from './icons/CalendarIcon';
+import UserLocationMarker from './UserLocationMarker';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -227,8 +228,8 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
           mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
         >
           {userLocation && (
-            <Marker longitude={userLocation.longitude} latitude={userLocation.latitude}>
-              <div className="w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg" title="La tua posizione"></div>
+            <Marker longitude={userLocation.longitude} latitude={userLocation.latitude} anchor="center">
+              <UserLocationMarker heading={userLocation.heading} />
             </Marker>
           )}
 
