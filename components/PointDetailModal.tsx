@@ -1,4 +1,6 @@
 import React, { useEffect } from 'react';
+import ReactMapGL, { Marker } from 'react-map-gl';
+import maplibregl from 'maplibre-gl';
 import { Point, Category } from '../types';
 import { characters as allCharacters } from '../data/mockData';
 import CloseIcon from './icons/CloseIcon';
@@ -6,6 +8,9 @@ import NavigationIcon from './icons/NavigationIcon';
 import UserIcon from './icons/UserIcon';
 import CalendarIcon from './icons/CalendarIcon';
 import MapPinIcon from './icons/MapPinIcon';
+
+// Fix for cross-origin error in sandboxed environments by setting worker URL
+(maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
 
 
 interface PointDetailModalProps {
@@ -18,6 +23,8 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose, cat
   const linkedCharacters = allCharacters.filter(c => point.linkedCharacterIds.includes(c.id));
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${point.coordinates.latitude},${point.coordinates.longitude}`;
   const category = categories.find(c => c.id === point.categoryId);
+  const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
+
 
   const categoryPillColors: { [key: string]: string } = {
     'storia': 'bg-sky-700 text-white',
@@ -28,6 +35,16 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose, cat
   };
   const defaultPillColor = 'bg-gray-600 text-white';
   const categoryColorClass = category ? categoryPillColors[category.id] : defaultPillColor;
+
+  const mapPinColors: { [key: string]: string } = {
+    'storia': 'text-sky-700',
+    'arte': 'text-amber-600',
+    'societa': 'text-red-700',
+    'cinema': 'text-emerald-600',
+    'musica': 'text-indigo-600',
+  };
+  const defaultPinColor = 'text-[#B1352E]';
+  const pinColor = mapPinColors[point.categoryId] || defaultPinColor;
 
 
   useEffect(() => {
@@ -128,6 +145,33 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose, cat
                 </div>
               </div>
             )}
+
+            <div>
+              <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Posizione sulla Mappa</h3>
+              <div className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
+                 <ReactMapGL
+                  mapLib={maplibregl}
+                  initialViewState={{
+                    longitude: point.coordinates.longitude,
+                    latitude: point.coordinates.latitude,
+                    zoom: 15,
+                    pitch: 20
+                  }}
+                  style={{ width: '100%', height: '100%' }}
+                  mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
+                  interactive={false}
+                >
+                  <Marker
+                    longitude={point.coordinates.longitude}
+                    latitude={point.coordinates.latitude}
+                    anchor="bottom"
+                  >
+                    <MapPinIcon className={`w-8 h-8 ${pinColor} drop-shadow-lg`} />
+                  </Marker>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+                </ReactMapGL>
+              </div>
+            </div>
             
             <div>
               <a
