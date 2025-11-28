@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import ReactMapGL, { Marker, NavigationControl, GeolocateControl } from 'react-map-gl';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import ReactMapGL, { Marker, NavigationControl, MapRef } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { Point, Category, Period, Coordinates } from '../types';
 import useGeolocation from '../hooks/useGeolocation';
@@ -7,6 +7,7 @@ import MapPinIcon from './icons/MapPinIcon';
 import DirectionTriangleIcon from './icons/DirectionTriangleIcon';
 import CalendarIcon from './icons/CalendarIcon';
 import UserLocationMarker from './UserLocationMarker';
+import LocateIcon from './icons/LocateIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -139,6 +140,7 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
   const { data: userLocation, loading, error } = useGeolocation();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
+  const mapRef = useRef<MapRef>(null);
   
   const [viewState, setViewState] = useState({
     longitude: 12.496366, // Rome
@@ -182,6 +184,18 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
       }
     });
   };
+  
+  const handleLocateMe = () => {
+    if (mapRef.current && userLocation) {
+      mapRef.current.flyTo({
+        center: [userLocation.longitude, userLocation.latitude],
+        zoom: 14,
+        pitch: 50,
+        bearing: 0,
+        duration: 1500,
+      });
+    }
+  };
 
   const filteredAndSortedPoints = useMemo(() => {
     const isFilteringActive = selectedCategories.length > 0;
@@ -221,6 +235,7 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
 
       <div className="h-96 w-full mb-8 bg-gray-200 relative">
         <ReactMapGL
+          ref={mapRef}
           mapLib={maplibregl}
           {...viewState}
           onMove={evt => setViewState(evt.viewState)}
@@ -228,13 +243,18 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
           mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
         >
           <NavigationControl position="top-right" showCompass={true} showPitch={true} />
-          <GeolocateControl
-            position="top-right"
-            trackUserLocation={true}
-            showUserHeading={true}
-            showUserLocation={false}
-            positionOptions={{ enableHighAccuracy: true }}
-          />
+          
+          <div className="absolute top-[108px] right-[10px] z-10">
+            <button
+              onClick={handleLocateMe}
+              disabled={!userLocation}
+              className="bg-white w-[30px] h-[30px] rounded-sm flex items-center justify-center shadow-md disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300"
+              aria-label="Centra mappa sulla tua posizione"
+              title="Centra mappa sulla tua posizione"
+            >
+              <LocateIcon className="w-5 h-5 text-gray-700" />
+            </button>
+          </div>
 
           {/* Custom user location marker */}
           {userLocation && (
