@@ -21,7 +21,26 @@ interface PointDetailModalProps {
 
 const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose, categories }) => {
   const linkedCharacters = allCharacters.filter(c => point.linkedCharacterIds.includes(c.id));
-  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${point.coordinates.latitude},${point.coordinates.longitude}`;
+
+  const getDirectionsUrl = () => {
+    const { latitude, longitude } = point.coordinates;
+    const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
+
+    // iOS: Apre Apple Maps o Google Maps se installata
+    if (/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream) {
+      return `maps://?daddr=${latitude},${longitude}&q=${encodeURIComponent(point.title)}`;
+    }
+
+    // Android: Apre Google Maps o un'altra app di mappe predefinita
+    if (/android/i.test(userAgent)) {
+      return `geo:${latitude},${longitude}?q=${latitude},${longitude}(${encodeURIComponent(point.title)})`;
+    }
+
+    // Fallback per browser desktop
+    return `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+  };
+  
+  const mapsUrl = getDirectionsUrl();
   const category = categories.find(c => c.id === point.categoryId);
   const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
 
@@ -40,7 +59,7 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose, cat
     'storia': 'text-sky-700',
     'arte': 'text-amber-600',
     'societa': 'text-red-700',
-    'cinema': 'text-emerald-600',
+    'cinema': 'bg-emerald-600 text-white',
     'musica': 'text-indigo-600',
   };
   const defaultPinColor = 'text-[#B1352E]';
