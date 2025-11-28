@@ -1,12 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import ReactMapGL, { Marker } from 'react-map-gl';
+import ReactMapGL, { Marker, NavigationControl, GeolocateControl } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { Point, Category, Period, Coordinates } from '../types';
 import useGeolocation from '../hooks/useGeolocation';
 import MapPinIcon from './icons/MapPinIcon';
 import DirectionTriangleIcon from './icons/DirectionTriangleIcon';
 import CalendarIcon from './icons/CalendarIcon';
-import UserLocationMarker from './UserLocationMarker';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -210,6 +209,8 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
     return filtered.map(point => ({ ...point, distance: undefined, bearing: undefined }));
   }, [points, userLocation, selectedCategories]);
 
+  const isHeadingAvailable = userLocation?.heading !== null && userLocation?.heading !== undefined;
+
   return (
     <div>
       <header className="mb-8 border-b-2 border-black pb-4 text-center">
@@ -217,9 +218,14 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
         <p className="font-serif-display italic text-lg text-gray-700 mt-2">{capitalizedDate}</p>
         {loading && <p className="font-sans-display text-[#134A79] text-sm mt-2">Acquisizione della posizione in corso...</p>}
         {error && <p className="font-sans-display text-[#B1352E] text-sm mt-2">Impossibile ottenere la posizione: {error.message}</p>}
+        {!loading && userLocation && !isHeadingAvailable && (
+            <p className="font-sans-display text-gray-500 text-xs mt-2">
+                Direzione non disponibile sul dispositivo.
+            </p>
+        )}
       </header>
 
-      <div className="h-96 w-full mb-8 bg-gray-200">
+      <div className="h-96 w-full mb-8 bg-gray-200 relative">
         <ReactMapGL
           mapLib={maplibregl}
           {...viewState}
@@ -227,11 +233,13 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
           style={{ width: '100%', height: '100%' }}
           mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
         >
-          {userLocation && (
-            <Marker longitude={userLocation.longitude} latitude={userLocation.latitude} anchor="center">
-              <UserLocationMarker heading={userLocation.heading} />
-            </Marker>
-          )}
+          <NavigationControl position="top-right" showCompass={true} showPitch={true} />
+          <GeolocateControl
+            position="top-right"
+            trackUserLocation={true}
+            showUserHeading={true}
+            positionOptions={{ enableHighAccuracy: true }}
+          />
 
           {filteredAndSortedPoints.map(point => {
             const pinColor = mapPinColors[point.categoryId] || defaultPinColor;
