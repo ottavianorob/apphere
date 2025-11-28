@@ -4,7 +4,6 @@ import maplibregl from 'maplibre-gl';
 import { Point, Category, Period, Coordinates } from '../types';
 import useGeolocation from '../hooks/useGeolocation';
 import MapPinIcon from './icons/MapPinIcon';
-import DirectionTriangleIcon from './icons/DirectionTriangleIcon';
 import CalendarIcon from './icons/CalendarIcon';
 import UserLocationMarker from './UserLocationMarker';
 import LocateIcon from './icons/LocateIcon';
@@ -36,28 +35,7 @@ const getDistance = (coords1: Coordinates, coords2: Coordinates) => {
   return R * c;
 };
 
-// Formula to calculate bearing
-const getBearing = (start: Coordinates, end: Coordinates) => {
-  const toRad = (deg: number) => deg * (Math.PI / 180);
-  const toDeg = (rad: number) => rad * (180 / Math.PI);
-
-  const lat1 = toRad(start.latitude);
-  const lon1 = toRad(start.longitude);
-  const lat2 = toRad(end.latitude);
-  const lon2 = toRad(end.longitude);
-
-  const deltaLon = lon2 - lon1;
-
-  const y = Math.sin(deltaLon) * Math.cos(lat2);
-  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLon);
-  
-  let brng = Math.atan2(y, x);
-  brng = toDeg(brng);
-  
-  return (brng + 360) % 360; // Normalize to 0-360
-};
-
-const PointListItem: React.FC<{ point: Point; distance?: number | null; bearing?: number | null; onSelect: () => void; categoryName?: string; }> = ({ point, distance, bearing, onSelect, categoryName }) => {
+const PointListItem: React.FC<{ point: Point; distance?: number | null; onSelect: () => void; categoryName?: string; }> = ({ point, distance, onSelect, categoryName }) => {
   const categoryPillColors: { [key: string]: string } = {
     'storia':   'bg-sky-700 text-white',
     'arte':     'bg-amber-600 text-white',
@@ -70,37 +48,40 @@ const PointListItem: React.FC<{ point: Point; distance?: number | null; bearing?
 
   return (
     <div
-      className="border-b border-gray-300/80 group cursor-pointer flex items-center gap-4 py-4"
+      className="border-b border-gray-300/80 group cursor-pointer flex items-center gap-4 py-3"
       onClick={onSelect}
     >
-      {/* Left: Directional Circle */}
-      {distance !== undefined && distance !== null && bearing !== undefined && bearing !== null ? (
-        <div className="flex-shrink-0 w-24 h-24 bg-gray-200/50 rounded-full flex flex-col items-center justify-center relative border-2 border-gray-300/80">
-          <div className="absolute inset-0 transition-transform duration-500 ease-in-out" style={{ transform: `rotate(${bearing}deg)` }}>
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[4px]">
-              <DirectionTriangleIcon className="text-gray-800" />
-            </div>
+      {/* Left: Circular Image and Distance */}
+      <div className="flex-shrink-0 w-20 text-center">
+        {point.photos && point.photos.length > 0 ? (
+          <img
+            src={point.photos[0].url}
+            alt={`Immagine di copertina per ${point.title}`}
+            className="w-20 h-20 rounded-full object-cover shadow-lg grayscale mix-blend-multiply group-hover:grayscale-0 group-hover:mix-blend-normal transition-all duration-300 ease-in-out"
+          />
+        ) : (
+          <div className="w-20 h-20 bg-gray-200/50 rounded-full flex items-center justify-center border-2 border-gray-300/80">
+            <MapPinIcon className="w-8 h-8 text-gray-400" />
           </div>
-          <span className="font-sans-display font-bold text-3xl text-[#1C1C1C] mt-1">{distance.toFixed(1)}</span>
-          <span className="font-sans-display text-xs text-gray-600 -mt-1">km</span>
-        </div>
-      ) : (
-        <div className="flex-shrink-0 w-24 h-24 bg-gray-200/50 rounded-full flex items-center justify-center border-2 border-gray-300/80">
-          <MapPinIcon className="w-8 h-8 text-gray-400" />
-        </div>
-      )}
+        )}
+        {distance !== undefined && distance !== null && (
+          <p className="font-sans-display text-xs text-gray-700 mt-1">
+             <span className="font-bold">{distance.toFixed(1)} km</span>
+          </p>
+        )}
+      </div>
 
       {/* Right: Info */}
       <div className="flex-grow">
         {categoryName && (
-           <div className="mb-2">
+           <div className="mb-1">
             <span className={`inline-block px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}>
               {categoryName}
             </span>
           </div>
         )}
-        <h3 className="font-serif-display text-xl font-semibold text-[#134A79] group-hover:text-[#B1352E] transition-colors">{point.title}</h3>
-        <div className="mt-2 flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 font-sans-display">
+        <h3 className="font-serif-display text-lg font-semibold text-[#134A79] group-hover:text-[#B1352E] transition-colors">{point.title}</h3>
+        <div className="mt-1 flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 font-sans-display">
           <div className="flex items-center gap-1.5">
             <CalendarIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />
             <span>{point.eventDate}</span>
@@ -207,21 +188,15 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
     if (userLocation) {
       return filtered
         .map(point => {
-          const absoluteBearing = getBearing(userLocation, point.coordinates);
-          const relativeBearing = (userLocation.heading !== null && userLocation.heading !== undefined)
-            ? absoluteBearing - userLocation.heading
-            : absoluteBearing;
-          
           return {
             ...point,
             distance: getDistance(userLocation, point.coordinates),
-            bearing: relativeBearing,
           };
         })
         .sort((a, b) => a.distance - b.distance);
     }
     
-    return filtered.map(point => ({ ...point, distance: undefined, bearing: undefined }));
+    return filtered.map(point => ({ ...point, distance: undefined }));
   }, [points, userLocation, selectedCategories]);
 
   return (
@@ -233,7 +208,7 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
         {error && <p className="font-sans-display text-[#B1352E] text-sm mt-2">Impossibile ottenere la posizione: {error.message}</p>}
       </header>
 
-      <div className="h-96 w-full mb-8 bg-gray-200 relative">
+      <div className="h-72 sm:h-96 w-full mb-8 bg-gray-200 relative">
         <ReactMapGL
           ref={mapRef}
           mapLib={maplibregl}
@@ -300,7 +275,7 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
               <button 
                 key={category.id}
                 onClick={() => handleCategoryClick(category.id)}
-                className={`px-4 py-2 text-sm font-semibold rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#EDE5D0] ${buttonClasses} ${colors.ring}`}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#EDE5D0] ${buttonClasses} ${colors.ring}`}
               >
                 {category.name}
               </button>
@@ -316,7 +291,6 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
               key={point.id} 
               point={point}
               distance={point.distance}
-              bearing={point.bearing}
               onSelect={() => onSelectPoint(point)}
               categoryName={categoryMap.get(point.categoryId)}
             />
