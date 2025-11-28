@@ -18,6 +18,7 @@ const useGeolocation = () => {
     let watcherId: number;
 
     const onSuccess = (position: GeolocationPosition) => {
+       console.log('Geolocation heading:', position.coords.heading); // Log per il debug
        setState(prevState => {
         // Controlla se abbiamo già un heading più preciso da deviceorientation
         const hasDeviceOrientationHeading = prevState.data?.heading !== undefined && prevState.data.heading !== null;
@@ -70,6 +71,7 @@ const useGeolocation = () => {
     const handleOrientation = (event: DeviceOrientationEvent) => {
       // `webkitCompassHeading` è per iOS Safari. `alpha` è lo standard.
       const heading = (event as any).webkitCompassHeading ?? event.alpha;
+      console.log('DeviceOrientation heading:', heading); // Log per il debug
       if (heading !== null && heading !== undefined) {
         setState(prevState => {
           // Aggiungi l'heading solo se abbiamo già i dati di posizione
