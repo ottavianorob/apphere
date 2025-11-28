@@ -36,6 +36,8 @@ export interface Point {
   periodId: string;
   categoryId: string;
   title: string;
+  location: string;
+  eventDate: string;
   description: string;
   photos: Photo[];
   linkedCharacterIds: string[];

@@ -43,19 +43,19 @@ const PointListItem: React.FC<{ point: Point; distance?: number | null; onSelect
       <img src={point.photos[0].url} alt={point.title} className="w-full sm:w-48 h-48 object-cover flex-shrink-0" />
       <div className="flex-grow">
          {distance !== null && distance !== undefined && (
-          <div className="flex items-center text-sm text-gray-500 mb-2">
+          <div className="font-sans-display flex items-center text-sm text-gray-500 mb-2">
             <MapPinIcon className="w-4 h-4 mr-1.5" />
             <span>Distanza: {distance.toFixed(1)} km</span>
           </div>
         )}
-        <h3 className="font-serif-display text-2xl font-bold text-[#134A79] mb-2 group-hover:text-[#B1352E] transition-colors">{point.title}</h3>
-        <div className="flex flex-wrap gap-2 mb-3">
+        <h3 className="font-sans-display text-2xl font-bold text-[#134A79] mb-2 group-hover:text-[#B1352E] transition-colors">{point.title}</h3>
+        <div className="font-sans-display flex flex-wrap gap-2 mb-3">
            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${categoryColorClasses}`}>{categoryName}</span>
            <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-600 text-white">{periodName}</span>
         </div>
-        <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">{point.description}</p>
+        <p className="italic text-base text-gray-700 line-clamp-3 leading-relaxed">{point.description}</p>
         {point.tags && point.tags.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2 font-sans-display">
             {point.tags.map(tag => (
               <span key={tag} className="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-1">
                 #{tag}
@@ -158,10 +158,10 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
   return (
     <div>
       <header className="mb-8 border-b-2 border-black pb-4 text-center">
-        <h1 className="font-serif-display text-4xl sm:text-5xl font-bold text-[#1C1C1C]">Cosa è successo qui?</h1>
-        <p className="font-serif-display text-base text-gray-700 mt-2">{capitalizedDate}</p>
-        {loading && <p className="text-[#134A79] text-sm mt-2">Acquisizione della posizione in corso...</p>}
-        {error && <p className="text-[#B1352E] text-sm mt-2">Impossibile ottenere la posizione: {error.message}</p>}
+        <h1 className="font-sans-display text-5xl sm:text-6xl font-bold text-[#1C1C1C]">Cosa è successo qui?</h1>
+        <p className="font-serif-display italic text-lg text-gray-700 mt-2">{capitalizedDate}</p>
+        {loading && <p className="font-sans-display text-[#134A79] text-sm mt-2">Acquisizione della posizione in corso...</p>}
+        {error && <p className="font-sans-display text-[#B1352E] text-sm mt-2">Impossibile ottenere la posizione: {error.message}</p>}
       </header>
 
       <div className="h-96 w-full mb-8 bg-gray-200">
@@ -197,7 +197,7 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
       </div>
 
       <div className="border-t border-b border-gray-300 py-4 mb-6">
-        <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+        <div className="font-sans-display flex flex-wrap gap-2 justify-center sm:justify-start">
           {categories.map(category => {
             const isSelected = selectedCategories.includes(category.id);
             const noFilterActive = selectedCategories.length === 0;

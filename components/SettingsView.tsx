@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { categories } from '../data/mockData';
 
@@ -16,15 +15,15 @@ const SettingsView: React.FC = () => {
   return (
     <div>
         <header className="mb-8 border-b-2 border-black pb-4 text-center">
-          <h1 className="font-serif-display text-4xl sm:text-5xl font-bold text-[#1C1C1C]">Impostazioni</h1>
-          <p className="font-serif-display text-base text-gray-700 mt-2">{capitalizedDate}</p>
+          <h1 className="font-sans-display text-5xl sm:text-6xl font-bold text-[#1C1C1C]">Impostazioni</h1>
+          <p className="font-serif-display italic text-lg text-gray-700 mt-2">{capitalizedDate}</p>
         </header>
       
-      <div className="space-y-8 max-w-2xl mx-auto">
+      <div className="space-y-8 max-w-2xl mx-auto font-sans-display">
         {/* Categorie Preferite */}
         <div className="border border-gray-300/80 p-6">
-          <h2 className="font-serif-display text-2xl font-bold text-[#134A79] mb-4">Categorie Preferite</h2>
-          <p className="text-sm text-gray-600 mb-4">Seleziona le categorie che ti interessano di più per ricevere suggerimenti personalizzati.</p>
+          <h2 className="font-serif-display text-2xl italic text-[#134A79] mb-4">Categorie Preferite</h2>
+          <p className="font-serif italic text-sm text-gray-600 mb-4">Seleziona le categorie che ti interessano di più per ricevere suggerimenti personalizzati.</p>
           <div className="space-y-3">
             {categories.map(category => (
               <label key={category.id} className="flex items-center">
@@ -37,11 +36,11 @@ const SettingsView: React.FC = () => {
 
         {/* Notifiche */}
         <div className="border border-gray-300/80 p-6">
-          <h2 className="font-serif-display text-2xl font-bold text-[#134A79] mb-4">Notifiche</h2>
+          <h2 className="font-serif-display text-2xl italic text-[#134A79] mb-4">Notifiche</h2>
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-gray-800">Notifiche basate sulla posizione</h3>
-              <p className="text-sm text-gray-600">Ricevi un avviso quando sei vicino a un punto di interesse.</p>
+              <p className="font-serif italic text-sm text-gray-600">Ricevi un avviso quando sei vicino a un punto di interesse.</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" value="" className="sr-only peer" />
@@ -52,7 +51,7 @@ const SettingsView: React.FC = () => {
 
         {/* Personalizzazione UI */}
         <div className="border border-gray-300/80 p-6">
-          <h2 className="font-serif-display text-2xl font-bold text-[#134A79] mb-4">Aspetto</h2>
+          <h2 className="font-serif-display text-2xl italic text-[#134A79] mb-4">Aspetto</h2>
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-gray-800">Tema Giornale</h3>
             <p className="text-sm text-gray-700 bg-gray-200 px-3 py-1 font-medium">Attivo</p>
