@@ -1,7 +1,7 @@
-
 export interface Coordinates {
   latitude: number;
   longitude: number;
+  heading?: number | null;
 }
 
 export interface Category {

@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import ReactMapGL, { Marker } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
-import { Point, Category, Period } from '../types';
+import { Point, Category, Period, Coordinates } from '../types';
 import useGeolocation from '../hooks/useGeolocation';
 import MapPinIcon from './icons/MapPinIcon';
+import DirectionTriangleIcon from './icons/DirectionTriangleIcon';
+import CalendarIcon from './icons/CalendarIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
-// FIX: Corrected `workerUrl` to `workerURL` as required by the maplibre-gl version being used.
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
 
 interface MapViewProps {
@@ -17,7 +18,7 @@ interface MapViewProps {
 }
 
 // Haversine formula to calculate distance
-const getDistance = (coords1: { latitude: number; longitude: number; }, coords2: { latitude: number; longitude: number; }) => {
+const getDistance = (coords1: Coordinates, coords2: Coordinates) => {
   const toRad = (x: number) => (x * Math.PI) / 180;
   const R = 6371; // km
 
@@ -33,40 +34,85 @@ const getDistance = (coords1: { latitude: number; longitude: number; }, coords2:
   return R * c;
 };
 
+// Formula to calculate bearing
+const getBearing = (start: Coordinates, end: Coordinates) => {
+  const toRad = (deg: number) => deg * (Math.PI / 180);
+  const toDeg = (rad: number) => rad * (180 / Math.PI);
 
-const PointListItem: React.FC<{ point: Point; distance?: number | null; onSelect: () => void; categoryName: string; periodName: string; categoryColorClasses: string; }> = ({ point, distance, onSelect, categoryName, periodName, categoryColorClasses }) => (
-  <div
-    className="border-b border-gray-300/80 py-6 group cursor-pointer"
-    onClick={onSelect}
-  >
-    <div className="flex flex-col sm:flex-row gap-6">
-      <img src={point.photos[0].url} alt={point.title} className="w-full sm:w-48 h-48 object-cover flex-shrink-0" />
-      <div className="flex-grow">
-         {distance !== null && distance !== undefined && (
-          <div className="font-sans-display flex items-center text-sm text-gray-500 mb-2">
-            <MapPinIcon className="w-4 h-4 mr-1.5" />
-            <span>Distanza: {distance.toFixed(1)} km</span>
+  const lat1 = toRad(start.latitude);
+  const lon1 = toRad(start.longitude);
+  const lat2 = toRad(end.latitude);
+  const lon2 = toRad(end.longitude);
+
+  const deltaLon = lon2 - lon1;
+
+  const y = Math.sin(deltaLon) * Math.cos(lat2);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(deltaLon);
+  
+  let brng = Math.atan2(y, x);
+  brng = toDeg(brng);
+  
+  return (brng + 360) % 360; // Normalize to 0-360
+};
+
+const PointListItem: React.FC<{ point: Point; distance?: number | null; bearing?: number | null; onSelect: () => void; categoryName?: string; }> = ({ point, distance, bearing, onSelect, categoryName }) => {
+  const categoryPillColors: { [key: string]: string } = {
+    'storia':   'bg-sky-700 text-white',
+    'arte':     'bg-amber-600 text-white',
+    'societa':  'bg-red-700 text-white',
+    'cinema':   'bg-emerald-600 text-white',
+    'musica':   'bg-indigo-600 text-white',
+  };
+  const defaultPillColor = 'bg-gray-600 text-white';
+  const categoryColorClass = categoryPillColors[point.categoryId] || defaultPillColor;
+
+  return (
+    <div
+      className="border-b border-gray-300/80 group cursor-pointer flex items-center gap-4 py-4"
+      onClick={onSelect}
+    >
+      {/* Left: Directional Circle */}
+      {distance !== undefined && distance !== null && bearing !== undefined && bearing !== null ? (
+        <div className="flex-shrink-0 w-24 h-24 bg-gray-200/50 rounded-full flex flex-col items-center justify-center relative border-2 border-gray-300/80">
+          <div className="absolute inset-0" style={{ transform: `rotate(${bearing}deg)` }}>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-[2px] transition-transform duration-500 ease-in-out">
+              <DirectionTriangleIcon className="text-gray-800" />
+            </div>
           </div>
-        )}
-        <h3 className="font-sans-display text-2xl font-bold text-[#134A79] mb-2 group-hover:text-[#B1352E] transition-colors">{point.title}</h3>
-        <div className="font-sans-display flex flex-wrap gap-2 mb-3">
-           <span className={`px-3 py-1 text-xs font-semibold rounded-full ${categoryColorClasses}`}>{categoryName}</span>
-           <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-600 text-white">{periodName}</span>
+          <span className="font-sans-display font-bold text-3xl text-[#1C1C1C] mt-1">{distance.toFixed(1)}</span>
+          <span className="font-sans-display text-xs text-gray-600 -mt-1">km</span>
         </div>
-        <p className="italic text-base text-gray-700 line-clamp-3 leading-relaxed">{point.description}</p>
-        {point.tags && point.tags.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2 font-sans-display">
-            {point.tags.map(tag => (
-              <span key={tag} className="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-1">
-                #{tag}
-              </span>
-            ))}
+      ) : (
+        <div className="flex-shrink-0 w-24 h-24 bg-gray-200/50 rounded-full flex items-center justify-center border-2 border-gray-300/80">
+          <MapPinIcon className="w-8 h-8 text-gray-400" />
+        </div>
+      )}
+
+      {/* Right: Info */}
+      <div className="flex-grow">
+        {categoryName && (
+           <div className="mb-2">
+            <span className={`inline-block px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}>
+              {categoryName}
+            </span>
           </div>
         )}
+        <h3 className="font-serif-display text-xl font-semibold text-[#134A79] group-hover:text-[#B1352E] transition-colors">{point.title}</h3>
+        <div className="mt-2 flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 font-sans-display">
+          <div className="flex items-center gap-1.5">
+            <CalendarIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />
+            <span>{point.eventDate}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <MapPinIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />
+            <span>{point.location}</span>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
+
 
 // Color mapping for category buttons
 const categoryColors: { [key: string]: { selected: string; unselected: string; ring: string; } } = {
@@ -148,11 +194,12 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
         .map(point => ({
           ...point,
           distance: getDistance(userLocation, point.coordinates),
+          bearing: getBearing(userLocation, point.coordinates),
         }))
         .sort((a, b) => a.distance - b.distance);
     }
     
-    return filtered.map(point => ({ ...point, distance: undefined }));
+    return filtered.map(point => ({ ...point, distance: undefined, bearing: undefined }));
   }, [points, userLocation, selectedCategories]);
 
   return (
@@ -222,16 +269,14 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
 
       <div>
         {filteredAndSortedPoints.map(point => {
-          const categoryColorClasses = (categoryColors[point.categoryId] || defaultColors).selected;
           return (
             <PointListItem 
               key={point.id} 
               point={point}
               distance={point.distance}
-              onSelect={() => onSelectPoint(point)} 
-              categoryName={categoryMap.get(point.categoryId) || ''}
-              periodName={periodMap.get(point.periodId) || ''}
-              categoryColorClasses={categoryColorClasses}
+              bearing={point.bearing}
+              onSelect={() => onSelectPoint(point)}
+              categoryName={categoryMap.get(point.categoryId)}
             />
           );
         })}

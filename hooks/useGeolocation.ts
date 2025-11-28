@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Coordinates } from '../types';
 
@@ -16,6 +15,8 @@ const useGeolocation = () => {
   });
 
   useEffect(() => {
+    let watcherId: number;
+
     const onSuccess = (position: GeolocationPosition) => {
       setState({
         loading: false,
@@ -23,16 +24,17 @@ const useGeolocation = () => {
         data: {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
+          heading: position.coords.heading,
         },
       });
     };
 
     const onError = (error: GeolocationPositionError) => {
-      setState({
+      setState(prevState => ({
+        ...prevState,
         loading: false,
         error,
-        data: null,
-      });
+      }));
     };
 
     if (!navigator.geolocation) {
@@ -50,11 +52,17 @@ const useGeolocation = () => {
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(onSuccess, onError);
+    watcherId = navigator.geolocation.watchPosition(onSuccess, onError, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+    });
     
-    // We could also watch the position, but for this app, a single check is enough.
-    // const watcher = navigator.geolocation.watchPosition(onSuccess, onError);
-    // return () => navigator.geolocation.clearWatch(watcher);
+    return () => {
+        if (watcherId) {
+            navigator.geolocation.clearWatch(watcherId);
+        }
+    };
 
   }, []);
 

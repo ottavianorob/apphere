@@ -44,22 +44,11 @@ const ItineraryCard: React.FC<{ itinerary: Itinerary, points: Point[], onSelectP
 
 const ItinerariesView: React.FC<ItinerariesViewProps> = ({ itineraries, onSelectPoint }) => {
   const pointsMap = useMemo(() => new Map(allPoints.map(p => [p.id, p])), []);
-  
-  const today = new Date();
-  const dateOptions: Intl.DateTimeFormatOptions = {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  };
-  const formattedDate = today.toLocaleDateString('it-IT', dateOptions);
-  const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
   return (
     <div>
        <header className="mb-8 border-b-2 border-black pb-4 text-center">
         <h1 className="font-sans-display text-5xl sm:text-6xl font-bold text-[#1C1C1C]">Itinerari Tematici</h1>
-        <p className="font-serif-display italic text-lg text-gray-700 mt-2">{capitalizedDate}</p>
       </header>
       <div>
         {itineraries.map(itinerary => (

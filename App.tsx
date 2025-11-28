@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Point, Itinerary } from './types';
 import { points as mockPoints, itineraries as mockItineraries, categories, periods } from './data/mockData';
 import MapView from './components/MapView';
@@ -13,6 +12,18 @@ export type View = 'map' | 'itineraries' | 'settings';
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('map');
   const [selectedPoint, setSelectedPoint] = useState<Point | null>(null);
+
+  useEffect(() => {
+    if (selectedPoint) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    // Cleanup function to restore scroll on component unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedPoint]);
 
   const renderView = () => {
     switch (currentView) {

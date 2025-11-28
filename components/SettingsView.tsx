@@ -2,21 +2,11 @@ import React from 'react';
 import { categories } from '../data/mockData';
 
 const SettingsView: React.FC = () => {
-    const today = new Date();
-    const dateOptions: Intl.DateTimeFormatOptions = {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    };
-    const formattedDate = today.toLocaleDateString('it-IT', dateOptions);
-    const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
   return (
     <div>
         <header className="mb-8 border-b-2 border-black pb-4 text-center">
           <h1 className="font-sans-display text-5xl sm:text-6xl font-bold text-[#1C1C1C]">Impostazioni</h1>
-          <p className="font-serif-display italic text-lg text-gray-700 mt-2">{capitalizedDate}</p>
         </header>
       
       <div className="space-y-8 max-w-2xl mx-auto font-sans-display">
