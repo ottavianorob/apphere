@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMapGL, { Marker } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { Point, Category } from '../types';
@@ -8,6 +8,8 @@ import NavigationIcon from './icons/NavigationIcon';
 import UserIcon from './icons/UserIcon';
 import CalendarIcon from './icons/CalendarIcon';
 import MapPinIcon from './icons/MapPinIcon';
+import ChevronLeftIcon from './icons/ChevronLeftIcon';
+import ChevronRightIcon from './icons/ChevronRightIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -20,7 +22,19 @@ interface PointDetailModalProps {
 }
 
 const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose, categories }) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const linkedCharacters = allCharacters.filter(c => point.linkedCharacterIds.includes(c.id));
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex(prev => Math.min(prev + 1, point.photos.length - 1));
+  };
+
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCurrentImageIndex(prev => Math.max(prev - 1, 0));
+  };
+
 
   const getDirectionsUrl = () => {
     const { latitude, longitude } = point.coordinates;
@@ -87,11 +101,40 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose, cat
         className="bg-[#EDE5D0] rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="relative flex-shrink-0">
-          <img src={point.photos[0].url} alt={point.photos[0].caption} className="w-full h-64 object-cover rounded-t-lg" />
-          <button onClick={onClose} className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors z-10">
+        <div className="relative flex-shrink-0 group">
+          <img src={point.photos[currentImageIndex].url} alt={point.photos[currentImageIndex].caption} className="w-full h-64 object-cover rounded-t-lg" />
+          
+          <button onClick={onClose} className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors z-20">
             <CloseIcon className="w-5 h-5" />
           </button>
+          
+          {point.photos.length > 1 && (
+            <>
+              <button 
+                onClick={handlePrevImage} 
+                disabled={currentImageIndex === 0}
+                className="absolute top-1/2 left-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100"
+                aria-label="Immagine precedente"
+              >
+                <ChevronLeftIcon className="w-6 h-6" />
+              </button>
+
+              <button 
+                onClick={handleNextImage} 
+                disabled={currentImageIndex === point.photos.length - 1}
+                className="absolute top-1/2 right-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100"
+                aria-label="Immagine successiva"
+              >
+                <ChevronRightIcon className="w-6 h-6" />
+              </button>
+              
+              <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs font-sans-display font-semibold px-2 py-1 rounded-full z-10">
+                {currentImageIndex + 1} / {point.photos.length}
+              </div>
+            </>
+          )}
+
+          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none rounded-t-lg"></div>
         </div>
 
         <div className="overflow-y-auto p-6">
