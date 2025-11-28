@@ -6,6 +6,7 @@ import useGeolocation from '../hooks/useGeolocation';
 import MapPinIcon from './icons/MapPinIcon';
 import DirectionTriangleIcon from './icons/DirectionTriangleIcon';
 import CalendarIcon from './icons/CalendarIcon';
+import UserLocationMarker from './UserLocationMarker';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -231,8 +232,20 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
             position="top-right"
             trackUserLocation={true}
             showUserHeading={true}
+            showUserLocation={false}
             positionOptions={{ enableHighAccuracy: true }}
           />
+
+          {/* Custom user location marker */}
+          {userLocation && (
+            <Marker
+              longitude={userLocation.longitude}
+              latitude={userLocation.latitude}
+              anchor="center"
+            >
+              <UserLocationMarker heading={userLocation.heading} />
+            </Marker>
+          )}
 
           {filteredAndSortedPoints.map(point => {
             const pinColor = mapPinColors[point.categoryId] || defaultPinColor;
