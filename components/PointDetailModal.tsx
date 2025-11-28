@@ -42,26 +42,41 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose }) =
 
         <div className="overflow-y-auto p-6">
           <img src={point.photos[0].url} alt={point.photos[0].caption} className="w-full h-64 object-cover mb-4" />
-          <p className="text-[#1C1C1C] mb-6 whitespace-pre-wrap leading-relaxed">{point.description}</p>
+          <p className="text-[#1C1C1C] mb-8 whitespace-pre-wrap leading-relaxed">{point.description}</p>
           
-          {linkedCharacters.length > 0 && (
-            <div className="mb-6">
-              <h3 className="font-serif-display text-xl font-bold text-gray-800 mb-2">Personaggi Collegati</h3>
-              <div className="flex flex-wrap gap-2">
-                {linkedCharacters.map(char => (
-                  <a 
-                    key={char.id} 
-                    href={char.wikipediaUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="bg-gray-200 text-[#134A79] px-3 py-1 text-sm hover:bg-gray-300 transition-colors"
-                  >
-                    {char.name}
-                  </a>
-                ))}
+          <div className="space-y-6">
+            {linkedCharacters.length > 0 && (
+              <div>
+                <h3 className="font-serif-display text-xl font-bold text-gray-800 mb-3 border-b border-gray-300 pb-1">Personaggi Collegati</h3>
+                <div className="flex flex-wrap gap-2">
+                  {linkedCharacters.map(char => (
+                    <a 
+                      key={char.id} 
+                      href={char.wikipediaUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="bg-[#134A79]/10 text-[#134A79] px-3 py-1 text-sm font-semibold hover:bg-[#134A79]/20 transition-colors"
+                    >
+                      {char.name}
+                    </a>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            )}
+
+            {point.tags && point.tags.length > 0 && (
+              <div>
+                <h3 className="font-serif-display text-xl font-bold text-gray-800 mb-3 border-b border-gray-300 pb-1">Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {point.tags.map(tag => (
+                    <span key={tag} className="bg-gray-500/10 text-gray-600 px-3 py-1 text-sm font-semibold">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
        <style>{`

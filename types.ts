@@ -22,7 +22,7 @@ export interface Character {
 }
 
 export interface Photo {
-  id: string;
+  id:string;
   url: string;
   caption: string;
 }
@@ -38,6 +38,7 @@ export interface Point {
   description: string;
   photos: Photo[];
   linkedCharacterIds: string[];
+  tags?: string[];
 }
 
 export interface Itinerary {

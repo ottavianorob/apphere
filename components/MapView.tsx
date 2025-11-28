@@ -49,6 +49,15 @@ const PointListItem: React.FC<{ point: Point; distance?: number | null; onSelect
            <span className="text-xs font-medium bg-gray-500/10 text-gray-600 px-2 py-1">{periodName}</span>
         </div>
         <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">{point.description}</p>
+        {point.tags && point.tags.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {point.tags.map(tag => (
+              <span key={tag} className="text-xs font-medium bg-gray-200 text-gray-700 px-2 py-1">
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   </div>
@@ -70,6 +79,16 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
   
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
   const periodMap = useMemo(() => new Map(periods.map(p => [p.id, p.name])), [periods]);
+
+  const today = new Date();
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  };
+  const formattedDate = today.toLocaleDateString('it-IT', dateOptions);
+  const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
   const handleCategoryClick = (categoryId: string) => {
     setSelectedCategories(prev => {
@@ -103,9 +122,9 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
 
   return (
     <div>
-      <header className="mb-8 text-center border-b-2 border-black pb-4">
-        <h1 className="font-serif-display text-6xl font-bold text-[#1C1C1C]">Cosa è successo qui?</h1>
-        <p className="text-gray-600 mt-2 text-lg">Esplora i luoghi e le loro storie nascoste.</p>
+      <header className="mb-8 border-b-2 border-black pb-4 text-center">
+        <h1 className="font-serif-display text-4xl sm:text-5xl font-bold text-[#1C1C1C]">Cosa è successo qui?</h1>
+        <p className="font-serif-display text-base text-gray-700 mt-2">{capitalizedDate}</p>
         {loading && <p className="text-[#134A79] text-sm mt-2">Acquisizione della posizione in corso...</p>}
         {error && <p className="text-[#B1352E] text-sm mt-2">Impossibile ottenere la posizione: {error.message}</p>}
       </header>
@@ -115,7 +134,6 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
       </div>
 
       <div className="border-t border-b border-gray-300 py-4 mb-6">
-        <p className="text-sm font-medium text-gray-700 mb-3 text-center sm:text-left">Filtra per Categoria</p>
         <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
           {categories.map(category => {
             const isSelected = selectedCategories.includes(category.id);

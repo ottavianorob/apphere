@@ -34,6 +34,7 @@ export const points: Point[] = [
     description: 'Nel 1960, Federico Fellini ha girato una delle scene più iconiche della storia del cinema, con Anita Ekberg che fa il bagno nella Fontana di Trevi per il film "La Dolce Vita". Questo momento ha cristallizzato l\'immagine di Roma come capitale del glamour e del cinema internazionale.',
     photos: [{ id: 'ph1', url: 'https://picsum.photos/seed/trevi/800/600', caption: 'Scena del film "La Dolce Vita"' }],
     linkedCharacterIds: ['fellini'],
+    tags: ['cinema italiano', 'fontana di trevi', 'anni \'60', 'glamour'],
   },
   {
     id: 'p2',
@@ -46,6 +47,7 @@ export const points: Point[] = [
     description: 'Il 12 dicembre 1969, una bomba esplose nella sede della Banca Nazionale dell\'Agricoltura in Piazza Fontana a Milano, causando 17 morti e 88 feriti. Questo evento è considerato l\'inizio della "strategia della tensione" e degli Anni di Piombo in Italia.',
     photos: [{ id: 'ph2', url: 'https://picsum.photos/seed/fontana/800/600', caption: 'Piazza Fontana oggi' }],
     linkedCharacterIds: [],
+    tags: ['terrorismo', 'strategia della tensione', 'milano', 'cronaca nera'],
   },
   {
     id: 'p3',
@@ -58,6 +60,7 @@ export const points: Point[] = [
     description: 'Il 24 marzo 1944, come rappresaglia per un attentato partigiano in Via Rasella, le truppe di occupazione naziste massacrarono 335 civili e militari italiani presso le Fosse Ardeatine. È uno degli episodi più tragici dell\'occupazione tedesca di Roma.',
     photos: [{ id: 'ph3', url: 'https://picsum.photos/seed/ardeatine/800/600', caption: 'Mausoleo delle Fosse Ardeatine' }],
     linkedCharacterIds: ['pertini'],
+    tags: ['seconda guerra mondiale', 'nazismo', 'rappresaglia', 'memoria'],
   },
   {
     id: 'p4',
@@ -70,6 +73,7 @@ export const points: Point[] = [
     description: 'Nella notte tra il 1° e il 2 novembre 1975, il poeta e regista Pier Paolo Pasolini fu brutalmente assassinato all\'Idroscalo di Ostia. Le circostanze della sua morte rimangono ancora oggi avvolte nel mistero e oggetto di dibattito.',
     photos: [{ id: 'ph4', url: 'https://picsum.photos/seed/pasolini/800/600', caption: 'Monumento a Pasolini a Ostia' }],
     linkedCharacterIds: ['pasolini'],
+    tags: ['letteratura', 'mistero italiano', 'ostia', 'intellettuali'],
   },
 ];
 
