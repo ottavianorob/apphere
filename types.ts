@@ -19,6 +19,7 @@ export interface Character {
   name: string;
   description: string;
   wikipediaUrl: string;
+  profileImageUrl?: string;
 }
 
 export interface Photo {

@@ -17,9 +17,9 @@ export const periods: Period[] = [
 ];
 
 export const characters: Character[] = [
-  { id: 'pasolini', name: 'Pier Paolo Pasolini', description: 'Regista, poeta e scrittore', wikipediaUrl: 'https://it.wikipedia.org/wiki/Pier_Paolo_Pasolini' },
-  { id: 'fellini', name: 'Federico Fellini', description: 'Regista e sceneggiatore', wikipediaUrl: 'https://it.wikipedia.org/wiki/Federico_Fellini' },
-  { id: 'pertini', name: 'Sandro Pertini', description: 'Partigiano e 7º Presidente della Repubblica Italiana', wikipediaUrl: 'https://it.wikipedia.org/wiki/Sandro_Pertini' },
+  { id: 'pasolini', name: 'Pier Paolo Pasolini', description: 'Regista, poeta e scrittore', wikipediaUrl: 'https://it.wikipedia.org/wiki/Pier_Paolo_Pasolini', profileImageUrl: 'https://picsum.photos/seed/pasolini_char/100/100' },
+  { id: 'fellini', name: 'Federico Fellini', description: 'Regista e sceneggiatore', wikipediaUrl: 'https://it.wikipedia.org/wiki/Federico_Fellini', profileImageUrl: 'https://picsum.photos/seed/fellini_char/100/100' },
+  { id: 'pertini', name: 'Sandro Pertini', description: 'Partigiano e 7º Presidente della Repubblica Italiana', wikipediaUrl: 'https://it.wikipedia.org/wiki/Sandro_Pertini', profileImageUrl: 'https://picsum.photos/seed/pertini_char/100/100' },
 ];
 
 export const points: Point[] = [

@@ -61,16 +61,23 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose }) =
             {linkedCharacters.length > 0 && (
               <div>
                 <h3 className="font-serif-display text-xl font-bold text-gray-800 mb-3 border-b border-gray-300 pb-1">Personaggi Collegati</h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="space-y-3">
                   {linkedCharacters.map(char => (
                     <a 
                       key={char.id} 
                       href={char.wikipediaUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="bg-[#134A79]/10 text-[#134A79] px-3 py-1 text-sm font-semibold hover:bg-[#134A79]/20 transition-colors"
+                      className="flex items-center p-2 rounded-lg hover:bg-[#134A79]/10 transition-colors"
                     >
-                      {char.name}
+                      {char.profileImageUrl && (
+                        <img 
+                          src={char.profileImageUrl} 
+                          alt={char.name} 
+                          className="w-10 h-10 rounded-full object-cover mr-4 border-2 border-white/50"
+                        />
+                      )}
+                      <span className="text-[#134A79] text-base font-semibold">{char.name}</span>
                     </a>
                   ))}
                 </div>

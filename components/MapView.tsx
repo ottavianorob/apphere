@@ -78,6 +78,16 @@ const categoryColors: { [key: string]: { selected: string; unselected: string; r
 };
 const defaultColors = { selected: 'bg-gray-600 text-white', unselected: 'text-gray-600 border border-gray-600 bg-transparent', ring: 'focus:ring-gray-500' };
 
+// Color mapping for map pins
+const mapPinColors: { [key: string]: string } = {
+  'storia': 'text-sky-700',
+  'arte': 'text-amber-600',
+  'societa': 'text-red-700',
+  'cinema': 'text-emerald-600',
+  'musica': 'text-indigo-600',
+};
+const defaultPinColor = 'text-[#B1352E]';
+
 const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, periods }) => {
   const { data: userLocation, loading, error } = useGeolocation();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -168,18 +178,21 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
             </Marker>
           )}
 
-          {filteredAndSortedPoints.map(point => (
-            <Marker
-              key={point.id}
-              longitude={point.coordinates.longitude}
-              latitude={point.coordinates.latitude}
-              anchor="bottom"
-            >
-              <div onClick={() => onSelectPoint(point)} className="cursor-pointer">
-                <MapPinIcon className="w-8 h-8 text-[#B1352E] drop-shadow-lg hover:scale-110 transition-transform" />
-              </div>
-            </Marker>
-          ))}
+          {filteredAndSortedPoints.map(point => {
+            const pinColor = mapPinColors[point.categoryId] || defaultPinColor;
+            return (
+              <Marker
+                key={point.id}
+                longitude={point.coordinates.longitude}
+                latitude={point.coordinates.latitude}
+                anchor="bottom"
+              >
+                <div onClick={() => onSelectPoint(point)} className="cursor-pointer">
+                  <MapPinIcon className={`w-8 h-8 ${pinColor} drop-shadow-lg hover:scale-110 transition-transform`} />
+                </div>
+              </Marker>
+            );
+          })}
         </ReactMapGL>
       </div>
 
