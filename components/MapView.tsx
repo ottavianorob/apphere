@@ -1,8 +1,13 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import ReactMapGL, { Marker } from 'react-map-gl';
+import maplibregl from 'maplibre-gl';
 import { Point, Category, Period } from '../types';
 import useGeolocation from '../hooks/useGeolocation';
 import MapPinIcon from './icons/MapPinIcon';
+
+// Fix for cross-origin error in sandboxed environments by setting worker URL
+// FIX: Corrected `workerUrl` to `workerURL` as required by the maplibre-gl version being used.
+(maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
 
 interface MapViewProps {
   points: Point[];
@@ -76,7 +81,27 @@ const defaultColors = { selected: 'bg-gray-600 text-white', unselected: 'text-gr
 const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, periods }) => {
   const { data: userLocation, loading, error } = useGeolocation();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const MAPTILER_KEY = 'IIPnH80T6eAsOrGsVBLp';
   
+  const [viewState, setViewState] = useState({
+    longitude: 12.496366, // Rome
+    latitude: 41.902782,
+    zoom: 5,
+    pitch: 0,
+    bearing: 0,
+  });
+
+  useEffect(() => {
+    if (userLocation) {
+      setViewState(current => ({
+        ...current,
+        longitude: userLocation.longitude,
+        latitude: userLocation.latitude,
+        zoom: 13,
+      }));
+    }
+  }, [userLocation]);
+
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
   const periodMap = useMemo(() => new Map(periods.map(p => [p.id, p.name])), [periods]);
 
@@ -129,8 +154,33 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
         {error && <p className="text-[#B1352E] text-sm mt-2">Impossibile ottenere la posizione: {error.message}</p>}
       </header>
 
-      <div className="h-96 bg-gray-200 mb-8 flex items-center justify-center text-gray-500 text-2xl font-serif-display">
-        Mappa Interattiva
+      <div className="h-96 w-full mb-8 bg-gray-200">
+        <ReactMapGL
+          mapLib={maplibregl}
+          {...viewState}
+          onMove={evt => setViewState(evt.viewState)}
+          style={{ width: '100%', height: '100%' }}
+          mapStyle={`https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`}
+        >
+          {userLocation && (
+            <Marker longitude={userLocation.longitude} latitude={userLocation.latitude}>
+              <div className="w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg" title="La tua posizione"></div>
+            </Marker>
+          )}
+
+          {filteredAndSortedPoints.map(point => (
+            <Marker
+              key={point.id}
+              longitude={point.coordinates.longitude}
+              latitude={point.coordinates.latitude}
+              anchor="bottom"
+            >
+              <div onClick={() => onSelectPoint(point)} className="cursor-pointer">
+                <MapPinIcon className="w-8 h-8 text-[#B1352E] drop-shadow-lg hover:scale-110 transition-transform" />
+              </div>
+            </Marker>
+          ))}
+        </ReactMapGL>
       </div>
 
       <div className="border-t border-b border-gray-300 py-4 mb-6">
