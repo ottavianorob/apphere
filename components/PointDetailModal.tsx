@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Point } from '../types';
 import { characters as allCharacters } from '../data/mockData';
 import CloseIcon from './icons/CloseIcon';
+import NavigationIcon from './icons/NavigationIcon';
 
 interface PointDetailModalProps {
   point: Point;
@@ -11,6 +11,7 @@ interface PointDetailModalProps {
 
 const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose }) => {
   const linkedCharacters = allCharacters.filter(c => point.linkedCharacterIds.includes(c.id));
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${point.coordinates.latitude},${point.coordinates.longitude}`;
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -42,8 +43,20 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose }) =
 
         <div className="overflow-y-auto p-6">
           <img src={point.photos[0].url} alt={point.photos[0].caption} className="w-full h-64 object-cover mb-4" />
-          <p className="text-[#1C1C1C] mb-8 whitespace-pre-wrap leading-relaxed">{point.description}</p>
+          <p className="text-[#1C1C1C] mb-6 whitespace-pre-wrap leading-relaxed">{point.description}</p>
           
+          <div className="mb-8">
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 bg-[#134A79] text-white font-bold rounded-lg shadow-md hover:bg-[#103a60] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#EDE5D0] focus:ring-[#134A79] transition-all duration-200"
+            >
+              <NavigationIcon className="w-5 h-5 mr-2" />
+              <span>Portami qui</span>
+            </a>
+          </div>
+
           <div className="space-y-6">
             {linkedCharacters.length > 0 && (
               <div>

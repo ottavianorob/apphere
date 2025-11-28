@@ -81,7 +81,7 @@ const defaultColors = { selected: 'bg-gray-600 text-white', unselected: 'text-gr
 const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, periods }) => {
   const { data: userLocation, loading, error } = useGeolocation();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const MAPTILER_KEY = 'IIPnH80T6eAsOrGsVBLp';
+  const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
   
   const [viewState, setViewState] = useState({
     longitude: 12.496366, // Rome
@@ -160,7 +160,7 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
           {...viewState}
           onMove={evt => setViewState(evt.viewState)}
           style={{ width: '100%', height: '100%' }}
-          mapStyle={`https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`}
+          mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
         >
           {userLocation && (
             <Marker longitude={userLocation.longitude} latitude={userLocation.latitude}>
