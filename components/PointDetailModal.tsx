@@ -1,10 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { Point, Character } from '../types';
+import { Point } from '../types';
 import { characters as allCharacters } from '../data/mockData';
 import CloseIcon from './icons/CloseIcon';
-import SparklesIcon from './icons/SparklesIcon';
-import { getGenerativeContent } from '../services/geminiService';
 
 interface PointDetailModalProps {
   point: Point;
@@ -12,19 +10,7 @@ interface PointDetailModalProps {
 }
 
 const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose }) => {
-  const [geminiContent, setGeminiContent] = useState<string>('');
-  const [isLoadingGemini, setIsLoadingGemini] = useState<boolean>(false);
-  const [showGemini, setShowGemini] = useState<boolean>(false);
-
   const linkedCharacters = allCharacters.filter(c => point.linkedCharacterIds.includes(c.id));
-
-  const handleGenerateContent = async () => {
-    setIsLoadingGemini(true);
-    setShowGemini(true);
-    const content = await getGenerativeContent(point);
-    setGeminiContent(content);
-    setIsLoadingGemini(false);
-  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -76,29 +62,6 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose }) =
               </div>
             </div>
           )}
-
-          <div className="border-t border-gray-300 pt-6">
-            <button
-              onClick={handleGenerateContent}
-              disabled={isLoadingGemini}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#134A79] text-white font-bold rounded-md hover:bg-opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <SparklesIcon className="w-5 h-5" />
-              {isLoadingGemini ? 'Sto pensando...' : 'Chiedi di più a Gemini'}
-            </button>
-
-            {showGemini && (
-              <div className="mt-4 p-4 bg-black/5 rounded-lg animate-fade-in">
-                {isLoadingGemini ? (
-                  <div className="flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#134A79]"></div>
-                  </div>
-                ) : (
-                  <p className="text-[#1C1C1C] whitespace-pre-wrap leading-relaxed">{geminiContent}</p>
-                )}
-              </div>
-            )}
-          </div>
         </div>
       </div>
        <style>{`
