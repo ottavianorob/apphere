@@ -7,6 +7,8 @@ import MapPinIcon from './icons/MapPinIcon';
 import CalendarIcon from './icons/CalendarIcon';
 import UserLocationMarker from './UserLocationMarker';
 import LocateIcon from './icons/LocateIcon';
+import CameraIcon from './icons/CameraIcon';
+import CategoryIcon from './icons/CategoryIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -75,8 +77,9 @@ const PointListItem: React.FC<{ point: Point; distance?: number | null; onSelect
       <div className="flex-grow">
         {categoryName && (
            <div className="mb-1">
-            <span className={`inline-block px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}>
-              {categoryName}
+            <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}>
+              <CategoryIcon categoryId={point.categoryId} className="w-3.5 h-3.5" />
+              <span>{categoryName}</span>
             </span>
           </div>
         )}
@@ -90,6 +93,12 @@ const PointListItem: React.FC<{ point: Point; distance?: number | null; onSelect
             <MapPinIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />
             <span>{point.location}</span>
           </div>
+          {point.photos && point.photos.length > 0 && (
+             <div className="flex items-center gap-1.5">
+              <CameraIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />
+              <span>{point.photos.length}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
