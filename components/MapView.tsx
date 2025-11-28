@@ -29,7 +29,7 @@ const getDistance = (coords1: { latitude: number; longitude: number; }, coords2:
 };
 
 
-const PointListItem: React.FC<{ point: Point; distance?: number | null; onSelect: () => void; categoryName: string; periodName: string; }> = ({ point, distance, onSelect, categoryName, periodName }) => (
+const PointListItem: React.FC<{ point: Point; distance?: number | null; onSelect: () => void; categoryName: string; periodName: string; categoryColorClasses: string; }> = ({ point, distance, onSelect, categoryName, periodName, categoryColorClasses }) => (
   <div
     className="border-b border-gray-300/80 py-6 group cursor-pointer"
     onClick={onSelect}
@@ -45,8 +45,8 @@ const PointListItem: React.FC<{ point: Point; distance?: number | null; onSelect
         )}
         <h3 className="font-serif-display text-2xl font-bold text-[#134A79] mb-2 group-hover:text-[#B1352E] transition-colors">{point.title}</h3>
         <div className="flex flex-wrap gap-2 mb-3">
-           <span className={`text-xs font-medium px-2 py-1 ${point.categoryId === 'societa' ? 'bg-[#B1352E]/10 text-[#B1352E]' : 'bg-[#134A79]/10 text-[#134A79]'}`}>{categoryName}</span>
-           <span className="text-xs font-medium bg-gray-500/10 text-gray-600 px-2 py-1">{periodName}</span>
+           <span className={`px-3 py-1 text-xs font-semibold rounded-full ${categoryColorClasses}`}>{categoryName}</span>
+           <span className="px-3 py-1 text-xs font-semibold rounded-full bg-gray-600 text-white">{periodName}</span>
         </div>
         <p className="text-sm text-gray-700 line-clamp-3 leading-relaxed">{point.description}</p>
         {point.tags && point.tags.length > 0 && (
@@ -158,16 +158,20 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
       </div>
 
       <div>
-        {filteredAndSortedPoints.map(point => (
-          <PointListItem 
-            key={point.id} 
-            point={point}
-            distance={point.distance}
-            onSelect={() => onSelectPoint(point)} 
-            categoryName={categoryMap.get(point.categoryId) || ''}
-            periodName={periodMap.get(point.periodId) || ''}
-          />
-        ))}
+        {filteredAndSortedPoints.map(point => {
+          const categoryColorClasses = (categoryColors[point.categoryId] || defaultColors).selected;
+          return (
+            <PointListItem 
+              key={point.id} 
+              point={point}
+              distance={point.distance}
+              onSelect={() => onSelectPoint(point)} 
+              categoryName={categoryMap.get(point.categoryId) || ''}
+              periodName={periodMap.get(point.periodId) || ''}
+              categoryColorClasses={categoryColorClasses}
+            />
+          );
+        })}
       </div>
     </div>
   );
