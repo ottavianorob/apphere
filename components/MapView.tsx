@@ -213,7 +213,7 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
   return (
     <div>
       <header className="mb-8 border-b-2 border-black pb-4 text-center">
-        <h1 className="font-sans-display text-5xl sm:text-6xl font-bold text-[#1C1C1C]">Cosa è successo qui?</h1>
+        <h1 className="font-sans-display text-4xl sm:text-5xl font-bold text-[#1C1C1C]">Cosa è successo qui?</h1>
         <p className="font-serif-display italic text-lg text-gray-700 mt-2">{capitalizedDate}</p>
         {loading && <p className="font-sans-display text-[#134A79] text-sm mt-2">Acquisizione della posizione in corso...</p>}
         {error && <p className="font-sans-display text-[#B1352E] text-sm mt-2">Impossibile ottenere la posizione: {error.message}</p>}

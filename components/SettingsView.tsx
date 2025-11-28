@@ -6,7 +6,7 @@ const SettingsView: React.FC = () => {
   return (
     <div>
         <header className="mb-8 border-b-2 border-black pb-4 text-center">
-          <h1 className="font-sans-display text-5xl sm:text-6xl font-bold text-[#1C1C1C]">Impostazioni</h1>
+          <h1 className="font-sans-display text-4xl sm:text-5xl font-bold text-[#1C1C1C]">Impostazioni</h1>
         </header>
       
       <div className="space-y-8 max-w-2xl mx-auto font-sans-display">
