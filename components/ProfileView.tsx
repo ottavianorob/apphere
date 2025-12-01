@@ -1,15 +1,29 @@
 import React from 'react';
+import { Session } from '@supabase/supabase-js';
+import { supabase } from '../services/supabaseClient';
 import UserIcon from './icons/UserIcon';
 import PlusIcon from './icons/PlusIcon';
+import AuthView from './AuthView';
 
 interface ProfileViewProps {
+  session: Session | null;
   onAddPoiClick: () => void;
   onAddCharacterClick: () => void;
   onAddItineraryClick: () => void;
 }
 
+const ProfileView: React.FC<ProfileViewProps> = ({ session, onAddPoiClick, onAddCharacterClick, onAddItineraryClick }) => {
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Errore durante il logout:", error);
+    }
+  };
 
-const ProfileView: React.FC<ProfileViewProps> = ({ onAddPoiClick, onAddCharacterClick, onAddItineraryClick }) => {
+  if (!session) {
+    return <AuthView />;
+  }
+  
   return (
     <div>
       <header className="mb-8 border-b-2 border-[#2D3748] pb-4 text-center">
@@ -22,24 +36,10 @@ const ProfileView: React.FC<ProfileViewProps> = ({ onAddPoiClick, onAddCharacter
           <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center mb-4">
             <UserIcon className="w-12 h-12 text-gray-500" />
           </div>
-          <h2 className="font-sans-display text-2xl font-bold text-[#134A79]">Mario Rossi</h2>
-          <p className="text-gray-600">mario.rossi@email.com</p>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="p-4 border border-gray-300/80">
-            <p className="text-2xl font-bold text-[#134A79]">12</p>
-            <p className="text-sm text-gray-600">Luoghi Visitati</p>
-          </div>
-          <div className="p-4 border border-gray-300/80">
-            <p className="text-2xl font-bold text-[#134A79]">5</p>
-            <p className="text-sm text-gray-600">Preferiti</p>
-          </div>
-          <div className="p-4 border border-gray-300/80">
-            <p className="text-2xl font-bold text-[#134A79]">2</p>
-            <p className="text-sm text-gray-600">Contributi</p>
-          </div>
+          <h2 className="font-sans-display text-xl font-bold text-[#134A79] break-all">{session.user.email}</h2>
+          <button onClick={handleLogout} className="mt-4 px-4 py-2 text-sm font-semibold text-red-700 bg-red-100 hover:bg-red-200 rounded-md transition-colors">
+            Logout
+          </button>
         </div>
 
         {/* Content Management */}
@@ -62,8 +62,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ onAddPoiClick, onAddCharacter
           </div>
         </div>
 
-
-        {/* Settings from old page */}
+        {/* Settings */}
         <div className="border border-gray-300/80 p-6">
           <h2 className="font-serif-display text-2xl italic text-[#134A79] mb-4">Notifiche</h2>
           <div className="flex items-center justify-between">
