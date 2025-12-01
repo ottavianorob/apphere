@@ -101,23 +101,28 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
                     mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
                     onLoad={event => {
                       const map = event.target;
-                      if (poisInItinerary.length > 0) {
-                        const firstCoords = getPoiCentroid(poisInItinerary[0]);
-                        const bounds = poisInItinerary.reduce((b, p) => {
-                          const coords = getPoiCentroid(p);
-                          return b.extend([coords.longitude, coords.latitude]);
-                        }, new maplibregl.LngLatBounds([firstCoords.longitude, firstCoords.latitude], [firstCoords.longitude, firstCoords.latitude]));
-                        map.fitBounds(bounds, { padding: 50, duration: 0 });
-                      }
+                      // The map needs to be resized after the modal animation completes.
+                      setTimeout(() => {
+                        map.resize();
+                        if (poisInItinerary.length > 0) {
+                          const firstCoords = getPoiCentroid(poisInItinerary[0]);
+                          const bounds = poisInItinerary.reduce((b, p) => {
+                            const coords = getPoiCentroid(p);
+                            return b.extend([coords.longitude, coords.latitude]);
+                          }, new maplibregl.LngLatBounds([firstCoords.longitude, firstCoords.latitude], [firstCoords.longitude, firstCoords.latitude]));
+                          map.fitBounds(bounds, { padding: 50, duration: 0 });
+                        }
+                      }, 350); // Animation is 300ms
                     }}
                   >
                     {poisInItinerary.map(poi => {
                       const coords = getPoiCentroid(poi);
-                      const markerBg = mapMarkerBgColors[poi.categoryId] || 'bg-[#B1352E]';
+                      const primaryCategoryId = poi.categoryIds[0];
+                      const markerBg = mapMarkerBgColors[primaryCategoryId] || 'bg-[#B1352E]';
                       return (
                         <Marker key={poi.id} longitude={coords.longitude} latitude={coords.latitude} anchor="center">
                           <div className={`w-7 h-7 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75`}>
-                            <CategoryIcon categoryId={poi.categoryId} className="w-4 h-4 text-white" />
+                            <CategoryIcon categoryId={primaryCategoryId} className="w-4 h-4 text-white" />
                           </div>
                         </Marker>
                       );

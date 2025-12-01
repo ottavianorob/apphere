@@ -62,7 +62,7 @@ const MapSelector: React.FC<MapSelectorProps> = ({ type, coordinates, setCoordin
         onLoad={() => {
           setTimeout(() => {
             mapRef.current?.getMap().resize();
-          }, 100);
+          }, 350); // Increased delay to account for modal animation (300ms)
         }}
         style={{ width: '100%', height: '100%' }}
         mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}

@@ -207,17 +207,22 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
                       style={{ width: '100%', height: '100%' }}
                       mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
                       interactive={false}
-                      onLoad={ event => {
+                      onLoad={event => {
                           const map = event.target;
-                          let bounds: LngLatBounds | undefined;
-                          if(poi.type === 'path' && poi.pathCoordinates.length > 1) {
-                             bounds = poi.pathCoordinates.reduce((b, p) => b.extend([p.longitude, p.latitude]), new maplibregl.LngLatBounds([poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude],[poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude]));
-                          } else if(poi.type === 'area' && poi.bounds.length > 0) {
-                             bounds = poi.bounds.reduce((b, c) => b.extend([c.longitude, c.latitude]), new maplibregl.LngLatBounds([poi.bounds[0].longitude, poi.bounds[0].latitude],[poi.bounds[0].longitude, poi.bounds[0].latitude]));
-                          }
-                          if (bounds) {
-                             map.fitBounds(bounds, { padding: 40, duration: 0 });
-                          }
+                          // The map needs to be resized after the modal animation completes.
+                          setTimeout(() => {
+                            map.resize();
+
+                            let bounds: LngLatBounds | undefined;
+                            if(poi.type === 'path' && poi.pathCoordinates.length > 1) {
+                               bounds = poi.pathCoordinates.reduce((b, p) => b.extend([p.longitude, p.latitude]), new maplibregl.LngLatBounds([poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude],[poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude]));
+                            } else if(poi.type === 'area' && poi.bounds.length > 0) {
+                               bounds = poi.bounds.reduce((b, c) => b.extend([c.longitude, c.latitude]), new maplibregl.LngLatBounds([poi.bounds[0].longitude, poi.bounds[0].latitude],[poi.bounds[0].longitude, poi.bounds[0].latitude]));
+                            }
+                            if (bounds) {
+                               map.fitBounds(bounds, { padding: 40, duration: 0 });
+                            }
+                          }, 350); // Animation is 300ms
                       }}
                   >
                     {mapContent}
