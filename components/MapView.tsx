@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import ReactMapGL, { Marker, NavigationControl, MapRef } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
+import type { LngLatBounds } from 'maplibre-gl';
 import { Point, Category, Period, Coordinates } from '../types';
 import useGeolocation from '../hooks/useGeolocation';
 import MapPinIcon from './icons/MapPinIcon';
@@ -129,6 +130,7 @@ const defaultMarkerBgColor = 'bg-[#B1352E]';
 const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, periods }) => {
   const { data: userLocation, loading, error } = useGeolocation();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [mapBounds, setMapBounds] = useState<LngLatBounds | null>(null);
   const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
   const mapRef = useRef<MapRef>(null);
   
@@ -152,7 +154,6 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
   }, [userLocation]);
 
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
-  const periodMap = useMemo(() => new Map(periods.map(p => [p.id, p.name])), [periods]);
 
   const today = new Date();
   const dateOptions: Intl.DateTimeFormatOptions = {
@@ -187,31 +188,38 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
     }
   };
 
-  const filteredAndSortedPoints = useMemo(() => {
+  const categoryFilteredPoints = useMemo(() => {
     const isFilteringActive = selectedCategories.length > 0;
-    
-    let filtered = points.filter(p => 
+    return points.filter(p => 
       !isFilteringActive || selectedCategories.includes(p.categoryId)
     );
+  }, [points, selectedCategories]);
 
+  const listPoints = useMemo(() => {
+    let inViewPoints = categoryFilteredPoints;
+    
+    if (mapBounds) {
+        inViewPoints = categoryFilteredPoints.filter(p => 
+            mapBounds.contains([p.coordinates.longitude, p.coordinates.latitude])
+        );
+    }
+    
     if (userLocation) {
-      return filtered
-        .map(point => {
-          return {
-            ...point,
-            distance: getDistance(userLocation, point.coordinates),
-          };
-        })
+      return inViewPoints
+        .map(point => ({
+          ...point,
+          distance: getDistance(userLocation, point.coordinates),
+        }))
         .sort((a, b) => a.distance - b.distance);
     }
     
-    return filtered.map(point => ({ ...point, distance: undefined }));
-  }, [points, userLocation, selectedCategories]);
+    return inViewPoints.map(point => ({ ...point, distance: undefined }));
+  }, [categoryFilteredPoints, mapBounds, userLocation]);
 
   return (
     <div>
       <header className="mb-8 border-b-2 border-black pb-4 text-center">
-        <h1 className="font-sans-display text-4xl sm:text-5xl font-bold text-[#1C1C1C]">Cosa è successo qui?</h1>
+        <h1 className="font-sans-display text-4xl sm:text-5xl font-bold text-[#1C1C1C] tracking-tighter">Cosa è successo qui?</h1>
         <p className="font-serif-display italic text-lg text-gray-700 mt-2">{capitalizedDate}</p>
         {loading && <p className="font-sans-display text-[#134A79] text-sm mt-2">Acquisizione della posizione in corso...</p>}
         {error && <p className="font-sans-display text-[#B1352E] text-sm mt-2">Impossibile ottenere la posizione: {error.message}</p>}
@@ -223,6 +231,8 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
           mapLib={maplibregl}
           {...viewState}
           onMove={evt => setViewState(evt.viewState)}
+          onLoad={() => mapRef.current && setMapBounds(mapRef.current.getBounds())}
+          onMoveEnd={() => mapRef.current && setMapBounds(mapRef.current.getBounds())}
           style={{ width: '100%', height: '100%' }}
           mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
         >
@@ -251,7 +261,7 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
             </Marker>
           )}
 
-          {filteredAndSortedPoints.map(point => {
+          {categoryFilteredPoints.map(point => {
             const markerBg = mapMarkerBgColors[point.categoryId] || defaultMarkerBgColor;
             return (
               <Marker
@@ -297,8 +307,8 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
       </div>
 
       <div>
-        {filteredAndSortedPoints.map(point => {
-          return (
+        {listPoints.length > 0 ? (
+          listPoints.map(point => (
             <PointListItem 
               key={point.id} 
               point={point}
@@ -306,8 +316,13 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
               onSelect={() => onSelectPoint(point)}
               categoryName={categoryMap.get(point.categoryId)}
             />
-          );
-        })}
+          ))
+        ) : (
+          <div className="text-center py-8 text-gray-600 font-sans-display">
+            <p className="font-semibold">Nessun punto di interesse in quest'area.</p>
+            <p className="text-sm">Prova a spostare la mappa o a cambiare i filtri.</p>
+          </div>
+        )}
       </div>
     </div>
   );
