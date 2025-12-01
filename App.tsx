@@ -1,8 +1,6 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
-import { Session } from '@supabase/supabase-js';
-import { Poi, Itinerary, Character, Category, Point, Path, Area, User, Period } from './types';
-import { supabase } from './services/supabaseClient';
+import { Poi, Itinerary, Character, Category } from './types';
+import { points, paths, categories, periods, areas, itineraries, characters, users } from './data/mockData';
 
 // Import Views
 import HomeView from './components/HomeView';
@@ -36,110 +34,9 @@ const App: React.FC = () => {
   const [isAddPoiModalOpen, setIsAddPoiModalOpen] = useState(false);
   const [isAddCharacterModalOpen, setIsAddCharacterModalOpen] = useState(false);
   const [isAddItineraryModalOpen, setIsAddItineraryModalOpen] = useState(false);
-
-  // Auth state
-  const [session, setSession] = useState<Session | null>(null);
   
-  // Data states
-  const [allPois, setAllPois] = useState<Poi[]>([]);
-  const [itineraries, setItineraries] = useState<Itinerary[]>([]);
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [periods, setPeriods] = useState<Period[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
-
-  const fetchData = async () => {
-    try {
-      // Fetch simple tables
-      const { data: categoriesData, error: catError } = await supabase.from('categories').select('*');
-      if (catError) throw catError;
-      setCategories(categoriesData || []);
-
-      const { data: periodsData, error: perError } = await supabase.from('periods').select('*');
-      if (perError) throw perError;
-      setPeriods(periodsData || []);
-      
-      const { data: charactersData, error: charError } = await supabase.from('characters').select('*, profiles(name)');
-      if (charError) throw charError;
-      const transformedCharacters: Character[] = (charactersData || []).map((c: any) => ({ 
-        ...c, 
-        wikipediaUrl: c.wikipedia_url,
-        author: c.profiles?.name || 'Anonimo'
-      }));
-      setCharacters(transformedCharacters);
-
-      const { data: profilesData, error: profError } = await supabase.from('profiles').select('*');
-      if (profError) throw profError;
-      const transformedUsers: User[] = (profilesData || []).map(p => ({ ...p, avatarUrl: p.avatar_url }));
-      setUsers(transformedUsers);
-
-      // Fetch POIs with relations
-      const { data: poisData, error: poisError } = await supabase.from('pois').select(`*, profiles(name), poi_categories(categories(id)), poi_characters(characters(id))`);
-      if (poisError) throw poisError;
-
-      const transformedPois: Poi[] = (poisData || []).map((p: any) => {
-          const basePoi = {
-              id: p.id,
-              creationDate: p.created_at,
-              author: p.profiles?.name || 'Anonimo',
-              periodId: p.period_id,
-              categoryIds: p.poi_categories.map((pc: any) => pc.categories.id),
-              title: p.title,
-              location: p.location,
-              eventDate: p.event_date,
-              description: p.description,
-              photos: p.photos || [],
-              linkedCharacterIds: p.poi_characters.map((pch: any) => pch.characters.id),
-              tags: p.tags || [],
-          };
-          switch (p.type) {
-              case 'point': return { ...basePoi, type: 'point', coordinates: p.coordinates } as Point;
-              case 'path': return { ...basePoi, type: 'path', pathCoordinates: p.path_coordinates } as Path;
-              case 'area': return { ...basePoi, type: 'area', bounds: p.bounds } as Area;
-              default: return null;
-          }
-      }).filter((p): p is Poi => p !== null);
-      setAllPois(transformedPois);
-      
-      // Fetch Itineraries with relations
-      const { data: itinerariesData, error: itError } = await supabase.from('itineraries').select(`*, profiles(name), itinerary_pois(poi_id)`);
-      if (itError) throw itError;
-      
-      const transformedItineraries: Itinerary[] = (itinerariesData || []).map((it: any) => ({
-          id: it.id,
-          title: it.title,
-          description: it.description,
-          estimatedDuration: it.estimated_duration,
-          poiIds: it.itinerary_pois.map((ip: any) => ip.poi_id),
-          author: it.profiles?.name || 'Anonimo',
-          tags: it.tags || [],
-          coverPhoto: it.cover_photo,
-      }));
-      setItineraries(transformedItineraries);
-
-    } catch (error) {
-      console.error("Errore nel caricamento dati da Supabase:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-    
-    fetchData();
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const allPois: Poi[] = [...points, ...paths, ...areas];
+  const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), []);
 
 
   useEffect(() => {
@@ -182,116 +79,30 @@ const App: React.FC = () => {
     setSelectedItinerary(itinerary);
   };
   
- const handleSavePoi = async (newPoi: Omit<Poi, 'id' | 'creationDate' | 'author'>) => {
-    if (!session?.user) {
-        alert("Devi essere autenticato per creare un contenuto.");
-        return;
-    }
-    try {
-        const poiToInsert: any = {
-            author_id: session.user.id,
-            title: newPoi.title,
-            description: newPoi.description,
-            location: newPoi.location,
-            event_date: newPoi.eventDate,
-            period_id: newPoi.periodId,
-            photos: newPoi.photos,
-            tags: newPoi.tags,
-            type: newPoi.type,
-        };
-        // Fix: Cast `newPoi` to the specific subtype within the conditional check.
-        // TypeScript was failing to narrow the discriminated union `Omit<Poi, ...>`,
-        // so this assertion is needed to access type-specific properties.
-        if (newPoi.type === 'point') poiToInsert.coordinates = (newPoi as Point).coordinates;
-        if (newPoi.type === 'path') poiToInsert.path_coordinates = (newPoi as Path).pathCoordinates;
-        if (newPoi.type === 'area') poiToInsert.bounds = (newPoi as Area).bounds;
-        
-        const { data: poiData, error: poiError } = await supabase.from('pois').insert(poiToInsert).select().single();
-        if (poiError) throw poiError;
-        
-        const newPoiId = poiData.id;
-        
-        // Handle categories
-        if (newPoi.categoryIds.length > 0) {
-            const poiCategories = newPoi.categoryIds.map(catId => ({ poi_id: newPoiId, category_id: catId }));
-            const { error: catError } = await supabase.from('poi_categories').insert(poiCategories);
-            if (catError) throw catError;
-        }
+  const handleSavePoi = (newPoi: Omit<Poi, 'id' | 'creationDate' | 'author'>) => {
+    console.log("Saving new POI:", {
+      ...newPoi,
+      id: `new_poi_${Date.now()}`,
+      creationDate: new Date().toISOString(),
+      author: 'Mario Rossi' // Logged-in user
+    });
+    // In a real app, you would add the new POI to your state/backend
+    setIsAddPoiModalOpen(false);
+  };
 
-        // Handle characters
-        if (newPoi.linkedCharacterIds.length > 0) {
-            const poiCharacters = newPoi.linkedCharacterIds.map(charId => ({ poi_id: newPoiId, character_id: charId }));
-            const { error: charError } = await supabase.from('poi_characters').insert(poiCharacters);
-            if (charError) throw charError;
-        }
+  const handleSaveCharacter = (newCharacter: Omit<Character, 'id'>) => {
+    console.log("Saving new Character:", { ...newCharacter, id: `new_char_${Date.now()}` });
+    setIsAddCharacterModalOpen(false);
+  };
 
-        alert("Luogo salvato con successo!");
-        setIsAddPoiModalOpen(false);
-        await fetchData(); // Refresh data
-    } catch (error) {
-        console.error("Errore nel salvataggio del POI:", error);
-        alert("Si è verificato un errore durante il salvataggio.");
-    }
-};
-
-const handleSaveCharacter = async (newCharacter: Omit<Character, 'id' | 'author'>) => {
-    if (!session?.user) {
-        alert("Devi essere autenticato per creare un contenuto.");
-        return;
-    }
-    try {
-        const { error } = await supabase.from('characters').insert({
-            author_id: session.user.id,
-            name: newCharacter.name,
-            description: newCharacter.description,
-            wikipedia_url: newCharacter.wikipediaUrl,
-            photos: newCharacter.photos,
-        });
-        if (error) throw error;
-
-        alert("Personaggio salvato con successo!");
-        setIsAddCharacterModalOpen(false);
-        await fetchData(); // Refresh data
-    } catch (error) {
-        console.error("Errore nel salvataggio del Personaggio:", error);
-        alert("Si è verificato un errore durante il salvataggio.");
-    }
-};
-
-const handleSaveItinerary = async (newItinerary: Omit<Itinerary, 'id' | 'author'>) => {
-    if (!session?.user) {
-        alert("Devi essere autenticato per creare un contenuto.");
-        return;
-    }
-    try {
-        const itineraryToInsert = {
-            author_id: session.user.id,
-            title: newItinerary.title,
-            description: newItinerary.description,
-            estimated_duration: newItinerary.estimatedDuration,
-            tags: newItinerary.tags,
-            cover_photo: newItinerary.coverPhoto,
-        };
-
-        const { data: itineraryData, error: itError } = await supabase.from('itineraries').insert(itineraryToInsert).select().single();
-        if (itError) throw itError;
-
-        const newItineraryId = itineraryData.id;
-
-        if (newItinerary.poiIds.length > 0) {
-            const itineraryPois = newItinerary.poiIds.map(poiId => ({ itinerary_id: newItineraryId, poi_id: poiId }));
-            const { error: itPoisError } = await supabase.from('itinerary_pois').insert(itineraryPois);
-            if (itPoisError) throw itPoisError;
-        }
-
-        alert("Itinerario salvato con successo!");
-        setIsAddItineraryModalOpen(false);
-        await fetchData(); // Refresh data
-    } catch (error) {
-        console.error("Errore nel salvataggio dell'Itinerario:", error);
-        alert("Si è verificato un errore durante il salvataggio.");
-    }
-};
+  const handleSaveItinerary = (newItinerary: Omit<Itinerary, 'id' | 'author'>) => {
+    console.log("Saving new Itinerary:", { 
+        ...newItinerary, 
+        id: `new_it_${Date.now()}`,
+        author: 'Mario Rossi'
+    });
+    setIsAddItineraryModalOpen(false);
+  };
 
   const renderView = () => {
     switch (currentView) {
@@ -326,8 +137,7 @@ const handleSaveItinerary = async (newItinerary: Omit<Itinerary, 'id' | 'author'
             categoryMap={categoryMap}
         />;
       case 'profile':
-        return <ProfileView
-            session={session}
+        return <ProfileView 
             onAddPoiClick={() => setIsAddPoiModalOpen(true)}
             onAddCharacterClick={() => setIsAddCharacterModalOpen(true)}
             onAddItineraryClick={() => setIsAddItineraryModalOpen(true)}
@@ -342,15 +152,6 @@ const handleSaveItinerary = async (newItinerary: Omit<Itinerary, 'id' | 'author'
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-[#FAF7F0]">
-        <h1 className="font-sans-display text-2xl font-bold text-[#2D3748]">Cosa è successo qui?</h1>
-        <p className="font-serif-display text-lg text-gray-700 mt-2">Caricamento della memoria collettiva...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-grow container mx-auto px-4 py-6 pb-24">
@@ -362,7 +163,6 @@ const handleSaveItinerary = async (newItinerary: Omit<Itinerary, 'id' | 'author'
           poi={selectedPoi} 
           onClose={() => setSelectedPoi(null)} 
           categories={categories}
-          characters={characters}
           onSelectCharacter={(characterId: string) => {
             const char = characters.find(c => c.id === characterId);
             if (char) openCharacterModal(char);

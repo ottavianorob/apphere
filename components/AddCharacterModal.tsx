@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Character, Photo } from '../types';
 import CloseIcon from './icons/CloseIcon';
@@ -6,7 +5,7 @@ import CameraIcon from './icons/CameraIcon';
 
 interface AddCharacterModalProps {
   onClose: () => void;
-  onSave: (character: Omit<Character, 'id' | 'author'>) => void;
+  onSave: (character: Omit<Character, 'id'>) => void;
 }
 
 const AddCharacterModal: React.FC<AddCharacterModalProps> = ({ onClose, onSave }) => {
@@ -27,7 +26,6 @@ const AddCharacterModal: React.FC<AddCharacterModalProps> = ({ onClose, onSave }
             reader.onloadend = () => {
                 setPhotoDataUrl(reader.result as string);
             };
-            // Fix: Corrected typo from `readDataURL` to the correct method `readAsDataURL`.
             reader.readAsDataURL(file);
         } else {
             setPhotoDataUrl('');
@@ -44,7 +42,7 @@ const AddCharacterModal: React.FC<AddCharacterModalProps> = ({ onClose, onSave }
             ? [{ id: `new_photo_${Date.now()}`, url: photoDataUrl, caption: photoCaption }] 
             : [];
 
-        const newCharacter: Omit<Character, 'id' | 'author'> = {
+        const newCharacter: Omit<Character, 'id'> = {
             name,
             description,
             wikipediaUrl,

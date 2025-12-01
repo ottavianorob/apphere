@@ -20,7 +20,6 @@ export interface Character {
   description: string;
   wikipediaUrl: string;
   photos: Photo[];
-  author?: string;
 }
 
 export interface Photo {

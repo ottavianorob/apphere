@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import ReactMapGL, { Marker, Source, Layer, LngLatBounds, MapRef } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
-import { Poi, Category, Coordinates, Character } from '../types';
+import { Poi, Category, Coordinates } from '../types';
+import { characters as allCharacters } from '../data/mockData';
 import CloseIcon from './icons/CloseIcon';
 import NavigationIcon from './icons/NavigationIcon';
 import UserIcon from './icons/UserIcon';
@@ -28,16 +29,15 @@ interface PoiDetailModalProps {
   poi: Poi;
   onClose: () => void;
   categories: Category[];
-  characters: Character[];
   onSelectCharacter: (characterId: string) => void;
   onSelectTag: (tag: string) => void;
 }
 
-const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories, characters, onSelectCharacter, onSelectTag }) => {
+const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories, onSelectCharacter, onSelectTag }) => {
   const mapRef = useRef<MapRef>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const linkedCharacters = characters.filter(c => poi.linkedCharacterIds.includes(c.id));
+  const linkedCharacters = allCharacters.filter(c => poi.linkedCharacterIds.includes(c.id));
 
   const handleNextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
