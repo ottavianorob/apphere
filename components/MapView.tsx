@@ -157,7 +157,7 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
 
   const filteredPois = useMemo(() => {
     return unifiedPois.filter(p => {
-        const categoryMatch = selectedCategories.length === 0 || p.categoryIds.some(id => selectedCategories.includes(id));
+        const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(p.categoryId);
         const periodMatch = selectedPeriods.length === 0 || selectedPeriods.includes(p.periodId);
         const typeMatch = selectedTypes.length === 0 || selectedTypes.includes(p.type);
         return categoryMatch && periodMatch && typeMatch;
@@ -236,8 +236,7 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
           )}
 
           {filteredPois.map(poi => {
-            const primaryCategoryId = poi.categoryIds[0];
-            const markerBg = mapMarkerBgColors[primaryCategoryId] || defaultMarkerBgColor;
+            const markerBg = mapMarkerBgColors[poi.categoryId] || defaultMarkerBgColor;
             return (
               <Marker
                 key={poi.id}
@@ -247,7 +246,7 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
               >
                 <div onClick={() => onSelectPoi(poi)} className="cursor-pointer">
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75 hover:scale-110 transition-transform duration-150 ease-in-out`}>
-                    <CategoryIcon categoryId={primaryCategoryId} className="w-5 h-5 text-white" />
+                    <CategoryIcon categoryId={poi.categoryId} className="w-5 h-5 text-white" />
                   </div>
                 </div>
               </Marker>
@@ -313,7 +312,7 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
               poi={poi}
               distance={poi.distance}
               onSelect={() => onSelectPoi(poi)}
-              categoryName={poi.categoryIds.length > 0 ? categoryMap.get(poi.categoryIds[0]) : undefined}
+              categoryName={categoryMap.get(poi.categoryId)}
             />
           ))
         ) : (

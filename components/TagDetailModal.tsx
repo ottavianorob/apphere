@@ -74,7 +74,7 @@ const TagDetailModal: React.FC<TagDetailModalProps> = ({
                     key={poi.id}
                     poi={poi}
                     onSelect={() => onSelectPoi(poi)}
-                    categoryName={poi.categoryIds.length > 0 ? categoryMap.get(poi.categoryIds[0]) : undefined}
+                    categoryName={categoryMap.get(poi.categoryId)}
                   />
                 ))}
               </div>
