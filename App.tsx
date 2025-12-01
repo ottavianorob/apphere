@@ -57,9 +57,13 @@ const App: React.FC = () => {
       if (perError) throw perError;
       setPeriods(periodsData || []);
       
-      const { data: charactersData, error: charError } = await supabase.from('characters').select('*');
+      const { data: charactersData, error: charError } = await supabase.from('characters').select('*, photos(*)');
       if (charError) throw charError;
-      const transformedCharacters: Character[] = (charactersData || []).map(c => ({ ...c, wikipediaUrl: c.wikipedia_url }));
+      const transformedCharacters: Character[] = (charactersData || []).map(c => ({ 
+        ...c, 
+        wikipediaUrl: c.wikipedia_url,
+        photos: c.photos.map((p: any) => ({ id: p.id, url: p.url, caption: p.caption }))
+      }));
       setCharacters(transformedCharacters);
 
       const { data: profilesData, error: profError } = await supabase.from('profiles').select('*');
@@ -68,7 +72,7 @@ const App: React.FC = () => {
       setUsers(transformedUsers);
 
       // Fetch POIs with relations
-      const { data: poisData, error: poisError } = await supabase.from('pois').select(`*, profiles(name), poi_categories(categories(id)), poi_characters(characters(id))`);
+      const { data: poisData, error: poisError } = await supabase.from('pois').select(`*, profiles(name), poi_categories(categories(id)), poi_characters(characters(id)), photos(*)`);
       if (poisError) throw poisError;
 
       const transformedPois: Poi[] = (poisData || []).map((p: any) => {
@@ -82,7 +86,7 @@ const App: React.FC = () => {
               location: p.location,
               eventDate: p.event_date,
               description: p.description,
-              photos: p.photos || [],
+              photos: p.photos.map((ph: any) => ({ id: ph.id, url: ph.url, caption: ph.caption })) || [],
               linkedCharacterIds: p.poi_characters.map((pch: any) => pch.characters.id),
               tags: p.tags || [],
           };
@@ -96,7 +100,7 @@ const App: React.FC = () => {
       setAllPois(transformedPois);
       
       // Fetch Itineraries with relations
-      const { data: itinerariesData, error: itError } = await supabase.from('itineraries').select(`*, profiles(name), itinerary_pois(poi_id)`);
+      const { data: itinerariesData, error: itError } = await supabase.from('itineraries').select(`*, profiles(name), itinerary_pois(poi_id), coverPhoto:photos!cover_photo_id(*)`);
       if (itError) throw itError;
       
       const transformedItineraries: Itinerary[] = (itinerariesData || []).map((it: any) => ({
@@ -107,7 +111,7 @@ const App: React.FC = () => {
           poiIds: it.itinerary_pois.map((ip: any) => ip.poi_id),
           author: it.profiles?.name || 'Anonimo',
           tags: it.tags || [],
-          coverPhoto: it.cover_photo,
+          coverPhoto: it.coverPhoto ? { id: it.coverPhoto.id, url: it.coverPhoto.url, caption: it.coverPhoto.caption } : { id: '', url: 'https://placehold.co/600x400', caption: 'No image' },
       }));
       setItineraries(transformedItineraries);
 
@@ -168,29 +172,22 @@ const App: React.FC = () => {
     photosToUpload: { file: File; caption: string }[]
   ) => {
       try {
-          const uploadedPhotos = await Promise.all(
-              photosToUpload.map(async (photo) => {
-                  const sanitizedFileName = photo.file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
-                  const fileName = `${Date.now()}_${sanitizedFileName}`;
-                  const filePath = `pois/${fileName}`;
-                  
-                  const { error: uploadError } = await supabase.storage.from('media').upload(filePath, photo.file);
-                  if (uploadError) throw uploadError;
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+              alert("Devi essere loggato per creare un contenuto.");
+              return;
+          }
 
-                  const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
-                  return { id: `photo_${Date.now()}`, url: publicUrl, caption: photo.caption };
-              })
-          );
-
+          // 1. Insert POI data without photos, including user_id
           const poiToInsert: any = {
               title: newPoiData.title,
               description: newPoiData.description,
               location: newPoiData.location,
               event_date: newPoiData.eventDate,
               period_id: newPoiData.periodId,
-              photos: uploadedPhotos,
               tags: newPoiData.tags,
               type: newPoiData.type,
+              user_id: user.id, // Aggiunto user_id
           };
           if (newPoiData.type === 'point') poiToInsert.coordinates = (newPoiData as Point).coordinates;
           if (newPoiData.type === 'path') poiToInsert.path_coordinates = (newPoiData as Path).pathCoordinates;
@@ -198,9 +195,33 @@ const App: React.FC = () => {
 
           const { data: poiData, error: poiError } = await supabase.from('pois').insert(poiToInsert).select().single();
           if (poiError) throw poiError;
-
           const newPoiId = poiData.id;
 
+          // 2. Upload photos and insert into photos table
+          if (photosToUpload.length > 0) {
+            const photoUploadPromises = photosToUpload.map(async (photo) => {
+              const sanitizedFileName = photo.file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
+              const fileName = `${Date.now()}_${sanitizedFileName}`;
+              const filePath = `pois/${fileName}`;
+              
+              const { error: uploadError } = await supabase.storage.from('media').upload(filePath, photo.file);
+              if (uploadError) throw uploadError;
+
+              const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
+              
+              return {
+                url: publicUrl,
+                caption: photo.caption,
+                poi_id: newPoiId
+              };
+            });
+
+            const newPhotos = await Promise.all(photoUploadPromises);
+            const { error: photosInsertError } = await supabase.from('photos').insert(newPhotos);
+            if (photosInsertError) throw photosInsertError;
+          }
+
+          // 3. Link categories and characters
           if (newPoiData.categoryIds.length > 0) {
               const poiCategories = newPoiData.categoryIds.map(catId => ({ poi_id: newPoiId, category_id: catId }));
               const { error: catError } = await supabase.from('poi_categories').insert(poiCategories);
@@ -227,27 +248,44 @@ const App: React.FC = () => {
     photosToUpload: { file: File; caption: string }[]
   ) => {
       try {
-          const uploadedPhotos = await Promise.all(
-              photosToUpload.map(async (photo) => {
-                  const sanitizedFileName = photo.file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
-                  const fileName = `${Date.now()}_${sanitizedFileName}`;
-                  const filePath = `characters/${fileName}`;
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+              alert("Devi essere loggato per creare un contenuto.");
+              return;
+          }
 
-                  const { error: uploadError } = await supabase.storage.from('media').upload(filePath, photo.file);
-                  if (uploadError) throw uploadError;
-                  
-                  const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
-                  return { id: `photo_${Date.now()}`, url: publicUrl, caption: photo.caption };
-              })
-          );
-          
-          const { error } = await supabase.from('characters').insert({
+          // 1. Insert character data
+          const { data: charData, error: charError } = await supabase.from('characters').insert({
               name: newCharacterData.name,
               description: newCharacterData.description,
               wikipedia_url: newCharacterData.wikipediaUrl,
-              photos: uploadedPhotos,
-          });
-          if (error) throw error;
+              user_id: user.id, // Aggiunto user_id
+          }).select().single();
+          if (charError) throw charError;
+          const newCharId = charData.id;
+
+          // 2. Upload photos and link them
+          if (photosToUpload.length > 0) {
+            const photoUploadPromises = photosToUpload.map(async (photo) => {
+                const sanitizedFileName = photo.file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
+                const fileName = `${Date.now()}_${sanitizedFileName}`;
+                const filePath = `characters/${fileName}`;
+
+                const { error: uploadError } = await supabase.storage.from('media').upload(filePath, photo.file);
+                if (uploadError) throw uploadError;
+                
+                const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
+                return {
+                  url: publicUrl,
+                  caption: photo.caption,
+                  character_id: newCharId,
+                };
+            });
+
+            const newPhotos = await Promise.all(photoUploadPromises);
+            const { error: photosInsertError } = await supabase.from('photos').insert(newPhotos);
+            if(photosInsertError) throw photosInsertError;
+          }
 
           alert("Personaggio salvato con successo!");
           setIsAddCharacterModalOpen(false);
@@ -258,23 +296,54 @@ const App: React.FC = () => {
       }
   };
 
-  const handleSaveItinerary = async (newItinerary: Omit<Itinerary, 'id' | 'author'>) => {
+  const handleSaveItinerary = async (
+    newItineraryData: Omit<Itinerary, 'id' | 'author' | 'coverPhoto'>,
+    coverPhotoFile: File | null
+  ) => {
      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+            alert("Devi essere loggato per creare un contenuto.");
+            return;
+        }
+
+        if (!coverPhotoFile) {
+          alert("È necessaria una foto di copertina.");
+          return;
+        }
+
+        // 1. Upload cover photo and insert it into photos table
+        const sanitizedFileName = coverPhotoFile.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
+        const fileName = `${Date.now()}_${sanitizedFileName}`;
+        const filePath = `itineraries/${fileName}`;
+        const { error: uploadError } = await supabase.storage.from('media').upload(filePath, coverPhotoFile);
+        if (uploadError) throw uploadError;
+        const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
+
+        const { data: photoData, error: photoInsertError } = await supabase.from('photos').insert({
+          url: publicUrl,
+          caption: `Cover for ${newItineraryData.title}`
+        }).select().single();
+        if (photoInsertError) throw photoInsertError;
+        const coverPhotoId = photoData.id;
+
+        // 2. Insert itinerary with the cover photo id and user_id
         const itineraryToInsert = {
-            title: newItinerary.title,
-            description: newItinerary.description,
-            estimated_duration: newItinerary.estimatedDuration,
-            tags: newItinerary.tags,
-            cover_photo: newItinerary.coverPhoto,
+            title: newItineraryData.title,
+            description: newItineraryData.description,
+            estimated_duration: newItineraryData.estimatedDuration,
+            tags: newItineraryData.tags,
+            cover_photo_id: coverPhotoId,
+            user_id: user.id, // Aggiunto user_id
         };
 
         const { data: itineraryData, error: itError } = await supabase.from('itineraries').insert(itineraryToInsert).select().single();
         if (itError) throw itError;
-
         const newItineraryId = itineraryData.id;
 
-        if (newItinerary.poiIds.length > 0) {
-            const itineraryPois = newItinerary.poiIds.map(poiId => ({ itinerary_id: newItineraryId, poi_id: poiId }));
+        // 3. Link POIs
+        if (newItineraryData.poiIds.length > 0) {
+            const itineraryPois = newItineraryData.poiIds.map(poiId => ({ itinerary_id: newItineraryId, poi_id: poiId }));
             const { error: itPoisError } = await supabase.from('itinerary_pois').insert(itineraryPois);
             if (itPoisError) throw itPoisError;
         }

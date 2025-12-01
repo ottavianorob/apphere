@@ -1,25 +1,36 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Itinerary, Poi, Photo } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import CameraIcon from './icons/CameraIcon';
 
 interface AddItineraryModalProps {
   onClose: () => void;
-  onSave: (itinerary: Omit<Itinerary, 'id' | 'author'>) => void;
+  onSave: (itinerary: Omit<Itinerary, 'id' | 'author' | 'coverPhoto'>, coverPhotoFile: File | null) => void;
   allPois: Poi[];
 }
 
 const AddItineraryModal: React.FC<AddItineraryModalProps> = ({ onClose, onSave, allPois }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [coverPhotoDataUrl, setCoverPhotoDataUrl] = useState('');
+    const [coverPhotoFile, setCoverPhotoFile] = useState<File | null>(null);
+    const [coverPhotoPreview, setCoverPhotoPreview] = useState('');
     const [tagsText, setTagsText] = useState('');
     const [selectedPois, setSelectedPois] = useState<Poi[]>([]);
     const [draggedItem, setDraggedItem] = useState<Poi | null>(null);
 
+    useEffect(() => {
+      if (!coverPhotoFile) {
+        setCoverPhotoPreview('');
+        return;
+      }
+      const objectUrl = URL.createObjectURL(coverPhotoFile);
+      setCoverPhotoPreview(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
+    }, [coverPhotoFile]);
+
+
     const availablePois = useMemo(() => {
         const selectedIds = new Set(selectedPois.map(p => p.id));
-        // FIX: Correctly check for poi.id in the set.
         return allPois.filter(p => !selectedIds.has(p.id));
     }, [allPois, selectedPois]);
 
@@ -44,13 +55,9 @@ const AddItineraryModal: React.FC<AddItineraryModalProps> = ({ onClose, onSave, 
                 alert('Il file è troppo grande. La dimensione massima è 2MB.');
                 return;
             }
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setCoverPhotoDataUrl(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+            setCoverPhotoFile(file);
         } else {
-            setCoverPhotoDataUrl('');
+            setCoverPhotoFile(null);
         }
     };
 
@@ -88,7 +95,7 @@ const AddItineraryModal: React.FC<AddItineraryModalProps> = ({ onClose, onSave, 
         const errors: string[] = [];
         if (!title.trim()) errors.push("Il titolo è obbligatorio.");
         if (!description.trim()) errors.push("La descrizione è obbligatoria.");
-        if (!coverPhotoDataUrl) errors.push("Carica una foto di copertina.");
+        if (!coverPhotoFile) errors.push("Carica una foto di copertina.");
         if (selectedPois.length === 0) errors.push("Aggiungi almeno una tappa all'itinerario.");
 
         if (errors.length > 0) {
@@ -97,22 +104,16 @@ const AddItineraryModal: React.FC<AddItineraryModalProps> = ({ onClose, onSave, 
         }
 
         const tags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
-        const coverPhoto: Photo = {
-            id: `new_cover_${Date.now()}`,
-            url: coverPhotoDataUrl,
-            caption: `Copertina per ${title}`
-        };
-
-        const newItinerary: Omit<Itinerary, 'id' | 'author'> = {
+        
+        const newItineraryData: Omit<Itinerary, 'id' | 'author' | 'coverPhoto'> = {
             title,
             description,
             estimatedDuration,
             poiIds: selectedPois.map(p => p.id),
             tags,
-            coverPhoto
         };
         
-        onSave(newItinerary);
+        onSave(newItineraryData, coverPhotoFile);
     };
     
     const labelStyle = "font-sans-display text-sm font-semibold text-gray-700 mb-1 block";
@@ -143,8 +144,8 @@ const AddItineraryModal: React.FC<AddItineraryModalProps> = ({ onClose, onSave, 
                         <label className={labelStyle}>Foto Copertina *</label>
                         <div className="mt-1">
                             <label htmlFor="it-cover-upload" className="cursor-pointer block w-full h-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors overflow-hidden">
-                                {coverPhotoDataUrl ? (
-                                    <img src={coverPhotoDataUrl} alt="Anteprima" className="w-full h-full object-cover"/>
+                                {coverPhotoPreview ? (
+                                    <img src={coverPhotoPreview} alt="Anteprima" className="w-full h-full object-cover"/>
                                 ) : (
                                     <div className="text-center">
                                         <CameraIcon className="w-8 h-8 mx-auto"/>
@@ -154,11 +155,11 @@ const AddItineraryModal: React.FC<AddItineraryModalProps> = ({ onClose, onSave, 
                             </label>
                             <input id="it-cover-upload" type="file" className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
                         </div>
-                        {coverPhotoDataUrl && (
+                        {coverPhotoFile && (
                             <button onClick={() => {
                                 const input = document.getElementById('it-cover-upload') as HTMLInputElement;
                                 if(input) input.value = '';
-                                setCoverPhotoDataUrl('');
+                                setCoverPhotoFile(null);
                             }} className="mt-2 text-xs text-red-600 hover:underline font-sans-display">Rimuovi immagine</button>
                         )}
                     </div>
