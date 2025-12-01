@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Poi, Itinerary, Character, Category } from './types';
-import { points, paths, categories, periods, areas, itineraries, characters, users } from './data/mockData';
+import { Poi, Itinerary, Character, Category, Point, Path, Area, User, Period } from './types';
+import { supabase } from './services/supabaseClient';
 
 // Import Views
 import HomeView from './components/HomeView';
@@ -34,9 +34,94 @@ const App: React.FC = () => {
   const [isAddPoiModalOpen, setIsAddPoiModalOpen] = useState(false);
   const [isAddCharacterModalOpen, setIsAddCharacterModalOpen] = useState(false);
   const [isAddItineraryModalOpen, setIsAddItineraryModalOpen] = useState(false);
+
+  // Data states
+  const [allPois, setAllPois] = useState<Poi[]>([]);
+  const [itineraries, setItineraries] = useState<Itinerary[]>([]);
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [periods, setPeriods] = useState<Period[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  const allPois: Poi[] = [...points, ...paths, ...areas];
-  const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), []);
+  const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Fetch simple tables
+        const { data: categoriesData, error: catError } = await supabase.from('categories').select('*');
+        if (catError) throw catError;
+        setCategories(categoriesData || []);
+
+        const { data: periodsData, error: perError } = await supabase.from('periods').select('*');
+        if (perError) throw perError;
+        setPeriods(periodsData || []);
+        
+        const { data: charactersData, error: charError } = await supabase.from('characters').select('*');
+        if (charError) throw charError;
+        const transformedCharacters: Character[] = (charactersData || []).map(c => ({ ...c, wikipediaUrl: c.wikipedia_url }));
+        setCharacters(transformedCharacters);
+
+        const { data: profilesData, error: profError } = await supabase.from('profiles').select('*');
+        if (profError) throw profError;
+        const transformedUsers: User[] = (profilesData || []).map(p => ({ ...p, avatarUrl: p.avatar_url, contributions: 0 })); // Note: contributions are not in DB schema
+        setUsers(transformedUsers);
+
+        // Fetch POIs with relations
+        const { data: poisData, error: poisError } = await supabase.from('pois').select(`*, profiles(name), poi_categories(categories(id)), poi_characters(characters(id))`);
+        if (poisError) throw poisError;
+
+        const transformedPois: Poi[] = (poisData || []).map((p: any) => {
+            const basePoi = {
+                id: p.id,
+                creationDate: p.created_at,
+                author: p.profiles?.name || 'Anonimo',
+                periodId: p.period_id,
+                categoryIds: p.poi_categories.map((pc: any) => pc.categories.id),
+                title: p.title,
+                location: p.location,
+                eventDate: p.event_date,
+                description: p.description,
+                photos: p.photos || [],
+                linkedCharacterIds: p.poi_characters.map((pch: any) => pch.characters.id),
+                tags: p.tags || [],
+            };
+            switch (p.type) {
+                case 'point': return { ...basePoi, type: 'point', coordinates: p.coordinates } as Point;
+                case 'path': return { ...basePoi, type: 'path', pathCoordinates: p.path_coordinates } as Path;
+                case 'area': return { ...basePoi, type: 'area', bounds: p.bounds } as Area;
+                default: return null;
+            }
+        }).filter((p): p is Poi => p !== null);
+        setAllPois(transformedPois);
+        
+        // Fetch Itineraries with relations
+        const { data: itinerariesData, error: itError } = await supabase.from('itineraries').select(`*, profiles(name), itinerary_pois(poi_id)`);
+        if (itError) throw itError;
+        
+        const transformedItineraries: Itinerary[] = (itinerariesData || []).map((it: any) => ({
+            id: it.id,
+            title: it.title,
+            description: it.description,
+            estimatedDuration: it.estimated_duration,
+            poiIds: it.itinerary_pois.map((ip: any) => ip.poi_id),
+            author: it.profiles?.name || 'Anonimo',
+            tags: it.tags || [],
+            coverPhoto: it.cover_photo,
+        }));
+        setItineraries(transformedItineraries);
+
+      } catch (error) {
+        console.error("Errore nel caricamento dati da Supabase:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
 
   useEffect(() => {
@@ -86,12 +171,13 @@ const App: React.FC = () => {
       creationDate: new Date().toISOString(),
       author: 'Mario Rossi' // Logged-in user
     });
-    // In a real app, you would add the new POI to your state/backend
+    // TODO: Implement Supabase insert
     setIsAddPoiModalOpen(false);
   };
 
   const handleSaveCharacter = (newCharacter: Omit<Character, 'id'>) => {
     console.log("Saving new Character:", { ...newCharacter, id: `new_char_${Date.now()}` });
+    // TODO: Implement Supabase insert
     setIsAddCharacterModalOpen(false);
   };
 
@@ -101,6 +187,7 @@ const App: React.FC = () => {
         id: `new_it_${Date.now()}`,
         author: 'Mario Rossi'
     });
+    // TODO: Implement Supabase insert
     setIsAddItineraryModalOpen(false);
   };
 
@@ -152,6 +239,15 @@ const App: React.FC = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col justify-center items-center bg-[#FAF7F0]">
+        <h1 className="font-sans-display text-2xl font-bold text-[#2D3748]">Cosa è successo qui?</h1>
+        <p className="font-serif-display text-lg text-gray-700 mt-2">Caricamento della memoria collettiva...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-grow container mx-auto px-4 py-6 pb-24">
@@ -163,6 +259,7 @@ const App: React.FC = () => {
           poi={selectedPoi} 
           onClose={() => setSelectedPoi(null)} 
           categories={categories}
+          characters={characters}
           onSelectCharacter={(characterId: string) => {
             const char = characters.find(c => c.id === characterId);
             if (char) openCharacterModal(char);

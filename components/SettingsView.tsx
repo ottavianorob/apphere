@@ -1,7 +1,8 @@
 import React from 'react';
-import { categories } from '../data/mockData';
+// FIX: Removed import from empty mockData file and prepared component to receive categories as props.
+import { Category } from '../types';
 
-const SettingsView: React.FC = () => {
+const SettingsView: React.FC<{ categories: Category[] }> = ({ categories }) => {
 
   return (
     <div>
