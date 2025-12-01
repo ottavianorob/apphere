@@ -1,14 +1,25 @@
 import React from 'react';
 import PlusIcon from './icons/PlusIcon';
+import { Poi, Character, Itinerary } from '../types';
 
 interface ProfileViewProps {
   onAddPoiClick: () => void;
   onAddCharacterClick: () => void;
   onAddItineraryClick: () => void;
+  pois: Poi[];
+  characters: Character[];
+  itineraries: Itinerary[];
 }
 
 
-const ProfileView: React.FC<ProfileViewProps> = ({ onAddPoiClick, onAddCharacterClick, onAddItineraryClick }) => {
+const ProfileView: React.FC<ProfileViewProps> = ({ 
+  onAddPoiClick, 
+  onAddCharacterClick, 
+  onAddItineraryClick,
+  pois,
+  characters,
+  itineraries 
+}) => {
   return (
     <div>
       <header className="mb-8 border-b-2 border-[#2D3748] pb-4 text-center">
@@ -36,6 +47,24 @@ const ProfileView: React.FC<ProfileViewProps> = ({ onAddPoiClick, onAddCharacter
           </div>
         </div>
 
+        {/* Database Data Viewer */}
+        <div className="border border-gray-300/80 p-6">
+          <h2 className="font-serif-display text-2xl italic text-[#134A79] mb-4">Dati nel Database</h2>
+           <div className="space-y-2">
+              <details className="bg-white/50 border border-gray-300/60 p-2 rounded-md">
+                <summary className="font-semibold cursor-pointer">Luoghi ({pois.length})</summary>
+                <pre className="mt-2 p-2 bg-gray-100 text-xs overflow-x-auto"><code>{JSON.stringify(pois, null, 2)}</code></pre>
+              </details>
+              <details className="bg-white/50 border border-gray-300/60 p-2 rounded-md">
+                <summary className="font-semibold cursor-pointer">Personaggi ({characters.length})</summary>
+                <pre className="mt-2 p-2 bg-gray-100 text-xs overflow-x-auto"><code>{JSON.stringify(characters, null, 2)}</code></pre>
+              </details>
+              <details className="bg-white/50 border border-gray-300/60 p-2 rounded-md">
+                <summary className="font-semibold cursor-pointer">Itinerari ({itineraries.length})</summary>
+                <pre className="mt-2 p-2 bg-gray-100 text-xs overflow-x-auto"><code>{JSON.stringify(itineraries, null, 2)}</code></pre>
+              </details>
+           </div>
+        </div>
 
         {/* Settings from old page */}
         <div className="border border-gray-300/80 p-6">

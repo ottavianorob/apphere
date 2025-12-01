@@ -11,6 +11,11 @@ import TrashIcon from './icons/TrashIcon';
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
 
+type PhotoUpload = {
+    file: File;
+    dataUrl: string;
+    caption: string;
+};
 
 interface MapSelectorProps {
   type: 'point' | 'path' | 'area';
@@ -99,7 +104,7 @@ const MapSelector: React.FC<MapSelectorProps> = ({ type, coordinates, setCoordin
 
 interface AddPoiModalProps {
   onClose: () => void;
-  onSave: (poi: Omit<Poi, 'id' | 'creationDate' | 'author'>) => void;
+  onSave: (poiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>, photosToUpload: { file: File, caption: string }[]) => void;
   categories: Category[];
   periods: Period[];
   characters: CharacterType[];
@@ -131,8 +136,7 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     const [type, setType] = useState<'point' | 'path' | 'area'>('point');
     const [categoryIds, setCategoryIds] = useState<string[]>([]);
     const [coordinates, setCoordinates] = useState<Coordinates[]>([]);
-    const [photoDataUrl, setPhotoDataUrl] = useState('');
-    const [photoCaption, setPhotoCaption] = useState('');
+    const [photos, setPhotos] = useState<PhotoUpload[]>([]);
     const [tagsText, setTagsText] = useState('');
     const [linkedCharacterIds, setLinkedCharacterIds] = useState<string[]>([]);
     const { data: userLocation } = useGeolocation();
@@ -169,20 +173,28 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (file) {
-        if (file.size > 2 * 1024 * 1024) { // 2MB limit
-            alert('Il file è troppo grande. La dimensione massima è 2MB.');
-            return;
+        const files = e.target.files;
+        if (files) {
+            Array.from(files).forEach(file => {
+                if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                    alert(`Il file ${file.name} è troppo grande. La dimensione massima è 2MB.`);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setPhotos(prev => [...prev, { file, dataUrl: reader.result as string, caption: '' }]);
+                };
+                reader.readAsDataURL(file);
+            });
         }
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            setPhotoDataUrl(reader.result as string);
-        };
-        reader.readAsDataURL(file);
-      } else {
-        setPhotoDataUrl('');
-      }
+    };
+
+    const handlePhotoCaptionChange = (index: number, caption: string) => {
+        setPhotos(prev => prev.map((p, i) => i === index ? { ...p, caption } : p));
+    };
+
+    const handleRemovePhoto = (index: number) => {
+        setPhotos(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmit = () => {
@@ -202,27 +214,26 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
       }
 
       const tags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
-      const photos = photoDataUrl ? [{ id: `new_photo_${Date.now()}`, url: photoDataUrl, caption: photoCaption }] : [];
       
       const [year, month, day] = eventDate.split('-').map(Number);
       const dateObj = new Date(Date.UTC(year, month - 1, day));
       const formattedDate = dateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
-      let newPoi: Omit<Poi, 'id' | 'creationDate' | 'author'>;
-      const commonData = { title, description, location: derivedLocation, eventDate: formattedDate, periodId: derivedPeriodId!, categoryIds, photos, linkedCharacterIds, tags };
+      let newPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>;
+      const commonData = { title, description, location: derivedLocation, eventDate: formattedDate, periodId: derivedPeriodId!, categoryIds, linkedCharacterIds, tags };
 
       if (type === 'point') {
-        const pointPoi: Omit<Point, 'id' | 'creationDate' | 'author'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
-        newPoi = pointPoi;
+        const pointData: Omit<Point, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
+        newPoiData = pointData;
       } else if (type === 'path') {
-        const pathPoi: Omit<Path, 'id' | 'creationDate' | 'author'> = { ...commonData, type: 'path', pathCoordinates: coordinates };
-        newPoi = pathPoi;
+        const pathData: Omit<Path, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'path', pathCoordinates: coordinates };
+        newPoiData = pathData;
       } else { // area
-        const areaPoi: Omit<Area, 'id' | 'creationDate' | 'author'> = { ...commonData, type: 'area', bounds: coordinates };
-        newPoi = areaPoi;
+        const areaData: Omit<Area, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'area', bounds: coordinates };
+        newPoiData = areaData;
       }
       
-      onSave(newPoi);
+      onSave(newPoiData, photos.map(p => ({ file: p.file, caption: p.caption })));
     };
     
     const labelStyle = "font-sans-display text-sm font-semibold text-gray-700 mb-1 block";
@@ -322,33 +333,25 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                     </div>
                   </div>
                   <div>
-                      <label className={labelStyle}>Foto Principale</label>
-                      <div className="mt-1 flex items-start gap-4">
-                          <div className="w-32 flex-shrink-0">
-                              <label htmlFor="poi-photo-upload" className="cursor-pointer block w-full h-32 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors overflow-hidden">
-                                  {photoDataUrl ? (
-                                      <img src={photoDataUrl} alt="Anteprima" className="w-full h-full object-cover"/>
-                                  ) : (
-                                      <div className="text-center p-2">
-                                          <CameraIcon className="w-8 h-8 mx-auto"/>
-                                          <span className="text-xs font-sans-display mt-1 block">Carica foto</span>
-                                      </div>
-                                  )}
-                              </label>
-                              <input id="poi-photo-upload" type="file" className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
-                          </div>
-                          <div className="flex-grow">
-                              <label htmlFor="poi-photo-caption" className={labelStyle}>Didascalia Foto</label>
-                              <input id="poi-photo-caption" type="text" value={photoCaption} onChange={e => setPhotoCaption(e.target.value)} className={inputStyle} />
-                               {photoDataUrl && (
-                                   <button onClick={() => {
-                                       const input = document.getElementById('poi-photo-upload') as HTMLInputElement;
-                                       if(input) input.value = '';
-                                       setPhotoDataUrl('');
-                                   }} className="mt-2 text-xs text-red-600 hover:underline font-sans-display">Rimuovi immagine</button>
-                              )}
-                          </div>
-                      </div>
+                      <label className={labelStyle}>Foto</label>
+                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
+                            {photos.map((photo, index) => (
+                                <div key={index} className="relative group border border-gray-300/80 p-1">
+                                    <img src={photo.dataUrl} alt={`Anteprima ${index + 1}`} className="w-full h-24 object-cover"/>
+                                    <input type="text" placeholder="Didascalia..." value={photo.caption} onChange={(e) => handlePhotoCaptionChange(index, e.target.value)} className="w-full text-xs p-1 border-t border-gray-300/80" />
+                                    <button onClick={() => handleRemovePhoto(index)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <CloseIcon className="w-3 h-3"/>
+                                    </button>
+                                </div>
+                            ))}
+                           <label htmlFor="poi-photo-upload" className="cursor-pointer w-full h-32 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors">
+                                <div className="text-center p-2">
+                                    <CameraIcon className="w-8 h-8 mx-auto"/>
+                                    <span className="text-xs font-sans-display mt-1 block">Aggiungi foto</span>
+                                </div>
+                            </label>
+                            <input id="poi-photo-upload" type="file" multiple className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
+                        </div>
                   </div>
                    <div>
                       <label htmlFor="poi-tags" className={labelStyle}>Tags</label>

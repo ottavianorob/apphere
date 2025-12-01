@@ -163,65 +163,95 @@ const App: React.FC = () => {
     setSelectedItinerary(itinerary);
   };
   
-  const handleSavePoi = async (newPoi: Omit<Poi, 'id' | 'creationDate' | 'author'>) => {
-    try {
-        const poiToInsert: any = {
-            title: newPoi.title,
-            description: newPoi.description,
-            location: newPoi.location,
-            event_date: newPoi.eventDate,
-            period_id: newPoi.periodId,
-            photos: newPoi.photos,
-            tags: newPoi.tags,
-            type: newPoi.type,
-        };
-        if (newPoi.type === 'point') poiToInsert.coordinates = (newPoi as Point).coordinates;
-        if (newPoi.type === 'path') poiToInsert.path_coordinates = (newPoi as Path).pathCoordinates;
-        if (newPoi.type === 'area') poiToInsert.bounds = (newPoi as Area).bounds;
+  const handleSavePoi = async (
+    newPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>,
+    photosToUpload: { file: File; caption: string }[]
+  ) => {
+      try {
+          const uploadedPhotos = await Promise.all(
+              photosToUpload.map(async (photo) => {
+                  const fileName = `${Date.now()}_${photo.file.name}`;
+                  const filePath = `pois/${fileName}`;
+                  const { error: uploadError } = await supabase.storage.from('media').upload(filePath, photo.file);
+                  if (uploadError) throw uploadError;
 
-        const { data: poiData, error: poiError } = await supabase.from('pois').insert(poiToInsert).select().single();
-        if (poiError) throw poiError;
-        
-        const newPoiId = poiData.id;
-        
-        if (newPoi.categoryIds.length > 0) {
-            const poiCategories = newPoi.categoryIds.map(catId => ({ poi_id: newPoiId, category_id: catId }));
-            const { error: catError } = await supabase.from('poi_categories').insert(poiCategories);
-            if (catError) throw catError;
-        }
+                  const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
+                  return { id: `photo_${Date.now()}`, url: publicUrl, caption: photo.caption };
+              })
+          );
 
-        if (newPoi.linkedCharacterIds.length > 0) {
-            const poiCharacters = newPoi.linkedCharacterIds.map(charId => ({ poi_id: newPoiId, character_id: charId }));
-            const { error: charError } = await supabase.from('poi_characters').insert(poiCharacters);
-            if (charError) throw charError;
-        }
+          const poiToInsert: any = {
+              title: newPoiData.title,
+              description: newPoiData.description,
+              location: newPoiData.location,
+              event_date: newPoiData.eventDate,
+              period_id: newPoiData.periodId,
+              photos: uploadedPhotos,
+              tags: newPoiData.tags,
+              type: newPoiData.type,
+          };
+          if (newPoiData.type === 'point') poiToInsert.coordinates = (newPoiData as Point).coordinates;
+          if (newPoiData.type === 'path') poiToInsert.path_coordinates = (newPoiData as Path).pathCoordinates;
+          if (newPoiData.type === 'area') poiToInsert.bounds = (newPoiData as Area).bounds;
 
-        alert("Luogo salvato con successo!");
-        setIsAddPoiModalOpen(false);
-        await fetchData();
-    } catch (error) {
-        console.error("Errore nel salvataggio del POI:", error);
-        alert("Si è verificato un errore durante il salvataggio.");
-    }
+          const { data: poiData, error: poiError } = await supabase.from('pois').insert(poiToInsert).select().single();
+          if (poiError) throw poiError;
+
+          const newPoiId = poiData.id;
+
+          if (newPoiData.categoryIds.length > 0) {
+              const poiCategories = newPoiData.categoryIds.map(catId => ({ poi_id: newPoiId, category_id: catId }));
+              const { error: catError } = await supabase.from('poi_categories').insert(poiCategories);
+              if (catError) throw catError;
+          }
+
+          if (newPoiData.linkedCharacterIds.length > 0) {
+              const poiCharacters = newPoiData.linkedCharacterIds.map(charId => ({ poi_id: newPoiId, character_id: charId }));
+              const { error: charError } = await supabase.from('poi_characters').insert(poiCharacters);
+              if (charError) throw charError;
+          }
+
+          alert("Luogo salvato con successo!");
+          setIsAddPoiModalOpen(false);
+          await fetchData();
+      } catch (error) {
+          console.error("Errore nel salvataggio del POI:", error);
+          alert("Si è verificato un errore durante il salvataggio.");
+      }
   };
 
-  const handleSaveCharacter = async (newCharacter: Omit<Character, 'id'>) => {
-    try {
-        const { error } = await supabase.from('characters').insert({
-            name: newCharacter.name,
-            description: newCharacter.description,
-            wikipedia_url: newCharacter.wikipediaUrl,
-            photos: newCharacter.photos,
-        });
-        if (error) throw error;
+  const handleSaveCharacter = async (
+    newCharacterData: Omit<Character, 'id' | 'photos'>,
+    photosToUpload: { file: File; caption: string }[]
+  ) => {
+      try {
+          const uploadedPhotos = await Promise.all(
+              photosToUpload.map(async (photo) => {
+                  const fileName = `${Date.now()}_${photo.file.name}`;
+                  const filePath = `characters/${fileName}`;
+                  const { error: uploadError } = await supabase.storage.from('media').upload(filePath, photo.file);
+                  if (uploadError) throw uploadError;
+                  
+                  const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
+                  return { id: `photo_${Date.now()}`, url: publicUrl, caption: photo.caption };
+              })
+          );
+          
+          const { error } = await supabase.from('characters').insert({
+              name: newCharacterData.name,
+              description: newCharacterData.description,
+              wikipedia_url: newCharacterData.wikipediaUrl,
+              photos: uploadedPhotos,
+          });
+          if (error) throw error;
 
-        alert("Personaggio salvato con successo!");
-        setIsAddCharacterModalOpen(false);
-        await fetchData();
-    } catch (error) {
-        console.error("Errore nel salvataggio del Personaggio:", error);
-        alert("Si è verificato un errore durante il salvataggio.");
-    }
+          alert("Personaggio salvato con successo!");
+          setIsAddCharacterModalOpen(false);
+          await fetchData();
+      } catch (error) {
+          console.error("Errore nel salvataggio del Personaggio:", error);
+          alert("Si è verificato un errore durante il salvataggio.");
+      }
   };
 
   const handleSaveItinerary = async (newItinerary: Omit<Itinerary, 'id' | 'author'>) => {
@@ -291,6 +321,9 @@ const App: React.FC = () => {
             onAddPoiClick={() => setIsAddPoiModalOpen(true)}
             onAddCharacterClick={() => setIsAddCharacterModalOpen(true)}
             onAddItineraryClick={() => setIsAddItineraryModalOpen(true)}
+            pois={allPois}
+            characters={characters}
+            itineraries={itineraries}
         />;
       default:
         return <QuiView 

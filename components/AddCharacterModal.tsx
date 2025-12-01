@@ -1,36 +1,50 @@
 import React, { useState } from 'react';
-import { Character, Photo } from '../types';
+import { Character } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import CameraIcon from './icons/CameraIcon';
 
+type PhotoUpload = {
+    file: File;
+    dataUrl: string;
+    caption: string;
+};
+
 interface AddCharacterModalProps {
   onClose: () => void;
-  onSave: (character: Omit<Character, 'id'>) => void;
+  onSave: (characterData: Omit<Character, 'id' | 'photos'>, photosToUpload: { file: File, caption: string }[]) => void;
 }
 
 const AddCharacterModal: React.FC<AddCharacterModalProps> = ({ onClose, onSave }) => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [wikipediaUrl, setWikipediaUrl] = useState('');
-    const [photoDataUrl, setPhotoDataUrl] = useState('');
-    const [photoCaption, setPhotoCaption] = useState('');
+    const [photos, setPhotos] = useState<PhotoUpload[]>([]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            if (file.size > 2 * 1024 * 1024) { // 2MB limit
-                alert('Il file è troppo grande. La dimensione massima è 2MB.');
-                return;
-            }
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPhotoDataUrl(reader.result as string);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            setPhotoDataUrl('');
+        const files = e.target.files;
+        if (files) {
+             Array.from(files).forEach(file => {
+                if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                    alert(`Il file ${file.name} è troppo grande. La dimensione massima è 2MB.`);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setPhotos(prev => [...prev, { file, dataUrl: reader.result as string, caption: '' }]);
+                };
+                reader.readAsDataURL(file);
+            });
         }
     };
+
+    const handlePhotoCaptionChange = (index: number, caption: string) => {
+        setPhotos(prev => prev.map((p, i) => i === index ? { ...p, caption } : p));
+    };
+
+    const handleRemovePhoto = (index: number) => {
+        setPhotos(prev => prev.filter((_, i) => i !== index));
+    };
+
 
     const handleSubmit = () => {
         const errors: string[] = [];
@@ -42,18 +56,13 @@ const AddCharacterModal: React.FC<AddCharacterModalProps> = ({ onClose, onSave }
             alert(`Per favore, correggi i seguenti errori:\n\n- ${errors.join('\n- ')}`);
             return;
         }
-        
-        const photos: Photo[] = photoDataUrl 
-            ? [{ id: `new_photo_${Date.now()}`, url: photoDataUrl, caption: photoCaption }] 
-            : [];
 
-        const newCharacter: Omit<Character, 'id'> = {
+        const newCharacterData: Omit<Character, 'id' | 'photos'> = {
             name,
             description,
             wikipediaUrl,
-            photos,
         };
-        onSave(newCharacter);
+        onSave(newCharacterData, photos.map(p => ({ file: p.file, caption: p.caption })));
     };
 
     const labelStyle = "font-sans-display text-sm font-semibold text-gray-700 mb-1 block";
@@ -80,33 +89,25 @@ const AddCharacterModal: React.FC<AddCharacterModalProps> = ({ onClose, onSave }
                   <input id="char-wiki" type="url" value={wikipediaUrl} onChange={e => setWikipediaUrl(e.target.value)} className={inputStyle} placeholder="https://it.wikipedia.org/..."/>
               </div>
                <div>
-                  <label className={labelStyle}>Foto del personaggio</label>
-                  <div className="mt-1 flex items-start gap-4">
-                      <div className="w-32 flex-shrink-0">
-                          <label htmlFor="char-photo-upload" className="cursor-pointer block w-full h-32 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors overflow-hidden">
-                              {photoDataUrl ? (
-                                  <img src={photoDataUrl} alt="Anteprima" className="w-full h-full object-cover"/>
-                              ) : (
-                                  <div className="text-center p-2">
-                                      <CameraIcon className="w-8 h-8 mx-auto"/>
-                                      <span className="text-xs font-sans-display mt-1 block">Carica foto</span>
-                                  </div>
-                              )}
-                          </label>
-                          <input id="char-photo-upload" type="file" className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
-                      </div>
-                      <div className="flex-grow">
-                          <label htmlFor="char-photo-caption" className={labelStyle}>Didascalia Foto</label>
-                          <input id="char-photo-caption" type="text" value={photoCaption} onChange={e => setPhotoCaption(e.target.value)} className={inputStyle} />
-                           {photoDataUrl && (
-                               <button onClick={() => {
-                                   const input = document.getElementById('char-photo-upload') as HTMLInputElement;
-                                   if(input) input.value = '';
-                                   setPhotoDataUrl('');
-                               }} className="mt-2 text-xs text-red-600 hover:underline font-sans-display">Rimuovi immagine</button>
-                          )}
-                      </div>
-                  </div>
+                  <label className={labelStyle}>Foto</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
+                        {photos.map((photo, index) => (
+                            <div key={index} className="relative group border border-gray-300/80 p-1">
+                                <img src={photo.dataUrl} alt={`Anteprima ${index + 1}`} className="w-full h-24 object-cover"/>
+                                <input type="text" placeholder="Didascalia..." value={photo.caption} onChange={(e) => handlePhotoCaptionChange(index, e.target.value)} className="w-full text-xs p-1 border-t border-gray-300/80" />
+                                <button onClick={() => handleRemovePhoto(index)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <CloseIcon className="w-3 h-3"/>
+                                </button>
+                            </div>
+                        ))}
+                       <label htmlFor="char-photo-upload" className="cursor-pointer w-full h-32 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors">
+                            <div className="text-center p-2">
+                                <CameraIcon className="w-8 h-8 mx-auto"/>
+                                <span className="text-xs font-sans-display mt-1 block">Aggiungi foto</span>
+                            </div>
+                        </label>
+                        <input id="char-photo-upload" type="file" multiple className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
+                    </div>
               </div>
             </div>
             <footer className="p-4 border-t border-gray-300/80 flex justify-end gap-3">
