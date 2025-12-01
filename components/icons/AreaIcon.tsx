@@ -13,9 +13,10 @@ const AreaIcon: React.FC<{ className?: string }> = ({ className }) => (
     strokeLinecap="round"
     strokeLinejoin="round"
   >
-    <path d="M21 9.5V4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h5.5"/>
-    <path d="M14.121 20.121a3 3 0 1 0-4.242-4.242 3 3 0 0 0 4.242 4.242z"/>
-    <path d="M14 14l-1.5 7.5 7.5-1.5-6-6z"/>
+    <path d="M3 8V5a2 2 0 0 1 2-2h3"/>
+    <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+    <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
+    <path d="M21 16v3a2 2 0 0 1-2 2h-3"/>
   </svg>
 );
 

@@ -195,7 +195,7 @@ const QuiView: React.FC<QuiViewProps> = ({ pois, onSelectPoi, categories, period
     <div>
       <header className="mb-8 border-b-2 border-[#2D3748] pb-4 text-center">
         <h1 className="font-sans-display text-4xl sm:text-5xl font-bold text-[#2D3748] tracking-tighter">Cosa è successo qui?</h1>
-        <p className="font-serif-display italic text-lg text-gray-700 mt-2">Scopri i luoghi sulla mappa</p>
+        <p className="font-serif-display italic text-lg text-gray-700 mt-2">{capitalizedDate}</p>
         {loading && <p className="font-sans-display text-[#134A79] text-sm mt-2">Acquisizione della posizione in corso...</p>}
         {error && <p className="font-sans-display text-[#B1352E] text-sm mt-2">Impossibile ottenere la posizione: {error.message}</p>}
       </header>
