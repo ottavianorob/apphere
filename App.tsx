@@ -14,6 +14,10 @@ import PoiDetailModal from './components/PoiDetailModal';
 import ItineraryDetailModal from './components/ItineraryDetailModal';
 import CharacterDetailModal from './components/CharacterDetailModal';
 import TagDetailModal from './components/TagDetailModal';
+import AddPoiModal from './components/AddPoiModal';
+import AddCharacterModal from './components/AddCharacterModal';
+import AddItineraryModal from './components/AddItineraryModal';
+
 
 import BottomNav from './components/BottomNav';
 
@@ -21,18 +25,22 @@ import BottomNav from './components/BottomNav';
 export type View = 'home' | 'qui' | 'itineraries' | 'search' | 'profile';
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<View>('qui');
+  const [currentView, setCurrentView] = useState<View>('profile');
   const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null);
   const [selectedItinerary, setSelectedItinerary] = useState<Itinerary | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+
+  const [isAddPoiModalOpen, setIsAddPoiModalOpen] = useState(false);
+  const [isAddCharacterModalOpen, setIsAddCharacterModalOpen] = useState(false);
+  const [isAddItineraryModalOpen, setIsAddItineraryModalOpen] = useState(false);
   
   const allPois: Poi[] = [...points, ...paths, ...areas];
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), []);
 
 
   useEffect(() => {
-    const isModalOpen = selectedPoi || selectedItinerary || selectedCharacter || selectedTag;
+    const isModalOpen = selectedPoi || selectedItinerary || selectedCharacter || selectedTag || isAddPoiModalOpen || isAddCharacterModalOpen || isAddItineraryModalOpen;
     if (isModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -41,7 +49,7 @@ const App: React.FC = () => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [selectedPoi, selectedItinerary, selectedCharacter, selectedTag]);
+  }, [selectedPoi, selectedItinerary, selectedCharacter, selectedTag, isAddPoiModalOpen, isAddCharacterModalOpen, isAddItineraryModalOpen]);
 
   const openCharacterModal = (character: Character) => {
     setSelectedPoi(null);
@@ -69,6 +77,31 @@ const App: React.FC = () => {
     setSelectedCharacter(null);
     setSelectedTag(null);
     setSelectedItinerary(itinerary);
+  };
+  
+  const handleSavePoi = (newPoi: Omit<Poi, 'id' | 'creationDate' | 'author'>) => {
+    console.log("Saving new POI:", {
+      ...newPoi,
+      id: `new_poi_${Date.now()}`,
+      creationDate: new Date().toISOString(),
+      author: 'Mario Rossi' // Logged-in user
+    });
+    // In a real app, you would add the new POI to your state/backend
+    setIsAddPoiModalOpen(false);
+  };
+
+  const handleSaveCharacter = (newCharacter: Omit<Character, 'id'>) => {
+    console.log("Saving new Character:", { ...newCharacter, id: `new_char_${Date.now()}` });
+    setIsAddCharacterModalOpen(false);
+  };
+
+  const handleSaveItinerary = (newItinerary: Omit<Itinerary, 'id' | 'author'>) => {
+    console.log("Saving new Itinerary:", { 
+        ...newItinerary, 
+        id: `new_it_${Date.now()}`,
+        author: 'Mario Rossi'
+    });
+    setIsAddItineraryModalOpen(false);
   };
 
   const renderView = () => {
@@ -104,7 +137,11 @@ const App: React.FC = () => {
             categoryMap={categoryMap}
         />;
       case 'profile':
-        return <ProfileView />;
+        return <ProfileView 
+            onAddPoiClick={() => setIsAddPoiModalOpen(true)}
+            onAddCharacterClick={() => setIsAddCharacterModalOpen(true)}
+            onAddItineraryClick={() => setIsAddItineraryModalOpen(true)}
+        />;
       default:
         return <QuiView 
           pois={allPois}
@@ -169,6 +206,29 @@ const App: React.FC = () => {
               const char = characters.find(c => c.id === characterId);
               if(char) openCharacterModal(char);
           }}
+        />
+      )}
+
+      {isAddPoiModalOpen && (
+        <AddPoiModal
+          onClose={() => setIsAddPoiModalOpen(false)}
+          onSave={handleSavePoi}
+          categories={categories}
+          periods={periods}
+          characters={characters}
+        />
+      )}
+      {isAddCharacterModalOpen && (
+        <AddCharacterModal
+          onClose={() => setIsAddCharacterModalOpen(false)}
+          onSave={handleSaveCharacter}
+        />
+      )}
+      {isAddItineraryModalOpen && (
+        <AddItineraryModal
+          onClose={() => setIsAddItineraryModalOpen(false)}
+          onSave={handleSaveItinerary}
+          allPois={allPois}
         />
       )}
     </div>

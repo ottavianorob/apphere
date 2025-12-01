@@ -1,7 +1,15 @@
 import React from 'react';
 import UserIcon from './icons/UserIcon';
+import PlusIcon from './icons/PlusIcon';
 
-const ProfileView: React.FC = () => {
+interface ProfileViewProps {
+  onAddPoiClick: () => void;
+  onAddCharacterClick: () => void;
+  onAddItineraryClick: () => void;
+}
+
+
+const ProfileView: React.FC<ProfileViewProps> = ({ onAddPoiClick, onAddCharacterClick, onAddItineraryClick }) => {
   return (
     <div>
       <header className="mb-8 border-b-2 border-[#2D3748] pb-4 text-center">
@@ -33,6 +41,27 @@ const ProfileView: React.FC = () => {
             <p className="text-sm text-gray-600">Contributi</p>
           </div>
         </div>
+
+        {/* Content Management */}
+        <div className="border border-gray-300/80 p-6">
+          <h2 className="font-serif-display text-2xl italic text-[#134A79] mb-4">Gestione Contenuti</h2>
+          <p className="font-serif italic text-sm text-gray-600 mb-4">Contribuisci alla mappa della memoria collettiva aggiungendo nuovi contenuti.</p>
+          <div className="space-y-3">
+            <button onClick={onAddPoiClick} className="w-full text-left flex items-center gap-3 p-3 rounded-md bg-white hover:bg-gray-100 transition-colors border border-gray-300">
+              <PlusIcon className="w-5 h-5 flex-shrink-0 text-[#134A79]" />
+              <span className="font-sans-display font-semibold text-gray-800">Aggiungi un nuovo Luogo</span>
+            </button>
+            <button onClick={onAddCharacterClick} className="w-full text-left flex items-center gap-3 p-3 rounded-md bg-white hover:bg-gray-100 transition-colors border border-gray-300">
+              <PlusIcon className="w-5 h-5 flex-shrink-0 text-[#134A79]" />
+              <span className="font-sans-display font-semibold text-gray-800">Aggiungi un nuovo Personaggio</span>
+            </button>
+            <button onClick={onAddItineraryClick} className="w-full text-left flex items-center gap-3 p-3 rounded-md bg-white hover:bg-gray-100 transition-colors border border-gray-300">
+              <PlusIcon className="w-5 h-5 flex-shrink-0 text-[#134A79]" />
+              <span className="font-sans-display font-semibold text-gray-800">Aggiungi un nuovo Itinerario</span>
+            </button>
+          </div>
+        </div>
+
 
         {/* Settings from old page */}
         <div className="border border-gray-300/80 p-6">
