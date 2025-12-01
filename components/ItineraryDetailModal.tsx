@@ -56,13 +56,13 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in" onClick={onClose}>
-      <div className="bg-[#FAF7F0] rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10" onClick={e => e.stopPropagation()}>
-        <div className="relative flex-shrink-0">
-          <img src={itinerary.coverPhoto.url} alt={itinerary.coverPhoto.caption} className="w-full h-64 object-cover rounded-t-lg" />
-          <button onClick={onClose} className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors z-20"><CloseIcon className="w-5 h-5" /></button>
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none rounded-t-lg"></div>
-        </div>
+      <div className="bg-[#FAF7F0] rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10 relative" onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute top-3 right-3 text-gray-800 bg-white/60 rounded-full p-1.5 hover:bg-white/90 backdrop-blur-sm transition-colors z-30"><CloseIcon className="w-5 h-5" /></button>
         <div className="overflow-y-auto p-6">
+          <div className="relative flex-shrink-0 mb-6">
+            <img src={itinerary.coverPhoto.url} alt={itinerary.coverPhoto.caption} className="w-full h-64 object-cover rounded-lg shadow-md" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none rounded-lg"></div>
+          </div>
           <h2 className="font-sans-display text-3xl font-bold text-[#134A79]">{itinerary.title}</h2>
           <div className="flex items-center gap-2 mt-3 text-sm text-gray-600">
             <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center"><UserIcon className="w-4 h-4 text-gray-600" /></div>

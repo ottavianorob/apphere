@@ -142,20 +142,21 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in" onClick={onClose}>
-      <div className="bg-[#FAF7F0] rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10" onClick={(e) => e.stopPropagation()}>
-        <div className="relative flex-shrink-0 group">
-          <img src={poi.photos[currentImageIndex].url} alt={poi.photos[currentImageIndex].caption} className="w-full h-64 object-cover rounded-t-lg" />
-          <button onClick={onClose} className="absolute top-4 right-4 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors z-20"><CloseIcon className="w-5 h-5" /></button>
-          {poi.photos.length > 1 && (
-            <>
-              <button onClick={handlePrevImage} disabled={currentImageIndex === 0} className="absolute top-1/2 left-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine precedente"><ChevronLeftIcon className="w-6 h-6" /></button>
-              <button onClick={handleNextImage} disabled={currentImageIndex === poi.photos.length - 1} className="absolute top-1/2 right-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine successiva"><ChevronRightIcon className="w-6 h-6" /></button>
-              <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs font-sans-display font-semibold px-2 py-1 rounded-full z-10">{currentImageIndex + 1} / {poi.photos.length}</div>
-            </>
-          )}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none rounded-t-lg"></div>
-        </div>
+      <div className="bg-[#FAF7F0] rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10 relative" onClick={(e) => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute top-3 right-3 text-gray-800 bg-white/60 rounded-full p-1.5 hover:bg-white/90 backdrop-blur-sm transition-colors z-30"><CloseIcon className="w-5 h-5" /></button>
         <div className="overflow-y-auto p-6">
+          <div className="relative flex-shrink-0 group mb-6">
+            <img src={poi.photos[currentImageIndex].url} alt={poi.photos[currentImageIndex].caption} className="w-full h-64 object-cover rounded-lg shadow-md" />
+            {poi.photos.length > 1 && (
+              <>
+                <button onClick={handlePrevImage} disabled={currentImageIndex === 0} className="absolute top-1/2 left-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine precedente"><ChevronLeftIcon className="w-6 h-6" /></button>
+                <button onClick={handleNextImage} disabled={currentImageIndex === poi.photos.length - 1} className="absolute top-1/2 right-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine successiva"><ChevronRightIcon className="w-6 h-6" /></button>
+                <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs font-sans-display font-semibold px-2 py-1 rounded-full z-10">{currentImageIndex + 1} / {poi.photos.length}</div>
+              </>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none rounded-lg"></div>
+          </div>
+          
           <h2 className="font-sans-display text-3xl font-bold text-[#134A79]">{poi.title}</h2>
           <div className="flex items-center gap-2 mt-3 text-sm text-gray-600"><div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center"><UserIcon className="w-4 h-4 text-gray-600" /></div><span className="font-sans-display">{poi.author}</span></div>
           <div className="mt-4 flex items-center flex-wrap gap-x-6 gap-y-2 text-sm text-gray-700 font-sans-display border-b border-t border-gray-300 py-3">
@@ -164,7 +165,7 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
           </div>
           <div className="mt-6 space-y-6">
             {category && <div><span className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}><CategoryIcon categoryId={category.id} className="w-4 h-4" /><span>{category.name}</span></span></div>}
-            <p className="italic text-[#2D3748] whitespace-pre-wrap leading-relaxed text-lg">{poi.description}</p>
+            <p className="italic text-[#2D3748] whitespace-pre-wrap leading-relaxed text-lg first-letter:text-5xl first-letter:font-normal first-letter:text-[#134A79] first-letter:mr-3 first-letter:float-left">{poi.description}</p>
             
             {linkedCharacters.length > 0 && (
               <div>
