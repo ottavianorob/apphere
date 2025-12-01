@@ -1,9 +1,11 @@
+// Fix: Add a triple-slash directive to include Vite's client types.
+/// <reference types="vite/client" />
+
 import { createClient } from '@supabase/supabase-js';
 
-// Legge le credenziali di Supabase dalle variabili d'ambiente.
-// Questo è essenziale per connettersi al TUO progetto Supabase.
-const supabaseUrl = process.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+// Legge le credenziali di Supabase dalle variabili d'ambiente di Vite.
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Lancia un errore chiaro se le credenziali non sono state impostate.
 if (!supabaseUrl || !supabaseAnonKey) {
