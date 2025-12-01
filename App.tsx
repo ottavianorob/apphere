@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Poi, Itinerary, Character, Category } from './types';
-import { points, paths, categories, periods, areas, itineraries, characters, users } from './data/mockData';
+import { Poi, Itinerary, Character, Category, User, Period } from './types';
+import { supabase } from './services/supabaseClient';
+import { Session } from '@supabase/supabase-js';
+import * as api from './services/api';
 
 // Import Views
+import LoginView from './components/LoginView';
 import HomeView from './components/HomeView';
 import QuiView from './components/QuiView';
 import ItinerariesView from './components/ItinerariesView';
@@ -18,13 +21,13 @@ import AddPoiModal from './components/AddPoiModal';
 import AddCharacterModal from './components/AddCharacterModal';
 import AddItineraryModal from './components/AddItineraryModal';
 
-
 import BottomNav from './components/BottomNav';
 
 
 export type View = 'home' | 'qui' | 'itineraries' | 'search' | 'profile';
 
 const App: React.FC = () => {
+  const [session, setSession] = useState<Session | null>(null);
   const [currentView, setCurrentView] = useState<View>('qui');
   const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null);
   const [selectedItinerary, setSelectedItinerary] = useState<Itinerary | null>(null);
@@ -34,9 +37,77 @@ const App: React.FC = () => {
   const [isAddPoiModalOpen, setIsAddPoiModalOpen] = useState(false);
   const [isAddCharacterModalOpen, setIsAddCharacterModalOpen] = useState(false);
   const [isAddItineraryModalOpen, setIsAddItineraryModalOpen] = useState(false);
+
+  const [allPois, setAllPois] = useState<Poi[]>([]);
+  const [itineraries, setItineraries] = useState<Itinerary[]>([]);
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [periods, setPeriods] = useState<Period[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   
-  const allPois: Poi[] = [...points, ...paths, ...areas];
-  const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), []);
+  const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const [
+        poisData, 
+        itinerariesData, 
+        charactersData, 
+        categoriesData, 
+        periodsData,
+        usersData
+      ] = await Promise.all([
+        api.fetchPois(),
+        api.fetchItineraries(),
+        api.fetchCharacters(),
+        api.fetchCategories(),
+        api.fetchPeriods(),
+        api.fetchUsers()
+      ]);
+      setAllPois(poisData);
+      setItineraries(itinerariesData);
+      setCharacters(charactersData);
+      setCategories(categoriesData);
+      setPeriods(periodsData);
+      setUsers(usersData);
+    } catch (error) {
+      console.error("Failed to load data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (session) {
+        loadData();
+    } else {
+        // Clear data if user logs out
+        setAllPois([]);
+        setItineraries([]);
+        setCharacters([]);
+        setCategories([]);
+        setPeriods([]);
+        setUsers([]);
+        setIsLoading(false);
+    }
+  }, [session]);
 
 
   useEffect(() => {
@@ -79,32 +150,55 @@ const App: React.FC = () => {
     setSelectedItinerary(itinerary);
   };
   
-  const handleSavePoi = (newPoi: Omit<Poi, 'id' | 'creationDate' | 'author'>) => {
-    console.log("Saving new POI:", {
-      ...newPoi,
-      id: `new_poi_${Date.now()}`,
-      creationDate: new Date().toISOString(),
-      author: 'Mario Rossi' // Logged-in user
-    });
-    // In a real app, you would add the new POI to your state/backend
-    setIsAddPoiModalOpen(false);
+  const handleSavePoi = async (newPoiData: Omit<Poi, 'id' | 'creationDate' | 'author'>) => {
+    try {
+      await api.addPoi(newPoiData);
+      setIsAddPoiModalOpen(false);
+      await loadData(); // Refresh data
+    } catch (error) {
+      console.error("Failed to save POI:", error);
+      alert("Errore durante il salvataggio del Luogo.");
+    }
   };
 
-  const handleSaveCharacter = (newCharacter: Omit<Character, 'id'>) => {
-    console.log("Saving new Character:", { ...newCharacter, id: `new_char_${Date.now()}` });
-    setIsAddCharacterModalOpen(false);
+  const handleSaveCharacter = async (newCharacterData: Omit<Character, 'id'>) => {
+     try {
+      await api.addCharacter(newCharacterData);
+      setIsAddCharacterModalOpen(false);
+      await loadData(); // Refresh data
+    } catch (error) {
+      console.error("Failed to save Character:", error);
+      alert("Errore durante il salvataggio del Personaggio.");
+    }
   };
 
-  const handleSaveItinerary = (newItinerary: Omit<Itinerary, 'id' | 'author'>) => {
-    console.log("Saving new Itinerary:", { 
-        ...newItinerary, 
-        id: `new_it_${Date.now()}`,
-        author: 'Mario Rossi'
-    });
-    setIsAddItineraryModalOpen(false);
+  const handleSaveItinerary = async (newItineraryData: Omit<Itinerary, 'id' | 'author'>) => {
+    try {
+      await api.addItinerary(newItineraryData);
+      setIsAddItineraryModalOpen(false);
+      await loadData(); // Refresh data
+    } catch (error) {
+      console.error("Failed to save Itinerary:", error);
+      alert("Errore during il salvataggio dell'Itinerario.");
+    }
   };
+  
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+        console.error("Error logging out:", error);
+    }
+  };
+
+  if (!session) {
+    return <LoginView />;
+  }
 
   const renderView = () => {
+    if (isLoading) {
+      return <div className="flex justify-center items-center h-screen"><p className="font-sans-display text-lg">Caricamento...</p></div>;
+    }
+
     switch (currentView) {
       case 'home':
         return <HomeView 
@@ -138,6 +232,8 @@ const App: React.FC = () => {
         />;
       case 'profile':
         return <ProfileView 
+            session={session}
+            onLogout={handleLogout}
             onAddPoiClick={() => setIsAddPoiModalOpen(true)}
             onAddCharacterClick={() => setIsAddCharacterModalOpen(true)}
             onAddItineraryClick={() => setIsAddItineraryModalOpen(true)}
@@ -163,6 +259,7 @@ const App: React.FC = () => {
           poi={selectedPoi} 
           onClose={() => setSelectedPoi(null)} 
           categories={categories}
+          characters={characters}
           onSelectCharacter={(characterId: string) => {
             const char = characters.find(c => c.id === characterId);
             if (char) openCharacterModal(char);

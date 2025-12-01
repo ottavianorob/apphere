@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import ReactMapGL, { Marker, Source, Layer, LngLatBounds, MapRef } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
-import { Poi, Category, Coordinates } from '../types';
-import { characters as allCharacters } from '../data/mockData';
+import { Poi, Category, Coordinates, Character } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import NavigationIcon from './icons/NavigationIcon';
 import UserIcon from './icons/UserIcon';
@@ -11,6 +10,7 @@ import MapPinIcon from './icons/MapPinIcon';
 import ChevronLeftIcon from './icons/ChevronLeftIcon';
 import ChevronRightIcon from './icons/ChevronRightIcon';
 import CategoryIcon from './icons/CategoryIcon';
+import CameraIcon from './icons/CameraIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -29,15 +29,16 @@ interface PoiDetailModalProps {
   poi: Poi;
   onClose: () => void;
   categories: Category[];
+  characters: Character[];
   onSelectCharacter: (characterId: string) => void;
   onSelectTag: (tag: string) => void;
 }
 
-const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories, onSelectCharacter, onSelectTag }) => {
+const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories, characters, onSelectCharacter, onSelectTag }) => {
   const mapRef = useRef<MapRef>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const linkedCharacters = allCharacters.filter(c => poi.linkedCharacterIds.includes(c.id));
+  const linkedCharacters = characters.filter(c => poi.linkedCharacterIds.includes(c.id));
 
   const handleNextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -159,8 +160,14 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
         <div className="overflow-y-auto">
           <div className="p-6">
             <div className="relative flex-shrink-0 group">
-              <img src={poi.photos[currentImageIndex].url} alt={poi.photos[currentImageIndex].caption} className="w-full h-64 object-cover" />
-              {poi.photos.length > 1 && (
+              {poi.photos && poi.photos.length > 0 ? (
+                <img src={poi.photos[currentImageIndex].url} alt={poi.photos[currentImageIndex].caption} className="w-full h-64 object-cover" />
+              ) : (
+                <div className="w-full h-64 bg-gray-200 flex items-center justify-center">
+                    <CameraIcon className="w-12 h-12 text-gray-400" />
+                </div>
+              )}
+              {poi.photos && poi.photos.length > 1 && (
                 <>
                   <button onClick={handlePrevImage} disabled={currentImageIndex === 0} className="absolute top-1/2 left-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine precedente"><ChevronLeftIcon className="w-6 h-6" /></button>
                   <button onClick={handleNextImage} disabled={currentImageIndex === poi.photos.length - 1} className="absolute top-1/2 right-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine successiva"><ChevronRightIcon className="w-6 h-6" /></button>

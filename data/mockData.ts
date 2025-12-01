@@ -1,5 +1,6 @@
 import { Point, Category, Period, Character, Path, Area, Itinerary, User } from '../types';
 
+/*
 export const categories: Category[] = [
   { id: 'storia', name: 'Storia & Patrimonio' },
   { id: 'arte', name: 'Arte & Cultura' },
@@ -372,3 +373,5 @@ export const users: User[] = [
   { id: 'user4', name: 'ArtExplorer', avatarUrl: 'https://picsum.photos/seed/user_art/100/100', contributions: 3 },
   { id: 'user5', name: 'Urbanist', avatarUrl: 'https://picsum.photos/seed/user_urban/100/100', contributions: 2 },
 ];
+*/
+export {};

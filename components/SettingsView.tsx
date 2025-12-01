@@ -1,7 +1,11 @@
 import React from 'react';
-import { categories } from '../data/mockData';
+import { Category } from '../types';
 
-const SettingsView: React.FC = () => {
+interface SettingsViewProps {
+  categories: Category[];
+}
+
+const SettingsView: React.FC<SettingsViewProps> = ({ categories }) => {
 
   return (
     <div>

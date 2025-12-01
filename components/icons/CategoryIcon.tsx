@@ -1,6 +1,6 @@
 import React from 'react';
 
-const CategoryIcon: React.FC<{ categoryId: string; className?: string }> = ({ categoryId, className }) => {
+const CategoryIcon: React.FC<{ categoryId?: string; className?: string }> = ({ categoryId, className }) => {
   const commonProps = {
     xmlns: "http://www.w3.org/2000/svg",
     className: className,
