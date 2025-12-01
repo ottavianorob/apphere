@@ -1,10 +1,12 @@
-import React, { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import ReactMapGL, { Marker, Source, Layer, MapRef } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { Poi, Category, Period, Character as CharacterType, Coordinates, Point, Path, Area } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import CategoryIcon from './icons/CategoryIcon';
 import CameraIcon from './icons/CameraIcon';
+import useGeolocation from '../hooks/useGeolocation';
+import TrashIcon from './icons/TrashIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -14,11 +16,28 @@ interface MapSelectorProps {
   type: 'point' | 'path' | 'area';
   coordinates: Coordinates[];
   setCoordinates: React.Dispatch<React.SetStateAction<Coordinates[]>>;
+  userLocation: Coordinates | null;
 }
 
-const MapSelector: React.FC<MapSelectorProps> = ({ type, coordinates, setCoordinates }) => {
+const MapSelector: React.FC<MapSelectorProps> = ({ type, coordinates, setCoordinates, userLocation }) => {
   const mapRef = useRef<MapRef>(null);
   const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
+
+  const [viewState, setViewState] = useState({
+    longitude: userLocation?.longitude || 9.189982,
+    latitude: userLocation?.latitude || 45.464204,
+    zoom: userLocation ? 15 : 12,
+  });
+
+  useEffect(() => {
+    if (userLocation && mapRef.current) {
+        mapRef.current.flyTo({
+            center: [userLocation.longitude, userLocation.latitude],
+            zoom: 15,
+            duration: 1500,
+        });
+    }
+  }, [userLocation]);
 
   const handleClick = useCallback((event: maplibregl.MapLayerMouseEvent) => {
     const { lng, lat } = event.lngLat;
@@ -38,12 +57,13 @@ const MapSelector: React.FC<MapSelectorProps> = ({ type, coordinates, setCoordin
     <div className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
       <ReactMapGL
         ref={mapRef}
+        {...viewState}
+        onMove={evt => setViewState(evt.viewState)}
         onLoad={() => {
           setTimeout(() => {
             mapRef.current?.getMap().resize();
           }, 100);
         }}
-        initialViewState={{ longitude: 9.189982, latitude: 45.464204, zoom: 12 }}
         style={{ width: '100%', height: '100%' }}
         mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
         onClick={handleClick}
@@ -109,23 +129,26 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     const [photoCaption, setPhotoCaption] = useState('');
     const [tagsText, setTagsText] = useState('');
     const [linkedCharacterIds, setLinkedCharacterIds] = useState<string[]>([]);
+    const { data: userLocation } = useGeolocation();
+
+    useEffect(() => {
+        if (type === 'point' && userLocation && coordinates.length === 0) {
+            setCoordinates([{ latitude: userLocation.latitude, longitude: userLocation.longitude }]);
+        }
+    }, [type, userLocation, coordinates.length]);
 
     const derivedLocation = useMemo(() => {
         if (coordinates.length > 0) {
             const c = coordinates[0];
             return `Lat: ${c.latitude.toFixed(4)}, Lon: ${c.longitude.toFixed(4)}`;
         }
-        return 'Seleziona un punto sulla mappa';
+        return 'N/A';
     }, [coordinates]);
     
     const derivedPeriodId = useMemo(() => {
         const year = extractYear(eventDate);
         return year ? getPeriodIdFromYear(year) : null;
     }, [eventDate]);
-
-    const derivedPeriod = useMemo(() => {
-        return derivedPeriodId ? periods.find(p => p.id === derivedPeriodId) : null;
-    }, [derivedPeriodId, periods]);
     
     const handleToggleCharacter = (charId: string) => {
       setLinkedCharacterIds(prev =>
@@ -226,23 +249,40 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                   </div>
                   <div>
                       <label className={labelStyle}>Posizione Geografica *</label>
-                      <p className="text-xs text-gray-500 mt-1 mb-2 font-sans-display">Fai clic sulla mappa per definire la posizione. Per Percorsi e Aree, fai clic più volte.</p>
-                      <MapSelector type={type} coordinates={coordinates} setCoordinates={setCoordinates} />
+                      <p className="text-xs text-gray-500 mt-1 mb-2 font-sans-display">
+                        {type === 'point' 
+                          ? 'La posizione è impostata sulla tua posizione attuale. Clicca sulla mappa per modificarla.' 
+                          : 'Fai clic sulla mappa per definire i punti. Per Percorsi e Aree, fai clic più volte.'}
+                      </p>
+                      <MapSelector type={type} coordinates={coordinates} setCoordinates={setCoordinates} userLocation={userLocation} />
                       <div className="flex gap-2 mt-2">
                         <button onClick={() => setCoordinates(c => c.slice(0, -1))} className="text-xs font-sans-display px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-md">Annulla ultimo punto</button>
                         <button onClick={() => setCoordinates([])} className="text-xs font-sans-display px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-md">Pulisci</button>
                       </div>
+                      {type === 'path' && coordinates.length > 0 && (
+                        <div className="mt-2 p-2 border border-gray-300/80 rounded-md bg-white/50 max-h-28 overflow-y-auto">
+                            <h4 className="text-xs font-sans-display font-semibold mb-1 sticky top-0 bg-white/50">Punti del percorso:</h4>
+                            <ul className="space-y-1">
+                                {coordinates.map((coord, index) => (
+                                    <li key={index} className="text-xs font-sans-display flex justify-between items-center bg-gray-100/50 p-1 rounded-sm">
+                                        <span>Punto {index + 1}: {coord.latitude.toFixed(4)}, {coord.longitude.toFixed(4)}</span>
+                                        <button 
+                                            onClick={() => setCoordinates(coords => coords.filter((_, i) => i !== index))} 
+                                            className="text-red-600 hover:text-red-800"
+                                            title="Rimuovi punto"
+                                        >
+                                            <TrashIcon className="w-3 h-3"/>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     <div>
-                        <label htmlFor="poi-location" className={labelStyle}>Luogo (automatico) *</label>
-                        <input id="poi-location" type="text" value={derivedLocation} className={`${inputStyle} bg-gray-100/50`} disabled readOnly/>
-                    </div>
-                     <div>
+                   <div>
                         <label htmlFor="poi-date" className={labelStyle}>Data Evento *</label>
                         <input id="poi-date" type="text" value={eventDate} onChange={e => setEventDate(e.target.value)} className={inputStyle} required placeholder="Es. 28 aprile 1945"/>
                     </div>
-                  </div>
                   <div className="grid grid-cols-1">
                       <div>
                         <label className={labelStyle}>Categoria/e *</label>
@@ -262,12 +302,6 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                                 );
                            })}
                         </div>
-                    </div>
-                  </div>
-                  <div>
-                     <label className={labelStyle}>Periodo Storico (automatico) *</label>
-                     <div className="w-full px-3 py-2 border border-gray-300 bg-gray-100/50 min-h-[42px] flex items-center font-sans-display">
-                        {derivedPeriod ? derivedPeriod.name : <span className="text-gray-500">Inserisci una data valida per l'evento</span>}
                     </div>
                   </div>
                   <div>
