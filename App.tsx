@@ -170,8 +170,10 @@ const App: React.FC = () => {
       try {
           const uploadedPhotos = await Promise.all(
               photosToUpload.map(async (photo) => {
-                  const fileName = `${Date.now()}_${photo.file.name}`;
+                  const sanitizedFileName = photo.file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
+                  const fileName = `${Date.now()}_${sanitizedFileName}`;
                   const filePath = `pois/${fileName}`;
+                  
                   const { error: uploadError } = await supabase.storage.from('media').upload(filePath, photo.file);
                   if (uploadError) throw uploadError;
 
@@ -227,8 +229,10 @@ const App: React.FC = () => {
       try {
           const uploadedPhotos = await Promise.all(
               photosToUpload.map(async (photo) => {
-                  const fileName = `${Date.now()}_${photo.file.name}`;
+                  const sanitizedFileName = photo.file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
+                  const fileName = `${Date.now()}_${sanitizedFileName}`;
                   const filePath = `characters/${fileName}`;
+
                   const { error: uploadError } = await supabase.storage.from('media').upload(filePath, photo.file);
                   if (uploadError) throw uploadError;
                   

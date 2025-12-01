@@ -20,13 +20,16 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   characters,
   itineraries 
 }) => {
+  const tableHeaderStyle = "p-2 font-semibold text-left border-b-2 border-gray-300";
+  const tableCellStyle = "p-2 border-b border-gray-200";
+
   return (
     <div>
       <header className="mb-8 border-b-2 border-[#2D3748] pb-4 text-center">
         <h1 className="font-sans-display text-4xl sm:text-5xl font-bold text-[#2D3748]">Profilo</h1>
       </header>
 
-      <div className="max-w-2xl mx-auto space-y-8 font-sans-display">
+      <div className="max-w-4xl mx-auto space-y-8 font-sans-display">
         {/* Content Management */}
         <div className="border border-gray-300/80 p-6">
           <h2 className="font-serif-display text-2xl italic text-[#134A79] mb-4">Gestione Contenuti</h2>
@@ -53,15 +56,74 @@ const ProfileView: React.FC<ProfileViewProps> = ({
            <div className="space-y-2">
               <details className="bg-white/50 border border-gray-300/60 p-2 rounded-md">
                 <summary className="font-semibold cursor-pointer">Luoghi ({pois.length})</summary>
-                <pre className="mt-2 p-2 bg-gray-100 text-xs overflow-x-auto"><code>{JSON.stringify(pois, null, 2)}</code></pre>
+                <div className="mt-2 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className={tableHeaderStyle}>Titolo</th>
+                        <th className={tableHeaderStyle}>Tipo</th>
+                        <th className={tableHeaderStyle}>Autore</th>
+                        <th className={tableHeaderStyle}>Data Evento</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pois.map(poi => (
+                        <tr key={poi.id}>
+                          <td className={tableCellStyle}>{poi.title}</td>
+                          <td className={tableCellStyle}>{poi.type}</td>
+                          <td className={tableCellStyle}>{poi.author}</td>
+                          <td className={tableCellStyle}>{poi.eventDate}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </details>
               <details className="bg-white/50 border border-gray-300/60 p-2 rounded-md">
                 <summary className="font-semibold cursor-pointer">Personaggi ({characters.length})</summary>
-                <pre className="mt-2 p-2 bg-gray-100 text-xs overflow-x-auto"><code>{JSON.stringify(characters, null, 2)}</code></pre>
+                 <div className="mt-2 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className={tableHeaderStyle}>Nome</th>
+                        <th className={tableHeaderStyle}>Descrizione</th>
+                        <th className={tableHeaderStyle}>Wikipedia</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {characters.map(char => (
+                        <tr key={char.id}>
+                          <td className={tableCellStyle}>{char.name}</td>
+                          <td className={tableCellStyle}>{char.description.substring(0, 70)}...</td>
+                          <td className={tableCellStyle}><a href={char.wikipediaUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Link</a></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </details>
               <details className="bg-white/50 border border-gray-300/60 p-2 rounded-md">
                 <summary className="font-semibold cursor-pointer">Itinerari ({itineraries.length})</summary>
-                <pre className="mt-2 p-2 bg-gray-100 text-xs overflow-x-auto"><code>{JSON.stringify(itineraries, null, 2)}</code></pre>
+                <div className="mt-2 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className={tableHeaderStyle}>Titolo</th>
+                        <th className={tableHeaderStyle}>N° Tappe</th>
+                        <th className={tableHeaderStyle}>Durata Stimata</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {itineraries.map(it => (
+                        <tr key={it.id}>
+                          <td className={tableCellStyle}>{it.title}</td>
+                          <td className={tableCellStyle}>{it.poiIds.length}</td>
+                          <td className={tableCellStyle}>{it.estimatedDuration}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </details>
            </div>
         </div>
