@@ -89,7 +89,7 @@ export const points: Point[] = [
       { id: 'ph_m1_2', url: 'https://picsum.photos/seed/fontana_detail/800/600', caption: 'Un dettaglio della piazza' },
       { id: 'ph_m1_3', url: 'https://picsum.photos/seed/fontana_archive/800/600', caption: 'Immagine d\'archivio' }
     ],
-    linkedCharacterIds: [],
+    linkedCharacterIds: ['pertini'],
     tags: ['terrorismo', 'strategia della tensione', 'milano', 'cronaca nera'],
   },
   // Categoria: Storia
@@ -157,7 +157,7 @@ export const points: Point[] = [
     eventDate: '23 marzo 1921',
     description: 'Una bomba, piazzata da anarchici individualisti, esplose all\'ingresso del Teatro Diana, causando 21 morti e oltre 80 feriti tra il pubblico. Fu uno dei più sanguinosi attentati del turbolento Biennio Rosso.',
     photos: [{ id: 'ph_m5_1', url: 'https://picsum.photos/seed/diana_teatro/800/600', caption: 'L\'area del ex-Teatro Diana oggi' }],
-    linkedCharacterIds: [],
+    linkedCharacterIds: ['toscanini'],
     tags: ['anarchismo', 'biennio rosso', 'violenza politica', 'milano'],
   },
   // Categoria: Società / Storia
@@ -225,7 +225,7 @@ export const points: Point[] = [
     eventDate: '28 maggio 1980',
     description: 'Il giornalista del Corriere della Sera Walter Tobagi, noto per le sue analisi lucide sul terrorismo, fu assassinato vicino a casa sua dalla "Brigata XXVIII marzo", un gruppo terroristico di sinistra. La sua morte fu un duro colpo per il giornalismo e la società civile.',
     photos: [{ id: 'ph_m9_1', url: 'https://picsum.photos/seed/tobagi_via/800/600', caption: 'Via Salaino, luogo dell\'agguato' }],
-    linkedCharacterIds: ['tobagi'],
+    linkedCharacterIds: ['tobagi', 'pertini'],
     tags: ['terrorismo', 'anni di piombo', 'giornalismo', 'milano'],
   },
   // Categoria: Società

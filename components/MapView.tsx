@@ -217,7 +217,7 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
             <button
               onClick={handleLocateMe}
               disabled={!userLocation}
-              className="bg-white w-[30px] h-[30px] rounded-sm flex items-center justify-center shadow-md disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300"
+              className="bg-white w-[30px] h-[30px] rounded-sm flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed border border-gray-300"
               aria-label="Centra mappa sulla tua posizione"
               title="Centra mappa sulla tua posizione"
             >
@@ -245,7 +245,7 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
                 anchor="center"
               >
                 <div onClick={() => onSelectPoi(poi)} className="cursor-pointer">
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} shadow-lg ring-2 ring-white/75 hover:scale-110 transition-transform duration-150 ease-in-out`}>
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75 hover:scale-110 transition-transform duration-150 ease-in-out`}>
                     <CategoryIcon categoryId={poi.categoryId} className="w-5 h-5 text-white" />
                   </div>
                 </div>

@@ -56,87 +56,91 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in" onClick={onClose}>
-      <div className="bg-[#FAF7F0] rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10 relative" onClick={e => e.stopPropagation()}>
+      <div className="bg-[#FAF7F0] w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10 relative" onClick={e => e.stopPropagation()}>
         <button onClick={onClose} className="absolute top-3 right-3 text-gray-800 bg-white/60 rounded-full p-1.5 hover:bg-white/90 backdrop-blur-sm transition-colors z-30"><CloseIcon className="w-5 h-5" /></button>
-        <div className="overflow-y-auto p-6">
-          <div className="relative flex-shrink-0 mb-6">
-            <img src={itinerary.coverPhoto.url} alt={itinerary.coverPhoto.caption} className="w-full h-64 object-cover rounded-lg shadow-md" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none rounded-lg"></div>
+        <div className="overflow-y-auto">
+          <div className="p-6">
+            <div className="relative flex-shrink-0">
+              <img src={itinerary.coverPhoto.url} alt={itinerary.coverPhoto.caption} className="w-full h-64 object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+            </div>
           </div>
-          <h2 className="font-sans-display text-3xl font-bold text-[#134A79]">{itinerary.title}</h2>
-          <div className="flex items-center gap-2 mt-3 text-sm text-gray-600">
-            <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center"><UserIcon className="w-4 h-4 text-gray-600" /></div>
-            <span className="font-sans-display">{itinerary.author}</span>
-          </div>
-          <div className="mt-4 flex items-center flex-wrap gap-x-6 gap-y-2 text-sm text-gray-700 font-sans-display border-b border-t border-gray-300 py-3">
-            <div className="flex items-center gap-2"><RouteIcon className="w-4 h-4 flex-shrink-0 text-gray-500" /><span>{poisInItinerary.length} Tappe</span></div>
-            <div className="flex items-center gap-2"><ClockIcon className="w-4 h-4 flex-shrink-0 text-gray-500" /><span>{itinerary.estimatedDuration}</span></div>
-          </div>
-          <div className="mt-6 space-y-6">
-            <p className="italic text-[#2D3748] whitespace-pre-wrap leading-relaxed text-lg">{itinerary.description}</p>
-            
-            {itinerary.tags && itinerary.tags.length > 0 && (
+          <div className="px-6 pb-6">
+            <h2 className="font-sans-display text-3xl font-bold text-[#134A79]">{itinerary.title}</h2>
+            <div className="flex items-center gap-2 mt-3 text-sm text-gray-600">
+              <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center"><UserIcon className="w-4 h-4 text-gray-600" /></div>
+              <span className="font-sans-display">{itinerary.author}</span>
+            </div>
+            <div className="mt-4 flex items-center flex-wrap gap-x-6 gap-y-2 text-sm text-gray-700 font-sans-display border-b border-t border-gray-300 py-3">
+              <div className="flex items-center gap-2"><RouteIcon className="w-4 h-4 flex-shrink-0 text-gray-500" /><span>{poisInItinerary.length} Tappe</span></div>
+              <div className="flex items-center gap-2"><ClockIcon className="w-4 h-4 flex-shrink-0 text-gray-500" /><span>{itinerary.estimatedDuration}</span></div>
+            </div>
+            <div className="mt-6 space-y-6">
+              <p className="italic text-[#2D3748] whitespace-pre-wrap leading-relaxed text-lg">{itinerary.description}</p>
+              
+              {itinerary.tags && itinerary.tags.length > 0 && (
+                <div>
+                  <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Tags</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {itinerary.tags.map(tag => (
+                      <button key={tag} onClick={() => onSelectTag(tag)} className="bg-gray-500/10 text-gray-600 px-3 py-1 text-sm font-sans-display font-semibold hover:bg-gray-500/20 transition-colors">
+                        #{tag.toUpperCase().replace(/\s+/g, '')}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div>
-                <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {itinerary.tags.map(tag => (
-                    <button key={tag} onClick={() => onSelectTag(tag)} className="bg-gray-500/10 text-gray-600 px-3 py-1 text-sm font-sans-display font-semibold hover:bg-gray-500/20 transition-colors">
-                      #{tag}
-                    </button>
-                  ))}
+                <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Mappa dell'Itinerario</h3>
+                <div className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
+                  <ReactMapGL
+                    mapLib={maplibregl}
+                    initialViewState={{ longitude: 9.189982, latitude: 45.464204, zoom: 12 }}
+                    style={{ width: '100%', height: '100%' }}
+                    mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
+                    onLoad={event => {
+                      const map = event.target;
+                      if (poisInItinerary.length > 0) {
+                        const firstCoords = getPoiCentroid(poisInItinerary[0]);
+                        const bounds = poisInItinerary.reduce((b, p) => {
+                          const coords = getPoiCentroid(p);
+                          return b.extend([coords.longitude, coords.latitude]);
+                        }, new maplibregl.LngLatBounds([firstCoords.longitude, firstCoords.latitude], [firstCoords.longitude, firstCoords.latitude]));
+                        map.fitBounds(bounds, { padding: 50, duration: 0 });
+                      }
+                    }}
+                  >
+                    {poisInItinerary.map(poi => {
+                      const coords = getPoiCentroid(poi);
+                      const markerBg = mapMarkerBgColors[poi.categoryId] || 'bg-[#B1352E]';
+                      return (
+                        <Marker key={poi.id} longitude={coords.longitude} latitude={coords.latitude} anchor="center">
+                          <div className={`w-7 h-7 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75`}>
+                            <CategoryIcon categoryId={poi.categoryId} className="w-4 h-4 text-white" />
+                          </div>
+                        </Marker>
+                      );
+                    })}
+                  </ReactMapGL>
                 </div>
               </div>
-            )}
-
-            <div>
-              <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Mappa dell'Itinerario</h3>
-              <div className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
-                <ReactMapGL
-                  mapLib={maplibregl}
-                  initialViewState={{ longitude: 9.189982, latitude: 45.464204, zoom: 12 }}
-                  style={{ width: '100%', height: '100%' }}
-                  mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
-                  onLoad={event => {
-                    const map = event.target;
-                    if (poisInItinerary.length > 0) {
-                      const firstCoords = getPoiCentroid(poisInItinerary[0]);
-                      const bounds = poisInItinerary.reduce((b, p) => {
-                        const coords = getPoiCentroid(p);
-                        return b.extend([coords.longitude, coords.latitude]);
-                      }, new maplibregl.LngLatBounds([firstCoords.longitude, firstCoords.latitude], [firstCoords.longitude, firstCoords.latitude]));
-                      map.fitBounds(bounds, { padding: 50, duration: 0 });
-                    }
-                  }}
-                >
-                  {poisInItinerary.map(poi => {
-                    const coords = getPoiCentroid(poi);
-                    const markerBg = mapMarkerBgColors[poi.categoryId] || 'bg-[#B1352E]';
-                    return (
-                      <Marker key={poi.id} longitude={coords.longitude} latitude={coords.latitude} anchor="center">
-                        <div className={`w-7 h-7 rounded-full flex items-center justify-center ${markerBg} shadow-lg ring-2 ring-white/75`}>
-                          <CategoryIcon categoryId={poi.categoryId} className="w-4 h-4 text-white" />
+              <div>
+                <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Tappe</h3>
+                <div className="space-y-2 mt-4">
+                  {poisInItinerary.map((poi, i) => (
+                    <div key={poi.id} className="flex items-start gap-4 p-2 rounded-lg hover:bg-[#134A79]/10 cursor-pointer" onClick={() => onSelectPoiInItinerary(poi)}>
+                      <div className="flex-shrink-0 bg-[#2D3748] text-[#FAF7F0] rounded-full h-8 w-8 flex items-center justify-center font-bold font-sans-display">{i + 1}</div>
+                      <div>
+                        <p className="font-sans-display font-bold text-gray-800">{poi.title}</p>
+                        <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                          <PoiTypeIcon type={poi.type} className="w-3 h-3"/>
+                          <span className="capitalize">{poi.type === 'path' ? 'Percorso' : poi.type}</span>
                         </div>
-                      </Marker>
-                    );
-                  })}
-                </ReactMapGL>
-              </div>
-            </div>
-            <div>
-              <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Tappe</h3>
-              <div className="space-y-2 mt-4">
-                {poisInItinerary.map((poi, i) => (
-                  <div key={poi.id} className="flex items-start gap-4 p-2 rounded-lg hover:bg-[#134A79]/10 cursor-pointer" onClick={() => onSelectPoiInItinerary(poi)}>
-                    <div className="flex-shrink-0 bg-[#2D3748] text-[#FAF7F0] rounded-full h-8 w-8 flex items-center justify-center font-bold font-sans-display">{i + 1}</div>
-                    <div>
-                      <p className="font-sans-display font-bold text-gray-800">{poi.title}</p>
-                      <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                        <PoiTypeIcon type={poi.type} className="w-3 h-3"/>
-                        <span className="capitalize">{poi.type === 'path' ? 'Percorso' : poi.type}</span>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>

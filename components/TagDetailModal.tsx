@@ -51,14 +51,14 @@ const TagDetailModal: React.FC<TagDetailModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in" onClick={onClose}>
-      <div className="bg-[#FAF7F0] rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10" onClick={e => e.stopPropagation()}>
+      <div className="bg-[#FAF7F0] w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10" onClick={e => e.stopPropagation()}>
         <header className="p-6 flex items-start justify-between border-b border-gray-300/80">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center border-2 border-white shadow-md">
+            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center border-2 border-white">
                 <TagIcon className="w-8 h-8 text-gray-600"/>
             </div>
             <div>
-              <h2 className="font-sans-display text-4xl font-bold text-[#134A79]">#{tag}</h2>
+              <h2 className="font-sans-display text-4xl font-bold text-[#134A79]">#{tag.toUpperCase().replace(/\s+/g, '')}</h2>
             </div>
           </div>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-800"><CloseIcon className="w-6 h-6" /></button>

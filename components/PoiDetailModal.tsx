@@ -115,7 +115,7 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
                     <Layer id="area-layer" type="fill" paint={{ 'fill-color': '#134A79', 'fill-opacity': 0.2, 'fill-outline-color': '#134A79' }} />
                 </Source>
                 <Marker longitude={markerCoords.longitude} latitude={markerCoords.latitude} anchor="center">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} shadow-lg ring-2 ring-white/75`}>
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75`}>
                         <CategoryIcon categoryId={poi.categoryId} className="w-5 h-5 text-white" />
                     </div>
                 </Marker>
@@ -126,7 +126,7 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
     // Default case for 'point'
     return (
         <Marker longitude={markerCoords.longitude} latitude={markerCoords.latitude} anchor="center">
-            <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} shadow-lg ring-2 ring-white/75`}>
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75`}>
                 <CategoryIcon categoryId={poi.categoryId} className="w-5 h-5 text-white" />
             </div>
         </Marker>
@@ -142,77 +142,81 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in" onClick={onClose}>
-      <div className="bg-[#FAF7F0] rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10 relative" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-[#FAF7F0] w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10 relative" onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} className="absolute top-3 right-3 text-gray-800 bg-white/60 rounded-full p-1.5 hover:bg-white/90 backdrop-blur-sm transition-colors z-30"><CloseIcon className="w-5 h-5" /></button>
-        <div className="overflow-y-auto p-6">
-          <div className="relative flex-shrink-0 group mb-6">
-            <img src={poi.photos[currentImageIndex].url} alt={poi.photos[currentImageIndex].caption} className="w-full h-64 object-cover rounded-lg shadow-md" />
-            {poi.photos.length > 1 && (
-              <>
-                <button onClick={handlePrevImage} disabled={currentImageIndex === 0} className="absolute top-1/2 left-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine precedente"><ChevronLeftIcon className="w-6 h-6" /></button>
-                <button onClick={handleNextImage} disabled={currentImageIndex === poi.photos.length - 1} className="absolute top-1/2 right-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine successiva"><ChevronRightIcon className="w-6 h-6" /></button>
-                <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs font-sans-display font-semibold px-2 py-1 rounded-full z-10">{currentImageIndex + 1} / {poi.photos.length}</div>
-              </>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none rounded-lg"></div>
+        <div className="overflow-y-auto">
+          <div className="p-6">
+            <div className="relative flex-shrink-0 group">
+              <img src={poi.photos[currentImageIndex].url} alt={poi.photos[currentImageIndex].caption} className="w-full h-64 object-cover" />
+              {poi.photos.length > 1 && (
+                <>
+                  <button onClick={handlePrevImage} disabled={currentImageIndex === 0} className="absolute top-1/2 left-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine precedente"><ChevronLeftIcon className="w-6 h-6" /></button>
+                  <button onClick={handleNextImage} disabled={currentImageIndex === poi.photos.length - 1} className="absolute top-1/2 right-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine successiva"><ChevronRightIcon className="w-6 h-6" /></button>
+                  <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs font-sans-display font-semibold px-2 py-1 rounded-full z-10">{currentImageIndex + 1} / {poi.photos.length}</div>
+                </>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+            </div>
           </div>
           
-          <h2 className="font-sans-display text-3xl font-bold text-[#134A79]">{poi.title}</h2>
-          <div className="flex items-center gap-2 mt-3 text-sm text-gray-600"><div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center"><UserIcon className="w-4 h-4 text-gray-600" /></div><span className="font-sans-display">{poi.author}</span></div>
-          <div className="mt-4 flex items-center flex-wrap gap-x-6 gap-y-2 text-sm text-gray-700 font-sans-display border-b border-t border-gray-300 py-3">
-            <div className="flex items-center gap-2"><CalendarIcon className="w-4 h-4 flex-shrink-0 text-gray-500" /><span>{poi.eventDate}</span></div>
-            <div className="flex items-center gap-2"><MapPinIcon className="w-4 h-4 flex-shrink-0 text-gray-500" /><span>{poi.location}</span></div>
-          </div>
-          <div className="mt-6 space-y-6">
-            {category && <div><span className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}><CategoryIcon categoryId={category.id} className="w-4 h-4" /><span>{category.name}</span></span></div>}
-            <p className="italic text-[#2D3748] whitespace-pre-wrap leading-relaxed text-lg first-letter:text-5xl first-letter:font-normal first-letter:text-[#134A79] first-letter:mr-3 first-letter:float-left">{poi.description}</p>
-            
-            {linkedCharacters.length > 0 && (
-              <div>
-                <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Personaggi Collegati</h3>
-                <div className="space-y-3">{linkedCharacters.map(char => (
-                  <button key={char.id} onClick={() => onSelectCharacter(char.id)} className="flex items-center p-2 rounded-lg hover:bg-[#134A79]/10 transition-colors text-left w-full">
-                    {char.photos.length > 0 && <img src={char.photos[0].url} alt={char.name} className="w-10 h-10 rounded-full object-cover mr-4 border-2 border-white/50" />}
-                    <span className="font-sans-display text-[#134A79] text-base font-semibold">{char.name}</span>
-                  </button>
-                ))}</div>
-              </div>
-            )}
-            {poi.tags && poi.tags.length > 0 && (
-              <div>
-                <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Tags</h3>
-                <div className="flex flex-wrap gap-2">{poi.tags.map(tag => (<button key={tag} onClick={() => onSelectTag(tag)} className="bg-gray-500/10 text-gray-600 px-3 py-1 text-sm font-sans-display font-semibold hover:bg-gray-500/20 transition-colors">#{tag}</button>))}</div>
-              </div>
-            )}
-            <div>
-              <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Posizione sulla Mappa</h3>
-              <div className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
-                 <ReactMapGL
-                    mapLib={maplibregl}
-                    initialViewState={{ longitude: getMarkerCoordinates().longitude, latitude: getMarkerCoordinates().latitude, zoom: 15, pitch: 20 }}
-                    style={{ width: '100%', height: '100%' }}
-                    mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
-                    interactive={false}
-                    onLoad={ event => {
-                        const map = event.target;
-                        let bounds: LngLatBounds | undefined;
-                        if(poi.type === 'path' && poi.pathCoordinates.length > 1) {
-                           bounds = poi.pathCoordinates.reduce((b, p) => b.extend([p.longitude, p.latitude]), new maplibregl.LngLatBounds([poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude],[poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude]));
-                        } else if(poi.type === 'area' && poi.bounds.length > 0) {
-                           bounds = poi.bounds.reduce((b, c) => b.extend([c.longitude, c.latitude]), new maplibregl.LngLatBounds([poi.bounds[0].longitude, poi.bounds[0].latitude],[poi.bounds[0].longitude, poi.bounds[0].latitude]));
-                        }
-                        if (bounds) {
-                           map.fitBounds(bounds, { padding: 40, duration: 0 });
-                        }
-                    }}
-                >
-                  {mapContent}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
-                </ReactMapGL>
-              </div>
+          <div className="px-6 pb-6">
+            <h2 className="font-sans-display text-3xl font-bold text-[#134A79]">{poi.title}</h2>
+            <div className="flex items-center gap-2 mt-3 text-sm text-gray-600"><div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center"><UserIcon className="w-4 h-4 text-gray-600" /></div><span className="font-sans-display">{poi.author}</span></div>
+            <div className="mt-4 flex items-center flex-wrap gap-x-6 gap-y-2 text-sm text-gray-700 font-sans-display border-b border-t border-gray-300 py-3">
+              <div className="flex items-center gap-2"><CalendarIcon className="w-4 h-4 flex-shrink-0 text-gray-500" /><span>{poi.eventDate}</span></div>
+              <div className="flex items-center gap-2"><MapPinIcon className="w-4 h-4 flex-shrink-0 text-gray-500" /><span>{poi.location}</span></div>
             </div>
-            <div>
-              <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 bg-[#134A79] text-white font-sans-display font-bold rounded-lg shadow-md hover:bg-[#103a60] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#FAF7F0] focus:ring-[#134A79] transition-all duration-200"><NavigationIcon className="w-5 h-5 mr-2" /><span>Indicazioni</span></a>
+            <div className="mt-6 space-y-6">
+              {category && <div><span className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}><CategoryIcon categoryId={category.id} className="w-4 h-4" /><span>{category.name}</span></span></div>}
+              <p className="italic text-[#2D3748] whitespace-pre-wrap leading-relaxed text-lg first-letter:text-5xl first-letter:font-normal first-letter:text-[#134A79] first-letter:mr-3 first-letter:float-left">{poi.description}</p>
+              
+              {linkedCharacters.length > 0 && (
+                <div>
+                  <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Personaggi Collegati</h3>
+                  <div className="space-y-3">{linkedCharacters.map(char => (
+                    <button key={char.id} onClick={() => onSelectCharacter(char.id)} className="flex items-center p-2 rounded-lg hover:bg-[#134A79]/10 transition-colors text-left w-full">
+                      {char.photos.length > 0 && <img src={char.photos[0].url} alt={char.name} className="w-10 h-10 rounded-full object-cover mr-4 border-2 border-white/50" />}
+                      <span className="font-sans-display text-[#134A79] text-base font-semibold">{char.name}</span>
+                    </button>
+                  ))}</div>
+                </div>
+              )}
+              {poi.tags && poi.tags.length > 0 && (
+                <div>
+                  <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Tags</h3>
+                  <div className="flex flex-wrap gap-2">{poi.tags.map(tag => (<button key={tag} onClick={() => onSelectTag(tag)} className="bg-gray-500/10 text-gray-600 px-3 py-1 text-sm font-sans-display font-semibold hover:bg-gray-500/20 transition-colors">#{tag.toUpperCase().replace(/\s+/g, '')}</button>))}</div>
+                </div>
+              )}
+              <div>
+                <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Posizione sulla Mappa</h3>
+                <div className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
+                   <ReactMapGL
+                      mapLib={maplibregl}
+                      initialViewState={{ longitude: getMarkerCoordinates().longitude, latitude: getMarkerCoordinates().latitude, zoom: 15, pitch: 20 }}
+                      style={{ width: '100%', height: '100%' }}
+                      mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
+                      interactive={false}
+                      onLoad={ event => {
+                          const map = event.target;
+                          let bounds: LngLatBounds | undefined;
+                          if(poi.type === 'path' && poi.pathCoordinates.length > 1) {
+                             bounds = poi.pathCoordinates.reduce((b, p) => b.extend([p.longitude, p.latitude]), new maplibregl.LngLatBounds([poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude],[poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude]));
+                          } else if(poi.type === 'area' && poi.bounds.length > 0) {
+                             bounds = poi.bounds.reduce((b, c) => b.extend([c.longitude, c.latitude]), new maplibregl.LngLatBounds([poi.bounds[0].longitude, poi.bounds[0].latitude],[poi.bounds[0].longitude, poi.bounds[0].latitude]));
+                          }
+                          if (bounds) {
+                             map.fitBounds(bounds, { padding: 40, duration: 0 });
+                          }
+                      }}
+                  >
+                    {mapContent}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+                  </ReactMapGL>
+                </div>
+              </div>
+              <div>
+                <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 bg-[#134A79] text-white font-sans-display font-bold rounded-lg hover:bg-[#103a60] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#FAF7F0] focus:ring-[#134A79] transition-all duration-200"><NavigationIcon className="w-5 h-5 mr-2" /><span>Indicazioni</span></a>
+              </div>
             </div>
           </div>
         </div>

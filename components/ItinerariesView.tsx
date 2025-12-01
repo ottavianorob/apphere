@@ -17,7 +17,7 @@ const ItineraryListItem: React.FC<{ itinerary: Itinerary; onSelect: () => void; 
       <img
         src={itinerary.coverPhoto.url}
         alt={itinerary.coverPhoto.caption}
-        className="w-full sm:w-40 h-40 sm:h-28 rounded-md object-cover shadow-lg group-hover:shadow-xl transition-shadow"
+        className="w-full sm:w-40 h-40 sm:h-28 rounded-md object-cover transition-all"
       />
       <div className="flex-grow">
         <h3 className="font-serif-display text-xl font-semibold text-[#134A79] group-hover:text-[#B1352E] transition-colors">{itinerary.title}</h3>

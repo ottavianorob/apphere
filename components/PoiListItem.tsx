@@ -45,7 +45,7 @@ const PoiListItem: React.FC<PoiListItemProps> = ({ poi, distance, onSelect, cate
           <img
             src={poi.photos[0].url}
             alt={`Immagine di copertina per ${poi.title}`}
-            className="w-20 h-20 rounded-full object-cover shadow-lg grayscale mix-blend-multiply group-hover:grayscale-0 group-hover:mix-blend-normal transition-all duration-300 ease-in-out"
+            className="w-20 h-20 rounded-full object-cover grayscale mix-blend-multiply group-hover:grayscale-0 group-hover:mix-blend-normal transition-all duration-300 ease-in-out"
           />
         ) : (
           <div className="w-20 h-20 bg-gray-200/50 rounded-full flex items-center justify-center border-2 border-gray-300/80">
