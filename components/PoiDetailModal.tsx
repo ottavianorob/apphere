@@ -29,9 +29,10 @@ interface PoiDetailModalProps {
   poi: Poi;
   onClose: () => void;
   categories: Category[];
+  onSelectCharacter: (characterId: string) => void;
 }
 
-const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories }) => {
+const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories, onSelectCharacter }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const linkedCharacters = allCharacters.filter(c => poi.linkedCharacterIds.includes(c.id));
 
@@ -167,7 +168,12 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
             {linkedCharacters.length > 0 && (
               <div>
                 <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Personaggi Collegati</h3>
-                <div className="space-y-3">{linkedCharacters.map(char => (<a key={char.id} href={char.wikipediaUrl} target="_blank" rel="noopener noreferrer" className="flex items-center p-2 rounded-lg hover:bg-[#134A79]/10 transition-colors">{char.profileImageUrl && <img src={char.profileImageUrl} alt={char.name} className="w-10 h-10 rounded-full object-cover mr-4 border-2 border-white/50" />}<span className="font-sans-display text-[#134A79] text-base font-semibold">{char.name}</span></a>))}</div>
+                <div className="space-y-3">{linkedCharacters.map(char => (
+                  <button key={char.id} onClick={() => onSelectCharacter(char.id)} className="flex items-center p-2 rounded-lg hover:bg-[#134A79]/10 transition-colors text-left w-full">
+                    {char.profileImageUrl && <img src={char.profileImageUrl} alt={char.name} className="w-10 h-10 rounded-full object-cover mr-4 border-2 border-white/50" />}
+                    <span className="font-sans-display text-[#134A79] text-base font-semibold">{char.name}</span>
+                  </button>
+                ))}</div>
               </div>
             )}
             {poi.tags && poi.tags.length > 0 && (

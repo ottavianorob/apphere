@@ -12,6 +12,8 @@ import CameraIcon from './icons/CameraIcon';
 import CategoryIcon from './icons/CategoryIcon';
 import PathIcon from './icons/PathIcon';
 import AreaIcon from './icons/AreaIcon';
+import FilterIcon from './icons/FilterIcon';
+import ChevronDownIcon from './icons/ChevronDownIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -159,7 +161,10 @@ const defaultMarkerBgColor = 'bg-[#B1352E]';
 const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, periods }) => {
   const { data: userLocation, loading, error } = useGeolocation();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedPeriods, setSelectedPeriods] = useState<string[]>([]);
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [mapBounds, setMapBounds] = useState<LngLatBounds | null>(null);
+  const [filtersVisible, setFiltersVisible] = useState(false);
   const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
   const mapRef = useRef<MapRef>(null);
   
@@ -194,13 +199,13 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
   const formattedDate = today.toLocaleDateString('it-IT', dateOptions);
   const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
 
-  const handleCategoryClick = (categoryId: string) => {
-    setSelectedCategories(prev => {
-      const isSelected = prev.includes(categoryId);
+  const handleFilterChange = (setter: React.Dispatch<React.SetStateAction<string[]>>) => (itemId: string) => {
+    setter(prev => {
+      const isSelected = prev.includes(itemId);
       if (isSelected) {
-        return prev.filter(id => id !== categoryId);
+        return prev.filter(id => id !== itemId);
       } else {
-        return [...prev, categoryId];
+        return [...prev, itemId];
       }
     });
   };
@@ -232,18 +237,20 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
   }, [pois]);
 
 
-  const categoryFilteredPois = useMemo(() => {
-    const isFilteringActive = selectedCategories.length > 0;
-    return unifiedPois.filter(p => 
-      !isFilteringActive || selectedCategories.includes(p.categoryId)
-    );
-  }, [unifiedPois, selectedCategories]);
+  const filteredPois = useMemo(() => {
+    return unifiedPois.filter(p => {
+        const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(p.categoryId);
+        const periodMatch = selectedPeriods.length === 0 || selectedPeriods.includes(p.periodId);
+        const typeMatch = selectedTypes.length === 0 || selectedTypes.includes(p.type);
+        return categoryMatch && periodMatch && typeMatch;
+    });
+  }, [unifiedPois, selectedCategories, selectedPeriods, selectedTypes]);
 
   const listPois = useMemo(() => {
-    let inViewPois = categoryFilteredPois;
+    let inViewPois = filteredPois;
     
     if (mapBounds) {
-        inViewPois = categoryFilteredPois.filter(p => 
+        inViewPois = filteredPois.filter(p => 
             mapBounds.contains([p.markerCoordinates.longitude, p.markerCoordinates.latitude])
         );
     }
@@ -258,7 +265,13 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
     }
     
     return inViewPois.map(poi => ({ ...poi, distance: undefined }));
-  }, [categoryFilteredPois, mapBounds, userLocation]);
+  }, [filteredPois, mapBounds, userLocation]);
+
+  const poiTypes = [
+      {id: 'point', name: 'Punto'},
+      {id: 'path', name: 'Percorso'},
+      {id: 'area', name: 'Area'}
+  ];
 
   return (
     <div>
@@ -304,7 +317,7 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
             </Marker>
           )}
 
-          {categoryFilteredPois.map(poi => {
+          {filteredPois.map(poi => {
             const markerBg = mapMarkerBgColors[poi.categoryId] || defaultMarkerBgColor;
             return (
               <Marker
@@ -323,29 +336,53 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
           })}
         </ReactMapGL>
       </div>
-
+      
       <div className="border-t border-b border-gray-300 py-4 mb-6">
-        <div className="font-sans-display flex flex-wrap gap-2 justify-center">
-          {categories.map(category => {
-            const isSelected = selectedCategories.includes(category.id);
-            const noFilterActive = selectedCategories.length === 0;
-            const colors = categoryColors[category.id] || defaultColors;
-            
-            const buttonClasses = (isSelected || noFilterActive) 
-              ? colors.selected 
-              : colors.unselected;
-            
-            return (
-              <button 
-                key={category.id}
-                onClick={() => handleCategoryClick(category.id)}
-                className={`inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#FAF7F0] ${buttonClasses} ${colors.ring}`}
-              >
-                <CategoryIcon categoryId={category.id} className="w-4 h-4" />
-                <span>{category.name}</span>
-              </button>
-            );
-          })}
+        <div className="text-center sm:hidden mb-4">
+            <button onClick={() => setFiltersVisible(!filtersVisible)} className="font-sans-display text-sm font-bold text-[#134A79] inline-flex items-center gap-2">
+                <FilterIcon className="w-4 h-4" />
+                <span>{filtersVisible ? 'Nascondi' : 'Mostra'} Filtri</span>
+                <ChevronDownIcon className={`w-4 h-4 transition-transform ${filtersVisible ? 'rotate-180' : ''}`} />
+            </button>
+        </div>
+        <div className={`${filtersVisible ? 'block' : 'hidden'} sm:block`}>
+            <div className="mb-4">
+                <h3 className="font-serif-display text-center text-lg italic text-gray-700 mb-3">Categorie</h3>
+                <div className="font-sans-display flex flex-wrap gap-2 justify-center">
+                {categories.map(category => (
+                    <button 
+                        key={category.id}
+                        onClick={() => handleFilterChange(setSelectedCategories)(category.id)}
+                        className={`inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#FAF7F0] ${ (selectedCategories.includes(category.id)) ? categoryColors[category.id]?.selected || defaultColors.selected : categoryColors[category.id]?.unselected || defaultColors.unselected } ${categoryColors[category.id]?.ring || defaultColors.ring}`}
+                    >
+                        <CategoryIcon categoryId={category.id} className="w-4 h-4" />
+                        <span>{category.name}</span>
+                    </button>
+                ))}
+                </div>
+            </div>
+            <div className="mb-4">
+                <h3 className="font-serif-display text-center text-lg italic text-gray-700 mb-3">Tipologia</h3>
+                <div className="font-sans-display flex flex-wrap gap-2 justify-center">
+                    {poiTypes.map(type => (
+                        <button key={type.id} onClick={() => handleFilterChange(setSelectedTypes)(type.id)}
+                            className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors ${selectedTypes.includes(type.id) ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-800'}`}>
+                            {type.name}
+                        </button>
+                    ))}
+                </div>
+            </div>
+             <div>
+                <h3 className="font-serif-display text-center text-lg italic text-gray-700 mb-3">Periodo Storico</h3>
+                <div className="font-sans-display flex flex-wrap gap-2 justify-center">
+                    {periods.map(period => (
+                         <button key={period.id} onClick={() => handleFilterChange(setSelectedPeriods)(period.id)}
+                            className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors ${selectedPeriods.includes(period.id) ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-800'}`}>
+                            {period.name}
+                        </button>
+                    ))}
+                </div>
+            </div>
         </div>
       </div>
 
@@ -362,8 +399,8 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
           ))
         ) : (
           <div className="text-center py-8 text-gray-600 font-sans-display">
-            <p className="font-semibold">Nessun punto di interesse in quest'area.</p>
-            <p className="text-sm">Prova a spostare la mappa o a cambiare i filtri.</p>
+            <p className="font-semibold">Nessun punto di interesse corrisponde ai filtri.</p>
+            <p className="text-sm">Prova a modificare la selezione o a spostare la mappa.</p>
           </div>
         )}
       </div>
