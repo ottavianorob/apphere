@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import ReactMapGL, { Marker, Source, Layer, LngLatBounds } from 'react-map-gl';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import ReactMapGL, { Marker, Source, Layer, LngLatBounds, MapRef } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { Poi, Category, Coordinates } from '../types';
 import { characters as allCharacters } from '../data/mockData';
@@ -34,6 +34,8 @@ interface PoiDetailModalProps {
 }
 
 const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories, onSelectCharacter, onSelectTag }) => {
+  const mapRef = useRef<MapRef>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const linkedCharacters = allCharacters.filter(c => poi.linkedCharacterIds.includes(c.id));
 
@@ -139,6 +141,17 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
+  useEffect(() => {
+    const container = mapContainerRef.current;
+    if (!container) return;
+    const resizeObserver = new ResizeObserver(() => {
+        mapRef.current?.getMap().resize();
+    });
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in" onClick={onClose}>
       <div className="bg-[#FAF7F0] w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10 relative" onClick={(e) => e.stopPropagation()}>
@@ -200,8 +213,9 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
               )}
               <div>
                 <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Posizione sulla Mappa</h3>
-                <div className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
+                <div ref={mapContainerRef} className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
                    <ReactMapGL
+                      ref={mapRef}
                       mapLib={maplibregl}
                       initialViewState={{ longitude: getMarkerCoordinates().longitude, latitude: getMarkerCoordinates().latitude, zoom: 15, pitch: 20 }}
                       style={{ width: '100%', height: '100%' }}
@@ -209,20 +223,15 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
                       interactive={false}
                       onLoad={event => {
                           const map = event.target;
-                          // The map needs to be resized after the modal animation completes.
-                          setTimeout(() => {
-                            map.resize();
-
-                            let bounds: LngLatBounds | undefined;
-                            if(poi.type === 'path' && poi.pathCoordinates.length > 1) {
-                               bounds = poi.pathCoordinates.reduce((b, p) => b.extend([p.longitude, p.latitude]), new maplibregl.LngLatBounds([poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude],[poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude]));
-                            } else if(poi.type === 'area' && poi.bounds.length > 0) {
-                               bounds = poi.bounds.reduce((b, c) => b.extend([c.longitude, c.latitude]), new maplibregl.LngLatBounds([poi.bounds[0].longitude, poi.bounds[0].latitude],[poi.bounds[0].longitude, poi.bounds[0].latitude]));
-                            }
-                            if (bounds) {
-                               map.fitBounds(bounds, { padding: 40, duration: 0 });
-                            }
-                          }, 350); // Animation is 300ms
+                          let bounds: LngLatBounds | undefined;
+                          if(poi.type === 'path' && poi.pathCoordinates.length > 1) {
+                             bounds = poi.pathCoordinates.reduce((b, p) => b.extend([p.longitude, p.latitude]), new maplibregl.LngLatBounds([poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude],[poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude]));
+                          } else if(poi.type === 'area' && poi.bounds.length > 0) {
+                             bounds = poi.bounds.reduce((b, c) => b.extend([c.longitude, c.latitude]), new maplibregl.LngLatBounds([poi.bounds[0].longitude, poi.bounds[0].latitude],[poi.bounds[0].longitude, poi.bounds[0].latitude]));
+                          }
+                          if (bounds) {
+                             map.fitBounds(bounds, { padding: 40, duration: 0 });
+                          }
                       }}
                   >
                     {mapContent}

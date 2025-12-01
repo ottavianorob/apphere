@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import ReactMapGL, { Marker, LngLatBounds } from 'react-map-gl';
+import React, { useMemo, useRef, useEffect } from 'react';
+import ReactMapGL, { Marker, LngLatBounds, MapRef } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { Itinerary, Poi, Coordinates } from '../types';
 import CloseIcon from './icons/CloseIcon';
@@ -43,11 +43,24 @@ interface ItineraryDetailModalProps {
 }
 
 const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, allPois, onClose, onSelectPoiInItinerary, onSelectTag }) => {
+  const mapRef = useRef<MapRef>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+
   const poisInItinerary = useMemo(() => 
     itinerary.poiIds.map(id => allPois.find(p => p.id === id)).filter((p): p is Poi => !!p),
     [itinerary, allPois]
   );
   
+  useEffect(() => {
+    const container = mapContainerRef.current;
+    if (!container) return;
+    const resizeObserver = new ResizeObserver(() => {
+        mapRef.current?.getMap().resize();
+    });
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, []);
+
   const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
   const mapMarkerBgColors: { [key: string]: string } = {
     'storia': 'bg-sky-700', 'arte': 'bg-amber-600', 'societa': 'bg-red-700',
@@ -93,26 +106,23 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
 
               <div>
                 <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Mappa dell'Itinerario</h3>
-                <div className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
+                <div ref={mapContainerRef} className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
                   <ReactMapGL
+                    ref={mapRef}
                     mapLib={maplibregl}
                     initialViewState={{ longitude: 9.189982, latitude: 45.464204, zoom: 12 }}
                     style={{ width: '100%', height: '100%' }}
                     mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
                     onLoad={event => {
                       const map = event.target;
-                      // The map needs to be resized after the modal animation completes.
-                      setTimeout(() => {
-                        map.resize();
-                        if (poisInItinerary.length > 0) {
-                          const firstCoords = getPoiCentroid(poisInItinerary[0]);
-                          const bounds = poisInItinerary.reduce((b, p) => {
-                            const coords = getPoiCentroid(p);
-                            return b.extend([coords.longitude, coords.latitude]);
-                          }, new maplibregl.LngLatBounds([firstCoords.longitude, firstCoords.latitude], [firstCoords.longitude, firstCoords.latitude]));
-                          map.fitBounds(bounds, { padding: 50, duration: 0 });
-                        }
-                      }, 350); // Animation is 300ms
+                      if (poisInItinerary.length > 0) {
+                        const firstCoords = getPoiCentroid(poisInItinerary[0]);
+                        const bounds = poisInItinerary.reduce((b, p) => {
+                          const coords = getPoiCentroid(p);
+                          return b.extend([coords.longitude, coords.latitude]);
+                        }, new maplibregl.LngLatBounds([firstCoords.longitude, firstCoords.latitude], [firstCoords.longitude, firstCoords.latitude]));
+                        map.fitBounds(bounds, { padding: 50, duration: 0 });
+                      }
                     }}
                   >
                     {poisInItinerary.map(poi => {

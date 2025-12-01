@@ -22,12 +22,23 @@ interface MapSelectorProps {
 const MapSelector: React.FC<MapSelectorProps> = ({ type, coordinates, setCoordinates, userLocation }) => {
   const mapRef = useRef<MapRef>(null);
   const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
+  const mapContainerRef = useRef<HTMLDivElement>(null);
 
   const [viewState, setViewState] = useState({
     longitude: userLocation?.longitude || 9.189982,
     latitude: userLocation?.latitude || 45.464204,
     zoom: userLocation ? 15 : 12,
   });
+
+  useEffect(() => {
+    const container = mapContainerRef.current;
+    if (!container) return;
+    const resizeObserver = new ResizeObserver(() => {
+        mapRef.current?.getMap().resize();
+    });
+    resizeObserver.observe(container);
+    return () => resizeObserver.disconnect();
+  }, []);
 
   useEffect(() => {
     if (userLocation && mapRef.current) {
@@ -54,16 +65,11 @@ const MapSelector: React.FC<MapSelectorProps> = ({ type, coordinates, setCoordin
   const areaGeoJSON: any = { type: 'Feature', geometry: { type: 'Polygon', coordinates: [coordinates.map(c => [c.longitude, c.latitude])] }};
 
   return (
-    <div className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
+    <div ref={mapContainerRef} className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
       <ReactMapGL
         ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
-        onLoad={() => {
-          setTimeout(() => {
-            mapRef.current?.getMap().resize();
-          }, 350); // Increased delay to account for modal animation (300ms)
-        }}
         style={{ width: '100%', height: '100%' }}
         mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
         onClick={handleClick}
