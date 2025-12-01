@@ -116,15 +116,15 @@ const categoryColors: { [key: string]: { selected: string; unselected: string; r
 };
 const defaultColors = { selected: 'bg-gray-600 text-white', unselected: 'text-gray-600 border border-gray-600 bg-transparent', ring: 'focus:ring-gray-500' };
 
-// Color mapping for map pins
-const mapPinColors: { [key: string]: string } = {
-  'storia': 'text-sky-700',
-  'arte': 'text-amber-600',
-  'societa': 'text-red-700',
-  'cinema': 'text-emerald-600',
-  'musica': 'text-indigo-600',
+// Color mapping for map markers
+const mapMarkerBgColors: { [key: string]: string } = {
+  'storia': 'bg-sky-700',
+  'arte': 'bg-amber-600',
+  'societa': 'bg-red-700',
+  'cinema': 'bg-emerald-600',
+  'musica': 'bg-indigo-600',
 };
-const defaultPinColor = 'text-[#B1352E]';
+const defaultMarkerBgColor = 'bg-[#B1352E]';
 
 const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, periods }) => {
   const { data: userLocation, loading, error } = useGeolocation();
@@ -252,16 +252,18 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
           )}
 
           {filteredAndSortedPoints.map(point => {
-            const pinColor = mapPinColors[point.categoryId] || defaultPinColor;
+            const markerBg = mapMarkerBgColors[point.categoryId] || defaultMarkerBgColor;
             return (
               <Marker
                 key={point.id}
                 longitude={point.coordinates.longitude}
                 latitude={point.coordinates.latitude}
-                anchor="bottom"
+                anchor="center"
               >
                 <div onClick={() => onSelectPoint(point)} className="cursor-pointer">
-                  <MapPinIcon className={`w-8 h-8 ${pinColor} drop-shadow-lg hover:scale-110 transition-transform`} />
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} shadow-lg ring-2 ring-white/75 hover:scale-110 transition-transform duration-150 ease-in-out`}>
+                    <CategoryIcon categoryId={point.categoryId} className="w-5 h-5 text-white" />
+                  </div>
                 </div>
               </Marker>
             );
@@ -284,9 +286,10 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
               <button 
                 key={category.id}
                 onClick={() => handleCategoryClick(category.id)}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#EDE5D0] ${buttonClasses} ${colors.ring}`}
+                className={`inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#EDE5D0] ${buttonClasses} ${colors.ring}`}
               >
-                {category.name}
+                <CategoryIcon categoryId={category.id} className="w-4 h-4" />
+                <span>{category.name}</span>
               </button>
             );
           })}

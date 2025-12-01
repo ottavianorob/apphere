@@ -10,6 +10,7 @@ import CalendarIcon from './icons/CalendarIcon';
 import MapPinIcon from './icons/MapPinIcon';
 import ChevronLeftIcon from './icons/ChevronLeftIcon';
 import ChevronRightIcon from './icons/ChevronRightIcon';
+import CategoryIcon from './icons/CategoryIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -69,15 +70,15 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose, cat
   const defaultPillColor = 'bg-gray-600 text-white';
   const categoryColorClass = category ? categoryPillColors[category.id] : defaultPillColor;
 
-  const mapPinColors: { [key: string]: string } = {
-    'storia': 'text-sky-700',
-    'arte': 'text-amber-600',
-    'societa': 'text-red-700',
-    'cinema': 'bg-emerald-600 text-white',
-    'musica': 'text-indigo-600',
+  const mapMarkerBgColors: { [key: string]: string } = {
+    'storia': 'bg-sky-700',
+    'arte': 'bg-amber-600',
+    'societa': 'bg-red-700',
+    'cinema': 'bg-emerald-600',
+    'musica': 'bg-indigo-600',
   };
-  const defaultPinColor = 'text-[#B1352E]';
-  const pinColor = mapPinColors[point.categoryId] || defaultPinColor;
+  const defaultMarkerBgColor = 'bg-[#B1352E]';
+  const markerBg = mapMarkerBgColors[point.categoryId] || defaultMarkerBgColor;
 
 
   useEffect(() => {
@@ -161,8 +162,9 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose, cat
           <div className="mt-6 space-y-6">
             {category && (
               <div>
-                <span className={`inline-block px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}>
-                  {category.name}
+                <span className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}>
+                  <CategoryIcon categoryId={category.id} className="w-4 h-4" />
+                  <span>{category.name}</span>
                 </span>
               </div>
             )}
@@ -226,9 +228,11 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose, cat
                   <Marker
                     longitude={point.coordinates.longitude}
                     latitude={point.coordinates.latitude}
-                    anchor="bottom"
+                    anchor="center"
                   >
-                    <MapPinIcon className={`w-8 h-8 ${pinColor} drop-shadow-lg`} />
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} shadow-lg ring-2 ring-white/75`}>
+                      <CategoryIcon categoryId={point.categoryId} className="w-5 h-5 text-white" />
+                    </div>
                   </Marker>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
                 </ReactMapGL>
