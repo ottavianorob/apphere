@@ -22,7 +22,7 @@ const SearchView: React.FC<SearchViewProps> = ({ allPois, categories, periods, o
         poi.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
         poi.description.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(poi.categoryId);
+      const categoryMatch = selectedCategories.length === 0 || poi.categoryIds.some(id => selectedCategories.includes(id));
       const periodMatch = selectedPeriods.length === 0 || selectedPeriods.includes(poi.periodId);
 
       return searchMatch && categoryMatch && periodMatch;
@@ -92,7 +92,7 @@ const SearchView: React.FC<SearchViewProps> = ({ allPois, categories, periods, o
               key={poi.id}
               poi={poi}
               onSelect={() => onSelectPoi(poi)}
-              categoryName={categoryMap.get(poi.categoryId)}
+              categoryName={poi.categoryIds.length > 0 ? categoryMap.get(poi.categoryIds[0]) : undefined}
             />
           ))
         ) : (

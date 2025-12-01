@@ -42,7 +42,7 @@ export interface Point {
   author: string;
   coordinates: Coordinates;
   periodId: string;
-  categoryId: string;
+  categoryIds: string[];
   title: string;
   location: string;
   eventDate: string;
@@ -59,7 +59,7 @@ export interface Path {
   author: string;
   pathCoordinates: Coordinates[];
   periodId: string;
-  categoryId: string;
+  categoryIds: string[];
   title: string;
   location: string;
   eventDate: string;
@@ -80,7 +80,7 @@ export interface Area {
   creationDate: string;
   author: string;
   periodId: string;
-  categoryId: string;
+  categoryIds: string[];
   photos: Photo[];
   linkedCharacterIds: string[];
   tags?: string[];

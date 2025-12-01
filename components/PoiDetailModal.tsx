@@ -67,20 +67,19 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
   };
   
   const mapsUrl = getDirectionsUrl();
-  const category = categories.find(c => c.id === poi.categoryId);
   const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
 
   const categoryPillColors: { [key: string]: string } = {
     'storia': 'bg-sky-700 text-white', 'arte': 'bg-amber-600 text-white', 'societa': 'bg-red-700 text-white',
     'cinema': 'bg-emerald-600 text-white', 'musica': 'bg-indigo-600 text-white',
   };
-  const categoryColorClass = category ? categoryPillColors[category.id] : 'bg-gray-600 text-white';
-
+  
+  const primaryCategoryId = poi.categoryIds[0];
   const mapMarkerBgColors: { [key: string]: string } = {
     'storia': 'bg-sky-700', 'arte': 'bg-amber-600', 'societa': 'bg-red-700',
     'cinema': 'bg-emerald-600', 'musica': 'bg-indigo-600',
   };
-  const markerBg = mapMarkerBgColors[poi.categoryId] || 'bg-[#B1352E]';
+  const markerBg = mapMarkerBgColors[primaryCategoryId] || 'bg-[#B1352E]';
 
   const mapContent = useMemo(() => {
     const markerCoords = getMarkerCoordinates();
@@ -116,7 +115,7 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
                 </Source>
                 <Marker longitude={markerCoords.longitude} latitude={markerCoords.latitude} anchor="center">
                     <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75`}>
-                        <CategoryIcon categoryId={poi.categoryId} className="w-5 h-5 text-white" />
+                        <CategoryIcon categoryId={primaryCategoryId} className="w-5 h-5 text-white" />
                     </div>
                 </Marker>
             </>
@@ -127,12 +126,12 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
     return (
         <Marker longitude={markerCoords.longitude} latitude={markerCoords.latitude} anchor="center">
             <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75`}>
-                <CategoryIcon categoryId={poi.categoryId} className="w-5 h-5 text-white" />
+                <CategoryIcon categoryId={primaryCategoryId} className="w-5 h-5 text-white" />
             </div>
         </Marker>
     );
 
-  }, [poi, markerBg]);
+  }, [poi, markerBg, primaryCategoryId]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => event.key === 'Escape' && onClose();
@@ -167,7 +166,19 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
               <div className="flex items-center gap-2"><MapPinIcon className="w-4 h-4 flex-shrink-0 text-gray-500" /><span>{poi.location}</span></div>
             </div>
             <div className="mt-6 space-y-6">
-              {category && <div><span className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}><CategoryIcon categoryId={category.id} className="w-4 h-4" /><span>{category.name}</span></span></div>}
+              <div className="flex flex-wrap gap-2">
+                {poi.categoryIds.map(catId => {
+                  const category = categories.find(c => c.id === catId);
+                  if (!category) return null;
+                  const categoryColorClass = categoryPillColors[category.id] || 'bg-gray-600 text-white';
+                  return (
+                    <span key={catId} className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}>
+                      <CategoryIcon categoryId={category.id} className="w-4 h-4" />
+                      <span>{category.name}</span>
+                    </span>
+                  );
+                })}
+              </div>
               <p className="italic text-[#2D3748] whitespace-pre-wrap leading-relaxed text-lg first-letter:text-5xl first-letter:font-normal first-letter:text-[#134A79] first-letter:mr-3 first-letter:float-left">{poi.description}</p>
               
               {linkedCharacters.length > 0 && (

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import ReactMapGL, { Marker, Source, Layer, MapRef } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { Poi, Category, Period, Character as CharacterType, Coordinates, Point, Path, Area } from '../types';
@@ -78,23 +78,64 @@ interface AddPoiModalProps {
   characters: CharacterType[];
 }
 
+const getPeriodIdFromYear = (year: number): string | null => {
+    if (year <= 1870) return 'risorgimento';
+    if (year >= 1871 && year <= 1914) return 'belleepoque';
+    if (year >= 1919 && year <= 1922) return 'primog dopoguerra';
+    if (year >= 1943 && year <= 1945) return 'resistenza';
+    if (year >= 1946 && year <= 1959) return 'boom';
+    if (year >= 1960 && year <= 1969) return 'anni60';
+    if (year >= 1970 && year <= 1989) return 'anni70';
+    if (year >= 1990 && year <= 1999) return 'anni90';
+    return null;
+};
+
+const extractYear = (dateString: string): number | null => {
+    const match = dateString.match(/\b\d{4}\b/g);
+    if (match) {
+        return parseInt(match[match.length - 1], 10);
+    }
+    return null;
+};
+
 const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, periods, characters }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [location, setLocation] = useState('');
     const [eventDate, setEventDate] = useState('');
     const [type, setType] = useState<'point' | 'path' | 'area'>('point');
-    const [categoryId, setCategoryId] = useState(categories[0]?.id || '');
-    const [periodId, setPeriodId] = useState(periods[0]?.id || '');
+    const [categoryIds, setCategoryIds] = useState<string[]>([]);
     const [coordinates, setCoordinates] = useState<Coordinates[]>([]);
     const [photoDataUrl, setPhotoDataUrl] = useState('');
     const [photoCaption, setPhotoCaption] = useState('');
     const [tagsText, setTagsText] = useState('');
     const [linkedCharacterIds, setLinkedCharacterIds] = useState<string[]>([]);
+
+    const derivedLocation = useMemo(() => {
+        if (coordinates.length > 0) {
+            const c = coordinates[0];
+            return `Lat: ${c.latitude.toFixed(4)}, Lon: ${c.longitude.toFixed(4)}`;
+        }
+        return 'Seleziona un punto sulla mappa';
+    }, [coordinates]);
+    
+    const derivedPeriodId = useMemo(() => {
+        const year = extractYear(eventDate);
+        return year ? getPeriodIdFromYear(year) : null;
+    }, [eventDate]);
+
+    const derivedPeriod = useMemo(() => {
+        return derivedPeriodId ? periods.find(p => p.id === derivedPeriodId) : null;
+    }, [derivedPeriodId, periods]);
     
     const handleToggleCharacter = (charId: string) => {
       setLinkedCharacterIds(prev =>
         prev.includes(charId) ? prev.filter(id => id !== charId) : [...prev, charId]
+      );
+    };
+
+    const handleToggleCategory = (catId: string) => {
+      setCategoryIds(prev =>
+        prev.includes(catId) ? prev.filter(id => id !== catId) : [...prev, catId]
       );
     };
 
@@ -116,21 +157,19 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     };
 
     const handleSubmit = () => {
-      // Basic validation
-      if (!title || !description || !location || !eventDate || !categoryId || !periodId || coordinates.length === 0) {
-          alert('Per favore, compila tutti i campi obbligatori e definisci la posizione sulla mappa.');
+      if (!title || !description || !eventDate || categoryIds.length === 0 || coordinates.length === 0 || !derivedPeriodId) {
+          alert('Per favore, compila tutti i campi obbligatori (*).');
           return;
       }
       if(type === 'point' && coordinates.length !== 1) { alert('Un "Punto" deve avere una sola coordinata.'); return; }
       if(type === 'path' && coordinates.length < 2) { alert('Un "Percorso" deve avere almeno due coordinate.'); return; }
       if(type === 'area' && coordinates.length < 3) { alert('Un\' "Area" deve avere almeno tre coordinate.'); return; }
 
-
       const tags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
       const photos = photoDataUrl ? [{ id: `new_photo_${Date.now()}`, url: photoDataUrl, caption: photoCaption }] : [];
       
       let newPoi: Omit<Poi, 'id' | 'creationDate' | 'author'>;
-      const commonData = { title, description, location, eventDate, periodId, categoryId, photos, linkedCharacterIds, tags };
+      const commonData = { title, description, location: derivedLocation, eventDate, periodId: derivedPeriodId, categoryIds, photos, linkedCharacterIds, tags };
 
       if (type === 'point') {
         const pointPoi: Omit<Point, 'id' | 'creationDate' | 'author'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
@@ -174,16 +213,6 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                       <label htmlFor="poi-desc" className={labelStyle}>Descrizione *</label>
                       <textarea id="poi-desc" value={description} onChange={e => setDescription(e.target.value)} className={`${inputStyle} h-24`} required/>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     <div>
-                        <label htmlFor="poi-location" className={labelStyle}>Luogo (es. Città) *</label>
-                        <input id="poi-location" type="text" value={location} onChange={e => setLocation(e.target.value)} className={inputStyle} required/>
-                    </div>
-                     <div>
-                        <label htmlFor="poi-date" className={labelStyle}>Data Evento *</label>
-                        <input id="poi-date" type="text" value={eventDate} onChange={e => setEventDate(e.target.value)} className={inputStyle} required/>
-                    </div>
-                  </div>
                   <div>
                       <label className={labelStyle}>Tipologia *</label>
                       <div className="flex gap-4 font-sans-display">
@@ -204,17 +233,27 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                         <button onClick={() => setCoordinates([])} className="text-xs font-sans-display px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-md">Pulisci</button>
                       </div>
                   </div>
-                   <div className="grid grid-cols-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <div>
+                        <label htmlFor="poi-location" className={labelStyle}>Luogo (automatico) *</label>
+                        <input id="poi-location" type="text" value={derivedLocation} className={`${inputStyle} bg-gray-100/50`} disabled readOnly/>
+                    </div>
+                     <div>
+                        <label htmlFor="poi-date" className={labelStyle}>Data Evento *</label>
+                        <input id="poi-date" type="text" value={eventDate} onChange={e => setEventDate(e.target.value)} className={inputStyle} required placeholder="Es. 28 aprile 1945"/>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1">
                       <div>
-                        <label className={labelStyle}>Categoria *</label>
+                        <label className={labelStyle}>Categoria/e *</label>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                            {categories.map(c => {
                                 const colors = categoryColors[c.id] || defaultColors;
-                                const isSelected = categoryId === c.id;
+                                const isSelected = categoryIds.includes(c.id);
                                 return (
                                 <button
                                     key={c.id}
-                                    onClick={() => setCategoryId(c.id)}
+                                    onClick={() => handleToggleCategory(c.id)}
                                     className={`inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#FAF7F0] ${isSelected ? colors.selected : colors.unselected} ${colors.ring}`}
                                 >
                                     <CategoryIcon categoryId={c.id} className="w-4 h-4" />
@@ -226,10 +265,10 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                     </div>
                   </div>
                   <div>
-                     <label htmlFor="poi-period" className={labelStyle}>Periodo Storico *</label>
-                     <select id="poi-period" value={periodId} onChange={e => setPeriodId(e.target.value)} className={inputStyle}>
-                         {periods.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                     </select>
+                     <label className={labelStyle}>Periodo Storico (automatico) *</label>
+                     <div className="w-full px-3 py-2 border border-gray-300 bg-gray-100/50 min-h-[42px] flex items-center font-sans-display">
+                        {derivedPeriod ? derivedPeriod.name : <span className="text-gray-500">Inserisci una data valida per l'evento</span>}
+                    </div>
                   </div>
                   <div>
                       <label className={labelStyle}>Foto Principale</label>

@@ -25,6 +25,7 @@ interface PoiListItemProps {
 }
 
 const PoiListItem: React.FC<PoiListItemProps> = ({ poi, distance, onSelect, categoryName }) => {
+  const primaryCategoryId = poi.categoryIds[0];
   const categoryPillColors: { [key: string]: string } = {
     'storia':   'bg-sky-700 text-white',
     'arte':     'bg-amber-600 text-white',
@@ -33,7 +34,7 @@ const PoiListItem: React.FC<PoiListItemProps> = ({ poi, distance, onSelect, cate
     'musica':   'bg-indigo-600 text-white',
   };
   const defaultPillColor = 'bg-gray-600 text-white';
-  const categoryColorClass = categoryPillColors[poi.categoryId] || defaultPillColor;
+  const categoryColorClass = categoryPillColors[primaryCategoryId] || defaultPillColor;
 
   return (
     <div
@@ -72,7 +73,7 @@ const PoiListItem: React.FC<PoiListItemProps> = ({ poi, distance, onSelect, cate
         <div className="flex items-center gap-4 mb-1">
           {categoryName && (
             <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}>
-              <CategoryIcon categoryId={poi.categoryId} className="w-3.5 h-3.5" />
+              <CategoryIcon categoryId={primaryCategoryId} className="w-3.5 h-3.5" />
               <span>{categoryName}</span>
             </span>
           )}
