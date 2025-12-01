@@ -67,6 +67,7 @@ const MapSelector: React.FC<MapSelectorProps> = ({ type, coordinates, setCoordin
   return (
     <div ref={mapContainerRef} className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
       <ReactMapGL
+        mapLib={maplibregl}
         ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}

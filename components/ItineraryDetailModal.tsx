@@ -96,7 +96,7 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
                   <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Tags</h3>
                   <div className="flex flex-wrap gap-2">
                     {itinerary.tags.map(tag => (
-                      <button key={tag} onClick={() => onSelectTag(tag)} className="bg-gray-500/10 text-gray-600 px-3 py-1 text-sm font-sans-display font-semibold hover:bg-gray-500/20 transition-colors">
+                      <button key={tag} onClick={() => onSelectTag(tag)} className="bg-gray-500/10 text-gray-600 px-3 py-1 text-xs tracking-wide font-sans-display font-semibold hover:bg-gray-500/20 transition-colors">
                         #{tag.toUpperCase().replace(/\s+/g, '')}
                       </button>
                     ))}

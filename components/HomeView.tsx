@@ -86,7 +86,7 @@ const HomeView: React.FC<HomeViewProps> = ({ allPois, allItineraries, allUsers, 
               key={poi.id}
               poi={poi}
               onSelect={() => onSelectPoi(poi)}
-              categoryName={categoryMap.get(poi.categoryId)}
+              categoryName={poi.categoryIds.length > 0 ? categoryMap.get(poi.categoryIds[0]) : undefined}
             />
           ))}
         </div>
@@ -100,7 +100,7 @@ const HomeView: React.FC<HomeViewProps> = ({ allPois, allItineraries, allUsers, 
             <button 
               key={tag} 
               onClick={() => onSelectTag(tag)}
-              className="bg-gray-500/10 text-gray-600 px-3 py-1 text-sm font-sans-display font-semibold hover:bg-gray-500/20 transition-colors"
+              className="bg-gray-500/10 text-gray-600 px-3 py-1 text-xs tracking-wide font-sans-display font-semibold hover:bg-gray-500/20 transition-colors"
             >
               #{tag.toUpperCase().replace(/\s+/g, '')}
             </button>
