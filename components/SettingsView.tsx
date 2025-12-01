@@ -5,8 +5,8 @@ const SettingsView: React.FC = () => {
 
   return (
     <div>
-        <header className="mb-8 border-b-2 border-black pb-4 text-center">
-          <h1 className="font-sans-display text-4xl sm:text-5xl font-bold text-[#1C1C1C]">Impostazioni</h1>
+        <header className="mb-8 border-b-2 border-[#2D3748] pb-4 text-center">
+          <h1 className="font-sans-display text-4xl sm:text-5xl font-bold text-[#2D3748]">Impostazioni</h1>
         </header>
       
       <div className="space-y-8 max-w-2xl mx-auto font-sans-display">
@@ -18,7 +18,7 @@ const SettingsView: React.FC = () => {
             {categories.map(category => (
               <label key={category.id} className="flex items-center">
                 <input type="checkbox" className="h-4 w-4 rounded-sm bg-white/50 border-gray-400 text-[#134A79] focus:ring-[#134A79]" />
-                <span className="ml-3 text-[#1C1C1C]">{category.name}</span>
+                <span className="ml-3 text-[#2D3748]">{category.name}</span>
               </label>
             ))}
           </div>

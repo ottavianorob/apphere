@@ -99,7 +99,7 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose, cat
       onClick={onClose}
     >
       <div
-        className="bg-[#EDE5D0] rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10"
+        className="bg-[#FAF7F0] rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative flex-shrink-0 group">
@@ -169,7 +169,7 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose, cat
               </div>
             )}
 
-            <p className="italic text-[#1C1C1C] whitespace-pre-wrap leading-relaxed text-lg">{point.description}</p>
+            <p className="italic text-[#2D3748] whitespace-pre-wrap leading-relaxed text-lg">{point.description}</p>
 
             {linkedCharacters.length > 0 && (
               <div>
@@ -244,7 +244,7 @@ const PointDetailModal: React.FC<PointDetailModalProps> = ({ point, onClose, cat
                 href={mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 bg-[#134A79] text-white font-sans-display font-bold rounded-lg shadow-md hover:bg-[#103a60] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#EDE5D0] focus:ring-[#134A79] transition-all duration-200"
+                className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 bg-[#134A79] text-white font-sans-display font-bold rounded-lg shadow-md hover:bg-[#103a60] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#FAF7F0] focus:ring-[#134A79] transition-all duration-200"
               >
                 <NavigationIcon className="w-5 h-5 mr-2" />
                 <span>Indicazioni</span>

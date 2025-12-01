@@ -218,8 +218,8 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
 
   return (
     <div>
-      <header className="mb-8 border-b-2 border-black pb-4 text-center">
-        <h1 className="font-sans-display text-4xl sm:text-5xl font-bold text-[#1C1C1C] tracking-tighter">Cosa è successo qui?</h1>
+      <header className="mb-8 border-b-2 border-[#2D3748] pb-4 text-center">
+        <h1 className="font-sans-display text-4xl sm:text-5xl font-bold text-[#2D3748] tracking-tighter">Cosa è successo qui?</h1>
         <p className="font-serif-display italic text-lg text-gray-700 mt-2">{capitalizedDate}</p>
         {loading && <p className="font-sans-display text-[#134A79] text-sm mt-2">Acquisizione della posizione in corso...</p>}
         {error && <p className="font-sans-display text-[#B1352E] text-sm mt-2">Impossibile ottenere la posizione: {error.message}</p>}
@@ -296,7 +296,7 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
               <button 
                 key={category.id}
                 onClick={() => handleCategoryClick(category.id)}
-                className={`inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#EDE5D0] ${buttonClasses} ${colors.ring}`}
+                className={`inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#FAF7F0] ${buttonClasses} ${colors.ring}`}
               >
                 <CategoryIcon categoryId={category.id} className="w-4 h-4" />
                 <span>{category.name}</span>

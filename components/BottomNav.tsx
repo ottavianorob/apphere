@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { View } from '../App';
 import MapPinIcon from './icons/MapPinIcon';
@@ -17,7 +16,7 @@ const NavItem: React.FC<{
   onClick: () => void;
 }> = ({ label, icon, isActive, onClick }) => {
   const activeClasses = 'text-[#134A79]';
-  const inactiveClasses = 'text-gray-500 hover:text-[#1C1C1C]';
+  const inactiveClasses = 'text-gray-500 hover:text-[#2D3748]';
   
   return (
     <button
@@ -32,7 +31,7 @@ const NavItem: React.FC<{
 
 const BottomNav: React.FC<BottomNavProps> = ({ currentView, setCurrentView }) => {
   return (
-    <footer className="fixed bottom-0 left-0 right-0 h-20 bg-[#EDE5D0]/80 backdrop-blur-sm border-t border-gray-300 z-50">
+    <footer className="fixed bottom-0 left-0 right-0 h-20 bg-[#FAF7F0]/80 backdrop-blur-sm border-t border-gray-300 z-50">
       <nav className="flex items-center justify-around h-full max-w-lg mx-auto">
         <NavItem
           label="Mappa"

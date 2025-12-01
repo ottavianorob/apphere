@@ -27,7 +27,7 @@ const ItineraryCard: React.FC<{ itinerary: Itinerary, points: Point[], onSelectP
               className="flex items-start gap-4 p-3 group hover:bg-black/5 cursor-pointer transition-colors"
               onClick={() => onSelectPoint(point)}
             >
-              <div className="flex-shrink-0 bg-[#1C1C1C] text-[#EDE5D0] rounded-full h-8 w-8 flex items-center justify-center font-bold font-sans-display">
+              <div className="flex-shrink-0 bg-[#2D3748] text-[#FAF7F0] rounded-full h-8 w-8 flex items-center justify-center font-bold font-sans-display">
                 {index + 1}
               </div>
               <div>
@@ -47,8 +47,8 @@ const ItinerariesView: React.FC<ItinerariesViewProps> = ({ itineraries, onSelect
 
   return (
     <div>
-       <header className="mb-8 border-b-2 border-black pb-4 text-center">
-        <h1 className="font-sans-display text-4xl sm:text-5xl font-bold text-[#1C1C1C]">Itinerari Tematici</h1>
+       <header className="mb-8 border-b-2 border-[#2D3748] pb-4 text-center">
+        <h1 className="font-sans-display text-4xl sm:text-5xl font-bold text-[#2D3748]">Itinerari Tematici</h1>
       </header>
       <div>
         {itineraries.map(itinerary => (
