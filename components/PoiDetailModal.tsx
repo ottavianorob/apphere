@@ -170,7 +170,7 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
                 <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Personaggi Collegati</h3>
                 <div className="space-y-3">{linkedCharacters.map(char => (
                   <button key={char.id} onClick={() => onSelectCharacter(char.id)} className="flex items-center p-2 rounded-lg hover:bg-[#134A79]/10 transition-colors text-left w-full">
-                    {char.profileImageUrl && <img src={char.profileImageUrl} alt={char.name} className="w-10 h-10 rounded-full object-cover mr-4 border-2 border-white/50" />}
+                    {char.photos.length > 0 && <img src={char.photos[0].url} alt={char.name} className="w-10 h-10 rounded-full object-cover mr-4 border-2 border-white/50" />}
                     <span className="font-sans-display text-[#134A79] text-base font-semibold">{char.name}</span>
                   </button>
                 ))}</div>

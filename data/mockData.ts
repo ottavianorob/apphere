@@ -17,10 +17,45 @@ export const periods: Period[] = [
 ];
 
 export const characters: Character[] = [
-  { id: 'pertini', name: 'Sandro Pertini', description: 'Partigiano e 7º Presidente della Repubblica Italiana', wikipediaUrl: 'https://it.wikipedia.org/wiki/Sandro_Pertini', profileImageUrl: 'https://picsum.photos/seed/pertini_char/100/100' },
-  { id: 'leonardo', name: 'Leonardo da Vinci', description: 'Artista e inventore del Rinascimento', wikipediaUrl: 'https://it.wikipedia.org/wiki/Leonardo_da_Vinci', profileImageUrl: 'https://picsum.photos/seed/leonardo_char/100/100' },
-  { id: 'visconti', name: 'Luchino Visconti', description: 'Regista, sceneggiatore e scrittore', wikipediaUrl: 'https://it.wikipedia.org/wiki/Luchino_Visconti', profileImageUrl: 'https://picsum.photos/seed/visconti_char/100/100' },
-  { id: 'toscanini', name: 'Arturo Toscanini', description: 'Direttore d\'orchestra di fama mondiale', wikipediaUrl: 'https://it.wikipedia.org/wiki/Arturo_Toscanini', profileImageUrl: 'https://picsum.photos/seed/toscanini_char/100/100' },
+  { 
+    id: 'pertini', 
+    name: 'Sandro Pertini', 
+    description: 'Partigiano e 7º Presidente della Repubblica Italiana', 
+    wikipediaUrl: 'https://it.wikipedia.org/wiki/Sandro_Pertini', 
+    photos: [
+      { id: 'ph_pertini_1', url: 'https://picsum.photos/seed/pertini_char/800/600', caption: 'Ritratto di Sandro Pertini' },
+      { id: 'ph_pertini_2', url: 'https://picsum.photos/seed/pertini_char_2/800/600', caption: 'Sandro Pertini durante un discorso pubblico' }
+    ] 
+  },
+  { 
+    id: 'leonardo', 
+    name: 'Leonardo da Vinci', 
+    description: 'Artista e inventore del Rinascimento', 
+    wikipediaUrl: 'https://it.wikipedia.org/wiki/Leonardo_da_Vinci', 
+    photos: [
+      { id: 'ph_leonardo_1', url: 'https://picsum.photos/seed/leonardo_char/800/600', caption: 'Autoritratto di Leonardo da Vinci' }
+    ] 
+  },
+  { 
+    id: 'visconti', 
+    name: 'Luchino Visconti', 
+    description: 'Regista, sceneggiatore e scrittore', 
+    wikipediaUrl: 'https://it.wikipedia.org/wiki/Luchino_Visconti', 
+    photos: [
+      { id: 'ph_visconti_1', url: 'https://picsum.photos/seed/visconti_char/800/600', caption: 'Luchino Visconti sul set' }
+    ] 
+  },
+  { 
+    id: 'toscanini', 
+    name: 'Arturo Toscanini', 
+    description: 'Direttore d\'orchestra di fama mondiale', 
+    wikipediaUrl: 'https://it.wikipedia.org/wiki/Arturo_Toscanini', 
+    photos: [
+      { id: 'ph_toscanini_1', url: 'https://picsum.photos/seed/toscanini_char/800/600', caption: 'Arturo Toscanini dirige l\'orchestra' },
+      { id: 'ph_toscanini_2', url: 'https://picsum.photos/seed/toscanini_char_2/800/600', caption: 'Un primo piano di Toscanini' },
+      { id: 'ph_toscanini_3', url: 'https://picsum.photos/seed/toscanini_char_3/800/600', caption: 'Toscanini durante le prove' }
+    ] 
+  },
 ];
 
 export const points: Point[] = [

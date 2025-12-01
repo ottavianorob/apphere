@@ -90,6 +90,7 @@ const App: React.FC = () => {
         <CharacterDetailModal
           character={selectedCharacter}
           allPois={allPois}
+          categories={categories}
           onClose={() => setSelectedCharacter(null)}
           onSelectPoi={setSelectedPoi}
         />

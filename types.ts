@@ -19,7 +19,7 @@ export interface Character {
   name: string;
   description: string;
   wikipediaUrl: string;
-  profileImageUrl?: string;
+  photos: Photo[];
 }
 
 export interface Photo {
