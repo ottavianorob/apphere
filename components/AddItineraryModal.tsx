@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Itinerary, Poi, Photo } from '../types';
 import CloseIcon from './icons/CloseIcon';
+import CameraIcon from './icons/CameraIcon';
 
 interface AddItineraryModalProps {
   onClose: () => void;
@@ -11,7 +12,7 @@ interface AddItineraryModalProps {
 const AddItineraryModal: React.FC<AddItineraryModalProps> = ({ onClose, onSave, allPois }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [coverPhotoUrl, setCoverPhotoUrl] = useState('');
+    const [coverPhotoDataUrl, setCoverPhotoDataUrl] = useState('');
     const [tagsText, setTagsText] = useState('');
     const [selectedPois, setSelectedPois] = useState<Poi[]>([]);
     const [draggedItem, setDraggedItem] = useState<Poi | null>(null);
@@ -34,6 +35,23 @@ const AddItineraryModal: React.FC<AddItineraryModalProps> = ({ onClose, onSave, 
       if (minutes > 0) durationString += ` ${minutes} min`;
       return durationString.trim();
     }, [selectedPois]);
+    
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                alert('Il file è troppo grande. La dimensione massima è 2MB.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCoverPhotoDataUrl(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setCoverPhotoDataUrl('');
+        }
+    };
 
     const handleAddPoi = (poi: Poi) => {
         setSelectedPois(prev => [...prev, poi]);
@@ -66,7 +84,7 @@ const AddItineraryModal: React.FC<AddItineraryModalProps> = ({ onClose, onSave, 
     };
 
     const handleSubmit = () => {
-        if (!title || !description || selectedPois.length === 0 || !coverPhotoUrl) {
+        if (!title || !description || selectedPois.length === 0 || !coverPhotoDataUrl) {
             alert('Per favore, compila tutti i campi e seleziona almeno una tappa.');
             return;
         }
@@ -74,7 +92,7 @@ const AddItineraryModal: React.FC<AddItineraryModalProps> = ({ onClose, onSave, 
         const tags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
         const coverPhoto: Photo = {
             id: `new_cover_${Date.now()}`,
-            url: coverPhotoUrl,
+            url: coverPhotoDataUrl,
             caption: `Copertina per ${title}`
         };
 
@@ -114,9 +132,28 @@ const AddItineraryModal: React.FC<AddItineraryModalProps> = ({ onClose, onSave, 
                         <label className={labelStyle}>Durata Stimata</label>
                         <p className="font-sans-display font-bold text-lg text-[#134A79] h-10 flex items-center">{estimatedDuration}</p>
                     </div>
-                     <div>
-                        <label htmlFor="it-cover" className={labelStyle}>URL Foto Copertina *</label>
-                        <input id="it-cover" type="url" value={coverPhotoUrl} onChange={e => setCoverPhotoUrl(e.target.value)} className={inputStyle} required placeholder="https://..."/>
+                    <div>
+                        <label className={labelStyle}>Foto Copertina *</label>
+                        <div className="mt-1">
+                            <label htmlFor="it-cover-upload" className="cursor-pointer block w-full h-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors overflow-hidden">
+                                {coverPhotoDataUrl ? (
+                                    <img src={coverPhotoDataUrl} alt="Anteprima" className="w-full h-full object-cover"/>
+                                ) : (
+                                    <div className="text-center">
+                                        <CameraIcon className="w-8 h-8 mx-auto"/>
+                                        <span className="text-xs font-sans-display mt-1 block">Carica una foto</span>
+                                    </div>
+                                )}
+                            </label>
+                            <input id="it-cover-upload" type="file" className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
+                        </div>
+                        {coverPhotoDataUrl && (
+                            <button onClick={() => {
+                                const input = document.getElementById('it-cover-upload') as HTMLInputElement;
+                                if(input) input.value = '';
+                                setCoverPhotoDataUrl('');
+                            }} className="mt-2 text-xs text-red-600 hover:underline font-sans-display">Rimuovi immagine</button>
+                        )}
                     </div>
                   </div>
                   <div>

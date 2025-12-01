@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Character, Photo } from '../types';
 import CloseIcon from './icons/CloseIcon';
+import CameraIcon from './icons/CameraIcon';
 
 interface AddCharacterModalProps {
   onClose: () => void;
@@ -11,8 +12,25 @@ const AddCharacterModal: React.FC<AddCharacterModalProps> = ({ onClose, onSave }
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [wikipediaUrl, setWikipediaUrl] = useState('');
-    const [photoUrl, setPhotoUrl] = useState('');
+    const [photoDataUrl, setPhotoDataUrl] = useState('');
     const [photoCaption, setPhotoCaption] = useState('');
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                alert('Il file è troppo grande. La dimensione massima è 2MB.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPhotoDataUrl(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setPhotoDataUrl('');
+        }
+    };
 
     const handleSubmit = () => {
         if (!name || !description) {
@@ -20,8 +38,8 @@ const AddCharacterModal: React.FC<AddCharacterModalProps> = ({ onClose, onSave }
             return;
         }
         
-        const photos: Photo[] = photoUrl 
-            ? [{ id: `new_photo_${Date.now()}`, url: photoUrl, caption: photoCaption }] 
+        const photos: Photo[] = photoDataUrl 
+            ? [{ id: `new_photo_${Date.now()}`, url: photoDataUrl, caption: photoCaption }] 
             : [];
 
         const newCharacter: Omit<Character, 'id'> = {
@@ -56,15 +74,34 @@ const AddCharacterModal: React.FC<AddCharacterModalProps> = ({ onClose, onSave }
                   <label htmlFor="char-wiki" className={labelStyle}>URL Wikipedia</label>
                   <input id="char-wiki" type="url" value={wikipediaUrl} onChange={e => setWikipediaUrl(e.target.value)} className={inputStyle} placeholder="https://it.wikipedia.org/..."/>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     <div>
-                        <label htmlFor="char-photo-url" className={labelStyle}>URL Foto</label>
-                        <input id="char-photo-url" type="url" value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} className={inputStyle} placeholder="https://..."/>
-                    </div>
-                     <div>
-                        <label htmlFor="char-photo-caption" className={labelStyle}>Didascalia Foto</label>
-                        <input id="char-photo-caption" type="text" value={photoCaption} onChange={e => setPhotoCaption(e.target.value)} className={inputStyle} />
-                    </div>
+               <div>
+                  <label className={labelStyle}>Foto del personaggio</label>
+                  <div className="mt-1 flex items-start gap-4">
+                      <div className="w-32 flex-shrink-0">
+                          <label htmlFor="char-photo-upload" className="cursor-pointer block w-full h-32 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors overflow-hidden">
+                              {photoDataUrl ? (
+                                  <img src={photoDataUrl} alt="Anteprima" className="w-full h-full object-cover"/>
+                              ) : (
+                                  <div className="text-center p-2">
+                                      <CameraIcon className="w-8 h-8 mx-auto"/>
+                                      <span className="text-xs font-sans-display mt-1 block">Carica foto</span>
+                                  </div>
+                              )}
+                          </label>
+                          <input id="char-photo-upload" type="file" className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
+                      </div>
+                      <div className="flex-grow">
+                          <label htmlFor="char-photo-caption" className={labelStyle}>Didascalia Foto</label>
+                          <input id="char-photo-caption" type="text" value={photoCaption} onChange={e => setPhotoCaption(e.target.value)} className={inputStyle} />
+                           {photoDataUrl && (
+                               <button onClick={() => {
+                                   const input = document.getElementById('char-photo-upload') as HTMLInputElement;
+                                   if(input) input.value = '';
+                                   setPhotoDataUrl('');
+                               }} className="mt-2 text-xs text-red-600 hover:underline font-sans-display">Rimuovi immagine</button>
+                          )}
+                      </div>
+                  </div>
               </div>
             </div>
             <footer className="p-4 border-t border-gray-300/80 flex justify-end gap-3">

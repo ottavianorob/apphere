@@ -4,6 +4,7 @@ import maplibregl from 'maplibre-gl';
 import { Poi, Category, Period, Character as CharacterType, Coordinates, Point, Path, Area } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import CategoryIcon from './icons/CategoryIcon';
+import CameraIcon from './icons/CameraIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -86,7 +87,7 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     const [categoryId, setCategoryId] = useState(categories[0]?.id || '');
     const [periodId, setPeriodId] = useState(periods[0]?.id || '');
     const [coordinates, setCoordinates] = useState<Coordinates[]>([]);
-    const [photoUrl, setPhotoUrl] = useState('');
+    const [photoDataUrl, setPhotoDataUrl] = useState('');
     const [photoCaption, setPhotoCaption] = useState('');
     const [tagsText, setTagsText] = useState('');
     const [linkedCharacterIds, setLinkedCharacterIds] = useState<string[]>([]);
@@ -95,6 +96,23 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
       setLinkedCharacterIds(prev =>
         prev.includes(charId) ? prev.filter(id => id !== charId) : [...prev, charId]
       );
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        if (file.size > 2 * 1024 * 1024) { // 2MB limit
+            alert('Il file è troppo grande. La dimensione massima è 2MB.');
+            return;
+        }
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPhotoDataUrl(reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setPhotoDataUrl('');
+      }
     };
 
     const handleSubmit = () => {
@@ -109,7 +127,7 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
 
 
       const tags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
-      const photos = photoUrl ? [{ id: `new_photo_${Date.now()}`, url: photoUrl, caption: photoCaption }] : [];
+      const photos = photoDataUrl ? [{ id: `new_photo_${Date.now()}`, url: photoDataUrl, caption: photoCaption }] : [];
       
       let newPoi: Omit<Poi, 'id' | 'creationDate' | 'author'>;
       const commonData = { title, description, location, eventDate, periodId, categoryId, photos, linkedCharacterIds, tags };
@@ -213,15 +231,34 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                          {periods.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                      </select>
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     <div>
-                        <label htmlFor="poi-photo-url" className={labelStyle}>URL Foto Principale</label>
-                        <input id="poi-photo-url" type="url" value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} className={inputStyle} placeholder="https://..."/>
-                    </div>
-                     <div>
-                        <label htmlFor="poi-photo-caption" className={labelStyle}>Didascalia Foto</label>
-                        <input id="poi-photo-caption" type="text" value={photoCaption} onChange={e => setPhotoCaption(e.target.value)} className={inputStyle} />
-                    </div>
+                  <div>
+                      <label className={labelStyle}>Foto Principale</label>
+                      <div className="mt-1 flex items-start gap-4">
+                          <div className="w-32 flex-shrink-0">
+                              <label htmlFor="poi-photo-upload" className="cursor-pointer block w-full h-32 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors overflow-hidden">
+                                  {photoDataUrl ? (
+                                      <img src={photoDataUrl} alt="Anteprima" className="w-full h-full object-cover"/>
+                                  ) : (
+                                      <div className="text-center p-2">
+                                          <CameraIcon className="w-8 h-8 mx-auto"/>
+                                          <span className="text-xs font-sans-display mt-1 block">Carica foto</span>
+                                      </div>
+                                  )}
+                              </label>
+                              <input id="poi-photo-upload" type="file" className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
+                          </div>
+                          <div className="flex-grow">
+                              <label htmlFor="poi-photo-caption" className={labelStyle}>Didascalia Foto</label>
+                              <input id="poi-photo-caption" type="text" value={photoCaption} onChange={e => setPhotoCaption(e.target.value)} className={inputStyle} />
+                               {photoDataUrl && (
+                                   <button onClick={() => {
+                                       const input = document.getElementById('poi-photo-upload') as HTMLInputElement;
+                                       if(input) input.value = '';
+                                       setPhotoDataUrl('');
+                                   }} className="mt-2 text-xs text-red-600 hover:underline font-sans-display">Rimuovi immagine</button>
+                              )}
+                          </div>
+                      </div>
                   </div>
                    <div>
                       <label htmlFor="poi-tags" className={labelStyle}>Tags</label>
