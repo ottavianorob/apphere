@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react';
-import ReactMapGL, { Marker, Source, Layer, useMap } from 'react-map-gl';
+import React, { useState, useCallback, useRef } from 'react';
+import ReactMapGL, { Marker, Source, Layer, MapRef } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { Poi, Category, Period, Character as CharacterType, Coordinates, Point, Path, Area } from '../types';
 import CloseIcon from './icons/CloseIcon';
@@ -16,6 +16,7 @@ interface MapSelectorProps {
 }
 
 const MapSelector: React.FC<MapSelectorProps> = ({ type, coordinates, setCoordinates }) => {
+  const mapRef = useRef<MapRef>(null);
   const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
 
   const handleClick = useCallback((event: maplibregl.MapLayerMouseEvent) => {
@@ -35,6 +36,12 @@ const MapSelector: React.FC<MapSelectorProps> = ({ type, coordinates, setCoordin
   return (
     <div className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
       <ReactMapGL
+        ref={mapRef}
+        onLoad={() => {
+          setTimeout(() => {
+            mapRef.current?.getMap().resize();
+          }, 100);
+        }}
         initialViewState={{ longitude: 9.189982, latitude: 45.464204, zoom: 12 }}
         style={{ width: '100%', height: '100%' }}
         mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
@@ -125,12 +132,13 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     const inputStyle = "w-full px-3 py-2 border border-gray-300 bg-white/50 focus:ring-1 focus:ring-[#134A79] focus:border-[#134A79] outline-none font-sans-display";
     
     const categoryColors: { [key: string]: { selected: string; unselected: string; ring: string; } } = {
-        'storia':   { selected: 'bg-sky-700 text-white', unselected: 'text-sky-700 bg-sky-100/50', ring: 'ring-sky-500' },
-        'arte':     { selected: 'bg-amber-600 text-white', unselected: 'text-amber-600 bg-amber-100/50', ring: 'ring-amber-500' },
-        'societa':  { selected: 'bg-red-700 text-white', unselected: 'text-red-700 bg-red-100/50', ring: 'ring-red-500' },
-        'cinema':   { selected: 'bg-emerald-600 text-white', unselected: 'text-emerald-600 bg-emerald-100/50', ring: 'ring-emerald-500' },
-        'musica':   { selected: 'bg-indigo-600 text-white', unselected: 'text-indigo-600 bg-indigo-100/50', ring: 'ring-indigo-500' },
+        'storia':   { selected: 'bg-sky-700 text-white', unselected: 'text-sky-700 border border-sky-700 bg-transparent', ring: 'focus:ring-sky-500' },
+        'arte':     { selected: 'bg-amber-600 text-white', unselected: 'text-amber-600 border border-amber-600 bg-transparent', ring: 'focus:ring-amber-500' },
+        'societa':  { selected: 'bg-red-700 text-white', unselected: 'text-red-700 border border-red-700 bg-transparent', ring: 'focus:ring-red-500' },
+        'cinema':   { selected: 'bg-emerald-600 text-white', unselected: 'text-emerald-600 border border-emerald-600 bg-transparent', ring: 'focus:ring-emerald-500' },
+        'musica':   { selected: 'bg-indigo-600 text-white', unselected: 'text-indigo-600 border border-indigo-600 bg-transparent', ring: 'focus:ring-indigo-500' },
     };
+    const defaultColors = { selected: 'bg-gray-600 text-white', unselected: 'text-gray-600 border border-gray-600 bg-transparent', ring: 'focus:ring-gray-500' };
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[60] p-4 animate-fade-in" onClick={onClose}>
@@ -182,12 +190,20 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                       <div>
                         <label className={labelStyle}>Categoria *</label>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                           {categories.map(c => (
-                               <button key={c.id} onClick={() => setCategoryId(c.id)} className={`flex items-center gap-2 p-2 text-sm font-semibold rounded-md transition-all border ${categoryId === c.id ? `${categoryColors[c.id].selected} border-transparent` : `${categoryColors[c.id].unselected} border-gray-300/80`} focus:outline-none focus:ring-2 focus:ring-offset-2 ${categoryColors[c.id].ring}`}>
-                                   <CategoryIcon categoryId={c.id} className="w-4 h-4" />
-                                   <span>{c.name}</span>
-                               </button>
-                           ))}
+                           {categories.map(c => {
+                                const colors = categoryColors[c.id] || defaultColors;
+                                const isSelected = categoryId === c.id;
+                                return (
+                                <button
+                                    key={c.id}
+                                    onClick={() => setCategoryId(c.id)}
+                                    className={`inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#FAF7F0] ${isSelected ? colors.selected : colors.unselected} ${colors.ring}`}
+                                >
+                                    <CategoryIcon categoryId={c.id} className="w-4 h-4" />
+                                    <span>{c.name}</span>
+                                </button>
+                                );
+                           })}
                         </div>
                     </div>
                   </div>

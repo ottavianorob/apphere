@@ -25,7 +25,7 @@ import BottomNav from './components/BottomNav';
 export type View = 'home' | 'qui' | 'itineraries' | 'search' | 'profile';
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<View>('profile');
+  const [currentView, setCurrentView] = useState<View>('qui');
   const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null);
   const [selectedItinerary, setSelectedItinerary] = useState<Itinerary | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
