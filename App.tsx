@@ -72,7 +72,7 @@ const App: React.FC = () => {
       setUsers(transformedUsers);
 
       // Fetch POIs with relations
-      const { data: poisData, error: poisError } = await supabase.from('pois').select(`*, profiles(name), poi_categories(categories(id)), poi_characters(characters(id)), photos(*)`);
+      const { data: poisData, error: poisError } = await supabase.from('pois').select(`*, profiles:profiles!user_id(name), poi_categories(categories(id)), poi_characters(characters(id)), photos(*)`);
       if (poisError) throw poisError;
 
       const transformedPois: Poi[] = (poisData || []).map((p: any) => {
@@ -100,7 +100,7 @@ const App: React.FC = () => {
       setAllPois(transformedPois);
       
       // Fetch Itineraries with relations
-      const { data: itinerariesData, error: itError } = await supabase.from('itineraries').select(`*, profiles(name), itinerary_pois(poi_id), coverPhoto:photos!cover_photo_id(*)`);
+      const { data: itinerariesData, error: itError } = await supabase.from('itineraries').select(`*, profiles:profiles!user_id(name), itinerary_pois(poi_id), coverPhoto:photos!cover_photo_id(*)`);
       if (itError) throw itError;
       
       const transformedItineraries: Itinerary[] = (itinerariesData || []).map((it: any) => ({
