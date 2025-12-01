@@ -28,6 +28,13 @@ export interface Photo {
   caption: string;
 }
 
+export interface User {
+  id: string;
+  name: string;
+  avatarUrl: string;
+  contributions: number;
+}
+
 export interface Point {
   type: 'point';
   id: string;

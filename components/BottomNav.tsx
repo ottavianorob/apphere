@@ -1,8 +1,10 @@
 import React from 'react';
 import { View } from '../App';
 import MapPinIcon from './icons/MapPinIcon';
-import SettingsIcon from './icons/SettingsIcon';
 import RouteIcon from './icons/RouteIcon';
+import SearchIcon from './icons/SearchIcon';
+import UserIcon from './icons/UserIcon';
+import UsersIcon from './icons/UsersIcon';
 
 interface BottomNavProps {
   currentView: View;
@@ -34,10 +36,10 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentView, setCurrentView }) =>
     <footer className="fixed bottom-0 left-0 right-0 h-20 bg-[#FAF7F0]/80 backdrop-blur-sm border-t border-gray-300 z-50">
       <nav className="flex items-center justify-around h-full max-w-lg mx-auto">
         <NavItem
-          label="Mappa"
+          label="Qui"
           icon={<MapPinIcon className="w-6 h-6" />}
-          isActive={currentView === 'map'}
-          onClick={() => setCurrentView('map')}
+          isActive={currentView === 'qui'}
+          onClick={() => setCurrentView('qui')}
         />
         <NavItem
           label="Itinerari"
@@ -46,10 +48,22 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentView, setCurrentView }) =>
           onClick={() => setCurrentView('itineraries')}
         />
         <NavItem
-          label="Impostazioni"
-          icon={<SettingsIcon className="w-6 h-6" />}
-          isActive={currentView === 'settings'}
-          onClick={() => setCurrentView('settings')}
+          label="Ricerca"
+          icon={<SearchIcon className="w-6 h-6" />}
+          isActive={currentView === 'search'}
+          onClick={() => setCurrentView('search')}
+        />
+        <NavItem
+          label="Community"
+          icon={<UsersIcon className="w-6 h-6" />}
+          isActive={currentView === 'home'}
+          onClick={() => setCurrentView('home')}
+        />
+        <NavItem
+          label="Profilo"
+          icon={<UserIcon className="w-6 h-6" />}
+          isActive={currentView === 'profile'}
+          onClick={() => setCurrentView('profile')}
         />
       </nav>
     </footer>

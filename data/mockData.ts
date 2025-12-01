@@ -1,4 +1,4 @@
-import { Point, Category, Period, Character, Path, Area, Itinerary } from '../types';
+import { Point, Category, Period, Character, Path, Area, Itinerary, User } from '../types';
 
 export const categories: Category[] = [
   { id: 'storia', name: 'Storia & Patrimonio' },
@@ -363,4 +363,12 @@ export const itineraries: Itinerary[] = [
     tags: ['storia', 'milano', 'anni di piombo', 'terrorismo'],
     coverPhoto: {id: 'ph_it_m3', url: 'https://picsum.photos/seed/annipiombo_it/800/600', caption: 'Milano, anni \'70'}
   }
+];
+
+export const users: User[] = [
+  { id: 'user1', name: 'Admin', avatarUrl: 'https://picsum.photos/seed/user_admin/100/100', contributions: 10 },
+  { id: 'user2', name: 'HistoryBuff', avatarUrl: 'https://picsum.photos/seed/user_history/100/100', contributions: 8 },
+  { id: 'user3', name: 'Cinephile', avatarUrl: 'https://picsum.photos/seed/user_cine/100/100', contributions: 5 },
+  { id: 'user4', name: 'ArtExplorer', avatarUrl: 'https://picsum.photos/seed/user_art/100/100', contributions: 3 },
+  { id: 'user5', name: 'Urbanist', avatarUrl: 'https://picsum.photos/seed/user_urban/100/100', contributions: 2 },
 ];

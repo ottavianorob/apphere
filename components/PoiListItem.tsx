@@ -3,6 +3,7 @@ import { Poi } from '../types';
 import MapPinIcon from './icons/MapPinIcon';
 import CalendarIcon from './icons/CalendarIcon';
 import CameraIcon from './icons/CameraIcon';
+import UserIcon from './icons/UserIcon';
 import CategoryIcon from './icons/CategoryIcon';
 import PathIcon from './icons/PathIcon';
 import AreaIcon from './icons/AreaIcon';
@@ -71,6 +72,10 @@ const PoiListItem: React.FC<PoiListItemProps> = ({ poi, distance, onSelect, cate
         )}
         <h3 className="font-serif-display text-lg font-semibold text-[#134A79] group-hover:text-[#B1352E] transition-colors">{poi.title}</h3>
         <div className="mt-1 flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 font-sans-display">
+            <div className="flex items-center gap-1.5" title="Autore">
+              <UserIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />
+              <span>{poi.author}</span>
+            </div>
             <div className="flex items-center gap-1.5" title={`Tipo: ${poi.type}`}>
               <PoiTypeIcon type={poi.type} className="w-4 h-4 flex-shrink-0 text-gray-500" />
               <span className="capitalize">{poi.type === 'path' ? 'Percorso' : poi.type}</span>

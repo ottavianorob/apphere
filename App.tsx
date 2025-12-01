@@ -1,25 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import { Poi, Itinerary, Character } from './types';
-import { points, paths, categories, periods, areas, itineraries, characters } from './data/mockData';
-import MapView from './components/MapView';
-import SettingsView from './components/SettingsView';
-import BottomNav from './components/BottomNav';
-import PoiDetailModal from './components/PoiDetailModal';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Poi, Itinerary, Character, Category } from './types';
+import { points, paths, categories, periods, areas, itineraries, characters, users } from './data/mockData';
+
+// Import Views
+import HomeView from './components/HomeView';
+import QuiView from './components/QuiView';
 import ItinerariesView from './components/ItinerariesView';
+import SearchView from './components/SearchView';
+import ProfileView from './components/ProfileView';
+
+// Import Modals
+import PoiDetailModal from './components/PoiDetailModal';
 import ItineraryDetailModal from './components/ItineraryDetailModal';
 import CharacterDetailModal from './components/CharacterDetailModal';
 import TagDetailModal from './components/TagDetailModal';
 
-export type View = 'map' | 'itineraries' | 'settings';
+import BottomNav from './components/BottomNav';
+
+
+export type View = 'home' | 'qui' | 'itineraries' | 'search' | 'profile';
 
 const App: React.FC = () => {
-  const [currentView, setCurrentView] = useState<View>('map');
+  const [currentView, setCurrentView] = useState<View>('qui');
   const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null);
   const [selectedItinerary, setSelectedItinerary] = useState<Itinerary | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   
   const allPois: Poi[] = [...points, ...paths, ...areas];
+  const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), []);
+
 
   useEffect(() => {
     const isModalOpen = selectedPoi || selectedItinerary || selectedCharacter || selectedTag;
@@ -63,26 +73,44 @@ const App: React.FC = () => {
 
   const renderView = () => {
     switch (currentView) {
-      case 'map':
-        return <MapView 
+      case 'home':
+        return <HomeView 
+          allPois={allPois}
+          allItineraries={itineraries}
+          allUsers={users}
+          onSelectPoi={openPoiModal}
+          onSelectItinerary={openItineraryModal}
+          onSelectTag={openTagModal}
+          categoryMap={categoryMap}
+        />;
+      case 'qui':
+        return <QuiView 
           pois={allPois}
-          onSelectPoi={setSelectedPoi} 
+          onSelectPoi={openPoiModal} 
           categories={categories} 
           periods={periods} 
         />;
       case 'itineraries':
         return <ItinerariesView 
           itineraries={itineraries}
-          onSelectItinerary={setSelectedItinerary}
+          onSelectItinerary={openItineraryModal}
         />;
-      case 'settings':
-        return <SettingsView />;
+      case 'search':
+        return <SearchView 
+            allPois={allPois}
+            categories={categories}
+            periods={periods}
+            onSelectPoi={openPoiModal}
+            categoryMap={categoryMap}
+        />;
+      case 'profile':
+        return <ProfileView />;
       default:
-        return <MapView 
+        return <QuiView 
           pois={allPois}
-          onSelectPoi={setSelectedPoi} 
+          onSelectPoi={openPoiModal} 
           categories={categories} 
-          periods={periods}
+          periods={periods} 
         />;
     }
   };
