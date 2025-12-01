@@ -1,4 +1,4 @@
-import { Point, Category, Period, Character, Itinerary } from '../types';
+import { Point, Category, Period, Character, Path, Area } from '../types';
 
 export const categories: Category[] = [
   { id: 'storia', name: 'Storia & Patrimonio' },
@@ -27,6 +27,7 @@ export const points: Point[] = [
   // Categoria: Società
   {
     id: 'm1',
+    type: 'point',
     creationDate: '2023-11-01T10:00:00Z',
     author: 'Admin',
     coordinates: { latitude: 45.464204, longitude: 9.189982 },
@@ -47,6 +48,7 @@ export const points: Point[] = [
   // Categoria: Musica
   {
     id: 'm2',
+    type: 'point',
     creationDate: '2023-11-01T11:00:00Z',
     author: 'UserMusicFan',
     coordinates: { latitude: 45.4674, longitude: 9.1883 },
@@ -63,6 +65,7 @@ export const points: Point[] = [
   // Categoria: Arte
   {
     id: 'm3',
+    type: 'point',
     creationDate: '2023-11-01T12:00:00Z',
     author: 'ArtExplorer',
     coordinates: { latitude: 45.4664, longitude: 9.176 },
@@ -82,6 +85,7 @@ export const points: Point[] = [
   // Categoria: Storia
   {
     id: 'm4',
+    type: 'point',
     creationDate: '2023-11-01T13:00:00Z',
     author: 'HistoryBuff',
     coordinates: { latitude: 45.4849, longitude: 9.2173 },
@@ -98,6 +102,7 @@ export const points: Point[] = [
   // Categoria: Cinema
   {
     id: 'm5',
+    type: 'point',
     creationDate: '2023-11-01T14:00:00Z',
     author: 'Cinephile',
     coordinates: { latitude: 45.4655, longitude: 9.1898 },
@@ -119,6 +124,7 @@ export const points: Point[] = [
   // Categoria: Società / Storia
   {
     id: 'm6',
+    type: 'point',
     creationDate: '2023-11-01T15:00:00Z',
     author: 'Admin',
     coordinates: { latitude: 45.485, longitude: 9.2052 },
@@ -135,6 +141,7 @@ export const points: Point[] = [
   // Categoria: Arte
   {
     id: 'm7',
+    type: 'point',
     creationDate: '2023-11-01T16:00:00Z',
     author: 'ArtExplorer',
     coordinates: { latitude: 45.4719, longitude: 9.1884 },
@@ -151,6 +158,7 @@ export const points: Point[] = [
   // Categoria: Storia
   {
     id: 'm8',
+    type: 'point',
     creationDate: '2023-11-01T17:00:00Z',
     author: 'HistoryBuff',
     coordinates: { latitude: 45.4646, longitude: 9.1916 },
@@ -167,6 +175,7 @@ export const points: Point[] = [
   // Categoria: Musica
   {
     id: 'm9',
+    type: 'point',
     creationDate: '2023-11-01T18:00:00Z',
     author: 'UserMusicFan',
     coordinates: { latitude: 45.4789, longitude: 9.1436 },
@@ -187,6 +196,7 @@ export const points: Point[] = [
   // Categoria: Cinema
   {
     id: 'm10',
+    type: 'point',
     creationDate: '2023-11-01T19:00:00Z',
     author: 'Cinephile',
     coordinates: { latitude: 45.4705, longitude: 9.2045 },
@@ -200,21 +210,113 @@ export const points: Point[] = [
     linkedCharacterIds: [],
     tags: ['architettura', 'design', 'location cinematografica', 'guadagnino'],
   },
+  {
+    id: 'm11',
+    type: 'point',
+    creationDate: '2023-11-03T10:30:00Z',
+    author: 'Admin',
+    coordinates: { latitude: 45.466, longitude: 9.196 },
+    periodId: 'anni70',
+    categoryId: 'societa',
+    title: 'San Babila, cuore nero degli anni \'70',
+    location: 'Milano',
+    eventDate: 'Metà anni \'70',
+    description: 'Negli anni \'70, Piazza San Babila divenne il ritrovo della destra giovanile e neofascista, i cosiddetti "sanbabilini". La piazza fu teatro di scontri, violenze e di un omicidio che segnarono profondamente l\'immaginario collettivo di quel periodo.',
+    photos: [{ id: 'ph_m11', url: 'https://picsum.photos/seed/sanbabila/800/600', caption: 'Piazza San Babila' }],
+    linkedCharacterIds: [],
+    tags: ['neofascismo', 'anni di piombo', 'sanbabilini', 'cronaca'],
+  }
 ];
 
-export const itineraries: Itinerary[] = [
+export const paths: Path[] = [
   {
     id: 'it_m1',
+    type: 'path',
     title: 'Milano: Memorie della Seconda Guerra Mondiale',
     description: 'Un percorso toccante attraverso i luoghi simbolo di Milano che raccontano la Resistenza, la deportazione e la Liberazione.',
     estimatedDuration: '2.5 ore',
     pointIds: ['m4', 'm6', 'm8'],
+    creationDate: '2023-11-02T10:00:00Z',
+    author: 'Admin',
+    periodId: 'resistenza',
+    categoryId: 'storia',
+    photos: [{id: 'ph_it_m1', url: 'https://picsum.photos/seed/resistenza_it/800/600', caption: 'Simbolo della Resistenza'}],
+    linkedCharacterIds: ['pertini'],
+    tags: ['storia', 'milano', 'guerra'],
   },
   {
     id: 'it_m2',
+    type: 'path',
     title: 'Milano: Palcoscenici di Arte e Cultura',
     description: 'Dal Rinascimento al cinema d\'autore, un itinerario che esplora i luoghi dove l\'arte, la musica e il cinema hanno fatto la storia di Milano.',
     estimatedDuration: '4 ore',
     pointIds: ['m3', 'm2', 'm5', 'm7'],
+    creationDate: '2023-11-02T10:30:00Z',
+    author: 'Admin',
+    periodId: 'boom',
+    categoryId: 'arte',
+    photos: [{id: 'ph_it_m2', url: 'https://picsum.photos/seed/arte_it/800/600', caption: 'Dettaglio artistico di Milano'}],
+    linkedCharacterIds: ['leonardo', 'toscanini', 'visconti'],
+    tags: ['arte', 'milano', 'cultura', 'cinema', 'musica'],
   },
+  {
+    id: 'it_m3',
+    type: 'path',
+    title: 'Sulle tracce degli Anni di Piombo',
+    description: 'Un itinerario che ripercorre alcuni dei luoghi e degli eventi più significativi che hanno segnato Milano durante gli Anni di Piombo.',
+    estimatedDuration: '2 ore',
+    pointIds: ['m1', 'm11'],
+    creationDate: '2023-11-03T11:00:00Z',
+    author: 'HistoryBuff',
+    periodId: 'anni70',
+    categoryId: 'storia',
+    photos: [{id: 'ph_it_m3', url: 'https://picsum.photos/seed/annipiombo_it/800/600', caption: 'Milano, anni \'70'}],
+    linkedCharacterIds: [],
+    tags: ['storia', 'milano', 'anni di piombo'],
+  }
+];
+
+export const areas: Area[] = [
+    {
+        id: 'area1',
+        type: 'area',
+        title: 'Il Quadrilatero della moda',
+        description: 'Il Quadrilatero della moda è un quartiere di Milano, noto per le boutique di lusso. È racchiuso da quattro strade: Via Montenapoleone, Via Manzoni, Via della Spiga e Corso Venezia.',
+        bounds: [
+            { latitude: 45.4688, longitude: 9.1935 },
+            { latitude: 45.4715, longitude: 9.1965 },
+            { latitude: 45.4680, longitude: 9.2000 },
+            { latitude: 45.4653, longitude: 9.1968 }
+        ],
+        location: 'Milano',
+        eventDate: 'Dagli anni \'80 ad oggi',
+        creationDate: '2023-11-02T11:00:00Z',
+        author: 'Admin',
+        periodId: 'boom',
+        categoryId: 'societa',
+        photos: [{id: 'ph_area1', url: 'https://picsum.photos/seed/quadrilatero/800/600', caption: 'Via Montenapoleone'}],
+        linkedCharacterIds: [],
+        tags: ['moda', 'lusso', 'shopping', 'milano'],
+    },
+    {
+        id: 'area2',
+        type: 'area',
+        title: 'I Navigli',
+        description: 'Il quartiere dei Navigli è famoso per il sistema di canali navigabili e l\'atmosfera bohémien. Centro della movida milanese, è ricco di locali, ristoranti e botteghe d\'arte.',
+        bounds: [
+            { latitude: 45.451, longitude: 9.172 },
+            { latitude: 45.455, longitude: 9.176 },
+            { latitude: 45.454, longitude: 9.185 },
+            { latitude: 45.449, longitude: 9.179 }
+        ],
+        location: 'Milano',
+        eventDate: 'Dal Medioevo ad oggi',
+        creationDate: '2023-11-03T10:00:00Z',
+        author: 'Admin',
+        periodId: 'boom',
+        categoryId: 'societa',
+        photos: [{id: 'ph_area2', url: 'https://picsum.photos/seed/navigli/800/600', caption: 'Il Naviglio Grande al tramonto'}],
+        linkedCharacterIds: [],
+        tags: ['movida', 'canali', 'storia', 'milano'],
+    }
 ];

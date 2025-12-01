@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import ReactMapGL, { Marker, NavigationControl, MapRef } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import type { LngLatBounds } from 'maplibre-gl';
-import { Point, Category, Period, Coordinates } from '../types';
+import { Poi, Point, Category, Period, Coordinates } from '../types';
 import useGeolocation from '../hooks/useGeolocation';
 import MapPinIcon from './icons/MapPinIcon';
 import CalendarIcon from './icons/CalendarIcon';
@@ -10,15 +10,18 @@ import UserLocationMarker from './UserLocationMarker';
 import LocateIcon from './icons/LocateIcon';
 import CameraIcon from './icons/CameraIcon';
 import CategoryIcon from './icons/CategoryIcon';
+import PathIcon from './icons/PathIcon';
+import AreaIcon from './icons/AreaIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
 
 interface MapViewProps {
-  points: Point[];
-  onSelectPoint: (point: Point) => void;
+  pois: Poi[];
+  onSelectPoi: (poi: Poi) => void;
   categories: Category[];
   periods: Period[];
+  allPoints: Point[];
 }
 
 // Haversine formula to calculate distance
@@ -38,7 +41,34 @@ const getDistance = (coords1: Coordinates, coords2: Coordinates) => {
   return R * c;
 };
 
-const PointListItem: React.FC<{ point: Point; distance?: number | null; onSelect: () => void; categoryName?: string; }> = ({ point, distance, onSelect, categoryName }) => {
+// Calculates the geometric center of a set of coordinates (for areas)
+const getAreaCentroid = (bounds: Coordinates[]): Coordinates => {
+    if (!bounds || bounds.length === 0) {
+        return { latitude: 0, longitude: 0 };
+    }
+    const { latitude, longitude } = bounds.reduce(
+        (acc, curr) => ({
+            latitude: acc.latitude + curr.latitude,
+            longitude: acc.longitude + curr.longitude,
+        }),
+        { latitude: 0, longitude: 0 }
+    );
+    return {
+        latitude: latitude / bounds.length,
+        longitude: longitude / bounds.length,
+    };
+};
+
+const PoiTypeIcon: React.FC<{ type: 'point' | 'path' | 'area', className: string }> = ({ type, className }) => {
+  switch (type) {
+    case 'point': return <MapPinIcon className={className} />;
+    case 'path': return <PathIcon className={className} />;
+    case 'area': return <AreaIcon className={className} />;
+    default: return null;
+  }
+}
+
+const PoiListItem: React.FC<{ poi: Poi; distance?: number | null; onSelect: () => void; categoryName?: string; }> = ({ poi, distance, onSelect, categoryName }) => {
   const categoryPillColors: { [key: string]: string } = {
     'storia':   'bg-sky-700 text-white',
     'arte':     'bg-amber-600 text-white',
@@ -47,7 +77,7 @@ const PointListItem: React.FC<{ point: Point; distance?: number | null; onSelect
     'musica':   'bg-indigo-600 text-white',
   };
   const defaultPillColor = 'bg-gray-600 text-white';
-  const categoryColorClass = categoryPillColors[point.categoryId] || defaultPillColor;
+  const categoryColorClass = categoryPillColors[poi.categoryId] || defaultPillColor;
 
   return (
     <div
@@ -56,10 +86,10 @@ const PointListItem: React.FC<{ point: Point; distance?: number | null; onSelect
     >
       {/* Left: Circular Image and Distance */}
       <div className="flex-shrink-0 w-20 text-center">
-        {point.photos && point.photos.length > 0 ? (
+        {poi.photos && poi.photos.length > 0 ? (
           <img
-            src={point.photos[0].url}
-            alt={`Immagine di copertina per ${point.title}`}
+            src={poi.photos[0].url}
+            alt={`Immagine di copertina per ${poi.title}`}
             className="w-20 h-20 rounded-full object-cover shadow-lg grayscale mix-blend-multiply group-hover:grayscale-0 group-hover:mix-blend-normal transition-all duration-300 ease-in-out"
           />
         ) : (
@@ -79,25 +109,25 @@ const PointListItem: React.FC<{ point: Point; distance?: number | null; onSelect
         {categoryName && (
            <div className="mb-1">
             <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}>
-              <CategoryIcon categoryId={point.categoryId} className="w-3.5 h-3.5" />
+              <CategoryIcon categoryId={poi.categoryId} className="w-3.5 h-3.5" />
               <span>{categoryName}</span>
             </span>
           </div>
         )}
-        <h3 className="font-serif-display text-lg font-semibold text-[#134A79] group-hover:text-[#B1352E] transition-colors">{point.title}</h3>
+        <h3 className="font-serif-display text-lg font-semibold text-[#134A79] group-hover:text-[#B1352E] transition-colors">{poi.title}</h3>
         <div className="mt-1 flex items-center flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600 font-sans-display">
-          <div className="flex items-center gap-1.5">
-            <CalendarIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />
-            <span>{point.eventDate}</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <MapPinIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />
-            <span>{point.location}</span>
-          </div>
-          {point.photos && point.photos.length > 0 && (
+            <div className="flex items-center gap-1.5" title={`Tipo: ${poi.type}`}>
+              <PoiTypeIcon type={poi.type} className="w-4 h-4 flex-shrink-0 text-gray-500" />
+              <span className="capitalize">{poi.type === 'path' ? 'Percorso' : poi.type}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+                <CalendarIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />
+                <span>{poi.eventDate}</span>
+            </div>
+          {poi.photos && poi.photos.length > 0 && (
              <div className="flex items-center gap-1.5">
               <CameraIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />
-              <span>{point.photos.length}</span>
+              <span>{poi.photos.length}</span>
             </div>
           )}
         </div>
@@ -127,7 +157,7 @@ const mapMarkerBgColors: { [key: string]: string } = {
 };
 const defaultMarkerBgColor = 'bg-[#B1352E]';
 
-const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, periods }) => {
+const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, periods, allPoints }) => {
   const { data: userLocation, loading, error } = useGeolocation();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [mapBounds, setMapBounds] = useState<LngLatBounds | null>(null);
@@ -135,9 +165,9 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
   const mapRef = useRef<MapRef>(null);
   
   const [viewState, setViewState] = useState({
-    longitude: 12.496366, // Rome
-    latitude: 41.902782,
-    zoom: 5,
+    longitude: 9.189982, // Milan
+    latitude: 45.464204,
+    zoom: 12,
     pitch: 50,
     bearing: 0,
   });
@@ -154,6 +184,7 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
   }, [userLocation]);
 
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
+  const pointsMap = useMemo(() => new Map(allPoints.map(p => [p.id, p])), [allPoints]);
 
   const today = new Date();
   const dateOptions: Intl.DateTimeFormatOptions = {
@@ -187,34 +218,50 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
       });
     }
   };
+  
+  const unifiedPois = useMemo(() => {
+    return pois.map(poi => {
+      let coordinates: Coordinates;
+      if (poi.type === 'point') {
+        coordinates = poi.coordinates;
+      } else if (poi.type === 'path') {
+        const firstPoint = pointsMap.get(poi.pointIds[0]);
+        coordinates = firstPoint ? firstPoint.coordinates : { latitude: 0, longitude: 0 };
+      } else { // area
+        coordinates = getAreaCentroid(poi.bounds);
+      }
+      return { ...poi, markerCoordinates: coordinates };
+    });
+  }, [pois, pointsMap]);
 
-  const categoryFilteredPoints = useMemo(() => {
+
+  const categoryFilteredPois = useMemo(() => {
     const isFilteringActive = selectedCategories.length > 0;
-    return points.filter(p => 
+    return unifiedPois.filter(p => 
       !isFilteringActive || selectedCategories.includes(p.categoryId)
     );
-  }, [points, selectedCategories]);
+  }, [unifiedPois, selectedCategories]);
 
-  const listPoints = useMemo(() => {
-    let inViewPoints = categoryFilteredPoints;
+  const listPois = useMemo(() => {
+    let inViewPois = categoryFilteredPois;
     
     if (mapBounds) {
-        inViewPoints = categoryFilteredPoints.filter(p => 
-            mapBounds.contains([p.coordinates.longitude, p.coordinates.latitude])
+        inViewPois = categoryFilteredPois.filter(p => 
+            mapBounds.contains([p.markerCoordinates.longitude, p.markerCoordinates.latitude])
         );
     }
     
     if (userLocation) {
-      return inViewPoints
-        .map(point => ({
-          ...point,
-          distance: getDistance(userLocation, point.coordinates),
+      return inViewPois
+        .map(poi => ({
+          ...poi,
+          distance: getDistance(userLocation, poi.markerCoordinates),
         }))
         .sort((a, b) => a.distance - b.distance);
     }
     
-    return inViewPoints.map(point => ({ ...point, distance: undefined }));
-  }, [categoryFilteredPoints, mapBounds, userLocation]);
+    return inViewPois.map(poi => ({ ...poi, distance: undefined }));
+  }, [categoryFilteredPois, mapBounds, userLocation]);
 
   return (
     <div>
@@ -250,7 +297,6 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
             </button>
           </div>
 
-          {/* Custom user location marker */}
           {userLocation && (
             <Marker
               longitude={userLocation.longitude}
@@ -261,18 +307,18 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
             </Marker>
           )}
 
-          {categoryFilteredPoints.map(point => {
-            const markerBg = mapMarkerBgColors[point.categoryId] || defaultMarkerBgColor;
+          {categoryFilteredPois.map(poi => {
+            const markerBg = mapMarkerBgColors[poi.categoryId] || defaultMarkerBgColor;
             return (
               <Marker
-                key={point.id}
-                longitude={point.coordinates.longitude}
-                latitude={point.coordinates.latitude}
+                key={poi.id}
+                longitude={poi.markerCoordinates.longitude}
+                latitude={poi.markerCoordinates.latitude}
                 anchor="center"
               >
-                <div onClick={() => onSelectPoint(point)} className="cursor-pointer">
+                <div onClick={() => onSelectPoi(poi)} className="cursor-pointer">
                   <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} shadow-lg ring-2 ring-white/75 hover:scale-110 transition-transform duration-150 ease-in-out`}>
-                    <CategoryIcon categoryId={point.categoryId} className="w-5 h-5 text-white" />
+                    <CategoryIcon categoryId={poi.categoryId} className="w-5 h-5 text-white" />
                   </div>
                 </div>
               </Marker>
@@ -307,14 +353,14 @@ const MapView: React.FC<MapViewProps> = ({ points, onSelectPoint, categories, pe
       </div>
 
       <div>
-        {listPoints.length > 0 ? (
-          listPoints.map(point => (
-            <PointListItem 
-              key={point.id} 
-              point={point}
-              distance={point.distance}
-              onSelect={() => onSelectPoint(point)}
-              categoryName={categoryMap.get(point.categoryId)}
+        {listPois.length > 0 ? (
+          listPois.map(poi => (
+            <PoiListItem 
+              key={poi.id} 
+              poi={poi}
+              distance={poi.distance}
+              onSelect={() => onSelectPoi(poi)}
+              categoryName={categoryMap.get(poi.categoryId)}
             />
           ))
         ) : (

@@ -29,6 +29,7 @@ export interface Photo {
 }
 
 export interface Point {
+  type: 'point';
   id: string;
   creationDate: string;
   author: string;
@@ -44,10 +45,37 @@ export interface Point {
   tags?: string[];
 }
 
-export interface Itinerary {
+export interface Path {
+  type: 'path';
   id: string;
   title: string;
   description: string;
   estimatedDuration: string;
   pointIds: string[];
+  creationDate: string;
+  author: string;
+  periodId: string;
+  categoryId: string;
+  photos: Photo[];
+  linkedCharacterIds: string[];
+  tags?: string[];
 }
+
+export interface Area {
+  type: 'area';
+  id: string;
+  title: string;
+  description: string;
+  bounds: Coordinates[];
+  location: string;
+  eventDate: string;
+  creationDate: string;
+  author: string;
+  periodId: string;
+  categoryId: string;
+  photos: Photo[];
+  linkedCharacterIds: string[];
+  tags?: string[];
+}
+
+export type Poi = Point | Path | Area;

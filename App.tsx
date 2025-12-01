@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Point, Itinerary } from './types';
-import { points as mockPoints, itineraries as mockItineraries, categories, periods } from './data/mockData';
+import { Poi, Point, Path, Area } from './types';
+import { points as mockPoints, paths as mockPaths, categories, periods, areas as mockAreas } from './data/mockData';
 import MapView from './components/MapView';
-import ItinerariesView from './components/ItinerariesView';
 import SettingsView from './components/SettingsView';
 import BottomNav from './components/BottomNav';
-import PointDetailModal from './components/PointDetailModal';
+import PoiDetailModal from './components/PoiDetailModal';
 
-export type View = 'map' | 'itineraries' | 'settings';
+export type View = 'map' | 'settings';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('map');
-  const [selectedPoint, setSelectedPoint] = useState<Point | null>(null);
+  const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null);
+  
+  // Combine all POIs into a single array
+  const allPois: Poi[] = [...mockPoints, ...mockPaths, ...mockAreas];
 
   useEffect(() => {
-    if (selectedPoint) {
+    if (selectedPoi) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -23,18 +25,28 @@ const App: React.FC = () => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [selectedPoint]);
+  }, [selectedPoi]);
 
   const renderView = () => {
     switch (currentView) {
       case 'map':
-        return <MapView points={mockPoints} onSelectPoint={setSelectedPoint} categories={categories} periods={periods} />;
-      case 'itineraries':
-        return <ItinerariesView itineraries={mockItineraries} onSelectPoint={setSelectedPoint}/>;
+        return <MapView 
+          pois={allPois}
+          onSelectPoi={setSelectedPoi} 
+          categories={categories} 
+          periods={periods} 
+          allPoints={mockPoints}
+        />;
       case 'settings':
         return <SettingsView />;
       default:
-        return <MapView points={mockPoints} onSelectPoint={setSelectedPoint} categories={categories} periods={periods}/>;
+        return <MapView 
+          pois={allPois}
+          onSelectPoi={setSelectedPoi} 
+          categories={categories} 
+          periods={periods}
+          allPoints={mockPoints}
+        />;
     }
   };
 
@@ -44,8 +56,13 @@ const App: React.FC = () => {
         {renderView()}
       </main>
       <BottomNav currentView={currentView} setCurrentView={setCurrentView} />
-      {selectedPoint && (
-        <PointDetailModal point={selectedPoint} onClose={() => setSelectedPoint(null)} categories={categories} />
+      {selectedPoi && (
+        <PoiDetailModal 
+          poi={selectedPoi} 
+          onClose={() => setSelectedPoi(null)} 
+          categories={categories}
+          allPoints={mockPoints}
+        />
       )}
     </div>
   );
