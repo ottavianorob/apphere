@@ -33,8 +33,13 @@ const AddCharacterModal: React.FC<AddCharacterModalProps> = ({ onClose, onSave }
     };
 
     const handleSubmit = () => {
-        if (!name) {
-            alert('Il Nome è obbligatorio.');
+        const errors: string[] = [];
+        if (!name.trim()) {
+            errors.push("Il nome è obbligatorio.");
+        }
+
+        if (errors.length > 0) {
+            alert(`Per favore, correggi i seguenti errori:\n\n- ${errors.join('\n- ')}`);
             return;
         }
         

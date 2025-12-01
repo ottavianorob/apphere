@@ -85,8 +85,14 @@ const AddItineraryModal: React.FC<AddItineraryModalProps> = ({ onClose, onSave, 
     };
 
     const handleSubmit = () => {
-        if (!title || !description || selectedPois.length === 0 || !coverPhotoDataUrl) {
-            alert('Per favore, compila tutti i campi e seleziona almeno una tappa.');
+        const errors: string[] = [];
+        if (!title.trim()) errors.push("Il titolo è obbligatorio.");
+        if (!description.trim()) errors.push("La descrizione è obbligatoria.");
+        if (!coverPhotoDataUrl) errors.push("Carica una foto di copertina.");
+        if (selectedPois.length === 0) errors.push("Aggiungi almeno una tappa all'itinerario.");
+
+        if (errors.length > 0) {
+            alert(`Per favore, correggi i seguenti errori:\n\n- ${errors.join('\n- ')}`);
             return;
         }
 

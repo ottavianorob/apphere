@@ -186,13 +186,20 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     };
 
     const handleSubmit = () => {
-      if (!title || !eventDate || categoryIds.length === 0 || coordinates.length === 0 || !derivedPeriodId) {
-          alert('Per favore, compila tutti i campi obbligatori (*).');
+      const errors: string[] = [];
+      if (!title.trim()) errors.push("Il titolo è obbligatorio.");
+      if (!eventDate) errors.push("La data dell'evento è obbligatoria.");
+      if (categoryIds.length === 0) errors.push("Seleziona almeno una categoria.");
+      if (coordinates.length === 0) errors.push("Indica la posizione sulla mappa.");
+      if (type === 'point' && coordinates.length !== 1) errors.push('Un "Punto" deve avere una sola coordinata.');
+      if (type === 'path' && coordinates.length < 2) errors.push('Un "Percorso" deve avere almeno due coordinate.');
+      if (type === 'area' && coordinates.length < 3) errors.push('Un\' "Area" deve avere almeno tre coordinate.');
+      if (!derivedPeriodId && eventDate) errors.push("La data inserita non corrisponde a nessun periodo storico valido.");
+
+      if (errors.length > 0) {
+          alert(`Per favore, correggi i seguenti errori:\n\n- ${errors.join('\n- ')}`);
           return;
       }
-      if(type === 'point' && coordinates.length !== 1) { alert('Un "Punto" deve avere una sola coordinata.'); return; }
-      if(type === 'path' && coordinates.length < 2) { alert('Un "Percorso" deve avere almeno due coordinate.'); return; }
-      if(type === 'area' && coordinates.length < 3) { alert('Un\' "Area" deve avere almeno tre coordinate.'); return; }
 
       const tags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
       const photos = photoDataUrl ? [{ id: `new_photo_${Date.now()}`, url: photoDataUrl, caption: photoCaption }] : [];
@@ -202,7 +209,7 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
       const formattedDate = dateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
       let newPoi: Omit<Poi, 'id' | 'creationDate' | 'author'>;
-      const commonData = { title, description, location: derivedLocation, eventDate: formattedDate, periodId: derivedPeriodId, categoryIds, photos, linkedCharacterIds, tags };
+      const commonData = { title, description, location: derivedLocation, eventDate: formattedDate, periodId: derivedPeriodId!, categoryIds, photos, linkedCharacterIds, tags };
 
       if (type === 'point') {
         const pointPoi: Omit<Point, 'id' | 'creationDate' | 'author'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
