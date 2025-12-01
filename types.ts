@@ -48,14 +48,15 @@ export interface Point {
 export interface Path {
   type: 'path';
   id: string;
-  title: string;
-  description: string;
-  estimatedDuration: string;
-  pointIds: string[];
   creationDate: string;
   author: string;
+  pathCoordinates: Coordinates[];
   periodId: string;
   categoryId: string;
+  title: string;
+  location: string;
+  eventDate: string;
+  description: string;
   photos: Photo[];
   linkedCharacterIds: string[];
   tags?: string[];
@@ -79,3 +80,14 @@ export interface Area {
 }
 
 export type Poi = Point | Path | Area;
+
+export interface Itinerary {
+  id: string;
+  title: string;
+  description: string;
+  estimatedDuration: string;
+  poiIds: string[];
+  author: string;
+  tags?: string[];
+  coverPhoto: Photo;
+}

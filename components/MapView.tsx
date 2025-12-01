@@ -21,7 +21,6 @@ interface MapViewProps {
   onSelectPoi: (poi: Poi) => void;
   categories: Category[];
   periods: Period[];
-  allPoints: Point[];
 }
 
 // Haversine formula to calculate distance
@@ -157,7 +156,7 @@ const mapMarkerBgColors: { [key: string]: string } = {
 };
 const defaultMarkerBgColor = 'bg-[#B1352E]';
 
-const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, periods, allPoints }) => {
+const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, periods }) => {
   const { data: userLocation, loading, error } = useGeolocation();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [mapBounds, setMapBounds] = useState<LngLatBounds | null>(null);
@@ -184,7 +183,6 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
   }, [userLocation]);
 
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
-  const pointsMap = useMemo(() => new Map(allPoints.map(p => [p.id, p])), [allPoints]);
 
   const today = new Date();
   const dateOptions: Intl.DateTimeFormatOptions = {
@@ -225,14 +223,13 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
       if (poi.type === 'point') {
         coordinates = poi.coordinates;
       } else if (poi.type === 'path') {
-        const firstPoint = pointsMap.get(poi.pointIds[0]);
-        coordinates = firstPoint ? firstPoint.coordinates : { latitude: 0, longitude: 0 };
+        coordinates = poi.pathCoordinates[0] || { latitude: 0, longitude: 0 };
       } else { // area
         coordinates = getAreaCentroid(poi.bounds);
       }
       return { ...poi, markerCoordinates: coordinates };
     });
-  }, [pois, pointsMap]);
+  }, [pois]);
 
 
   const categoryFilteredPois = useMemo(() => {

@@ -1,4 +1,4 @@
-import { Point, Category, Period, Character, Path, Area } from '../types';
+import { Point, Category, Period, Character, Path, Area, Itinerary } from '../types';
 
 export const categories: Category[] = [
   { id: 'storia', name: 'Storia & Patrimonio' },
@@ -230,50 +230,26 @@ export const points: Point[] = [
 
 export const paths: Path[] = [
   {
-    id: 'it_m1',
+    id: 'path1',
     type: 'path',
-    title: 'Milano: Memorie della Seconda Guerra Mondiale',
-    description: 'Un percorso toccante attraverso i luoghi simbolo di Milano che raccontano la Resistenza, la deportazione e la Liberazione.',
-    estimatedDuration: '2.5 ore',
-    pointIds: ['m4', 'm6', 'm8'],
-    creationDate: '2023-11-02T10:00:00Z',
-    author: 'Admin',
-    periodId: 'resistenza',
-    categoryId: 'storia',
-    photos: [{id: 'ph_it_m1', url: 'https://picsum.photos/seed/resistenza_it/800/600', caption: 'Simbolo della Resistenza'}],
-    linkedCharacterIds: ['pertini'],
-    tags: ['storia', 'milano', 'guerra'],
-  },
-  {
-    id: 'it_m2',
-    type: 'path',
-    title: 'Milano: Palcoscenici di Arte e Cultura',
-    description: 'Dal Rinascimento al cinema d\'autore, un itinerario che esplora i luoghi dove l\'arte, la musica e il cinema hanno fatto la storia di Milano.',
-    estimatedDuration: '4 ore',
-    pointIds: ['m3', 'm2', 'm5', 'm7'],
-    creationDate: '2023-11-02T10:30:00Z',
-    author: 'Admin',
-    periodId: 'boom',
-    categoryId: 'arte',
-    photos: [{id: 'ph_it_m2', url: 'https://picsum.photos/seed/arte_it/800/600', caption: 'Dettaglio artistico di Milano'}],
-    linkedCharacterIds: ['leonardo', 'toscanini', 'visconti'],
-    tags: ['arte', 'milano', 'cultura', 'cinema', 'musica'],
-  },
-  {
-    id: 'it_m3',
-    type: 'path',
-    title: 'Sulle tracce degli Anni di Piombo',
-    description: 'Un itinerario che ripercorre alcuni dei luoghi e degli eventi più significativi che hanno segnato Milano durante gli Anni di Piombo.',
-    estimatedDuration: '2 ore',
-    pointIds: ['m1', 'm11'],
-    creationDate: '2023-11-03T11:00:00Z',
+    title: 'Corteo funebre di Giuseppe Pinelli',
+    description: 'Il percorso del corteo funebre dell\'anarchico Giuseppe Pinelli, morto precipitando da una finestra della questura di Milano nel 1969.',
+    pathCoordinates: [
+      { latitude: 45.464204, longitude: 9.189982 }, // Piazza Fontana (partenza simbolica)
+      { latitude: 45.465, longitude: 9.188 },
+      { latitude: 45.463, longitude: 9.185 },
+      { latitude: 45.460, longitude: 9.182 }, // Cimitero Monumentale (arrivo simbolico)
+    ],
+    creationDate: '2023-11-04T10:00:00Z',
     author: 'HistoryBuff',
     periodId: 'anni70',
     categoryId: 'storia',
-    photos: [{id: 'ph_it_m3', url: 'https://picsum.photos/seed/annipiombo_it/800/600', caption: 'Milano, anni \'70'}],
+    location: 'Milano',
+    eventDate: '20 Dicembre 1969',
+    photos: [{id: 'ph_path1', url: 'https://picsum.photos/seed/pinelli_path/800/600', caption: 'Illustrazione del percorso'}],
     linkedCharacterIds: [],
-    tags: ['storia', 'milano', 'anni di piombo'],
-  }
+    tags: ['storia', 'milano', 'anni di piombo', 'pinelli'],
+  },
 ];
 
 export const areas: Area[] = [
@@ -319,4 +295,37 @@ export const areas: Area[] = [
         linkedCharacterIds: [],
         tags: ['movida', 'canali', 'storia', 'milano'],
     }
+];
+
+export const itineraries: Itinerary[] = [
+  {
+    id: 'it_m1',
+    title: 'Milano: Memorie della Seconda Guerra Mondiale',
+    description: 'Un percorso toccante attraverso i luoghi simbolo di Milano che raccontano la Resistenza, la deportazione e la Liberazione.',
+    estimatedDuration: '2.5 ore',
+    poiIds: ['m4', 'm6', 'm8'],
+    author: 'Admin',
+    tags: ['storia', 'milano', 'guerra', 'resistenza'],
+    coverPhoto: {id: 'ph_it_m1', url: 'https://picsum.photos/seed/resistenza_it/800/600', caption: 'Simbolo della Resistenza'}
+  },
+  {
+    id: 'it_m2',
+    title: 'Milano: Palcoscenici di Arte e Cultura',
+    description: 'Dal Rinascimento al cinema d\'autore, un itinerario che esplora i luoghi dove l\'arte, la musica e il cinema hanno fatto la storia di Milano.',
+    estimatedDuration: '4 ore',
+    poiIds: ['m3', 'm2', 'm5', 'm7'],
+    author: 'Admin',
+    tags: ['arte', 'milano', 'cultura', 'cinema', 'musica'],
+    coverPhoto: {id: 'ph_it_m2', url: 'https://picsum.photos/seed/arte_it/800/600', caption: 'Dettaglio artistico di Milano'}
+  },
+  {
+    id: 'it_m3',
+    title: 'Sulle tracce degli Anni di Piombo',
+    description: 'Un itinerario che ripercorre alcuni dei luoghi e degli eventi più significativi che hanno segnato Milano durante gli Anni di Piombo.',
+    estimatedDuration: '2 ore',
+    poiIds: ['m1', 'm11', 'path1'],
+    author: 'HistoryBuff',
+    tags: ['storia', 'milano', 'anni di piombo', 'terrorismo'],
+    coverPhoto: {id: 'ph_it_m3', url: 'https://picsum.photos/seed/annipiombo_it/800/600', caption: 'Milano, anni \'70'}
+  }
 ];

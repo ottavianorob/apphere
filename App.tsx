@@ -1,31 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { Poi, Point, Path, Area } from './types';
-import { points as mockPoints, paths as mockPaths, categories, periods, areas as mockAreas } from './data/mockData';
+import { Poi, Itinerary } from './types';
+import { points, paths, categories, periods, areas, itineraries } from './data/mockData';
 import MapView from './components/MapView';
 import SettingsView from './components/SettingsView';
 import BottomNav from './components/BottomNav';
 import PoiDetailModal from './components/PoiDetailModal';
+import ItinerariesView from './components/ItinerariesView';
+import ItineraryDetailModal from './components/ItineraryDetailModal';
 
-export type View = 'map' | 'settings';
+export type View = 'map' | 'itineraries' | 'settings';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('map');
   const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null);
+  const [selectedItinerary, setSelectedItinerary] = useState<Itinerary | null>(null);
   
-  // Combine all POIs into a single array
-  const allPois: Poi[] = [...mockPoints, ...mockPaths, ...mockAreas];
+  const allPois: Poi[] = [...points, ...paths, ...areas];
 
   useEffect(() => {
-    if (selectedPoi) {
+    const isModalOpen = selectedPoi || selectedItinerary;
+    if (isModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
     }
-    // Cleanup function to restore scroll on component unmount
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [selectedPoi]);
+  }, [selectedPoi, selectedItinerary]);
 
   const renderView = () => {
     switch (currentView) {
@@ -35,7 +37,11 @@ const App: React.FC = () => {
           onSelectPoi={setSelectedPoi} 
           categories={categories} 
           periods={periods} 
-          allPoints={mockPoints}
+        />;
+      case 'itineraries':
+        return <ItinerariesView 
+          itineraries={itineraries}
+          onSelectItinerary={setSelectedItinerary}
         />;
       case 'settings':
         return <SettingsView />;
@@ -45,7 +51,6 @@ const App: React.FC = () => {
           onSelectPoi={setSelectedPoi} 
           categories={categories} 
           periods={periods}
-          allPoints={mockPoints}
         />;
     }
   };
@@ -61,7 +66,14 @@ const App: React.FC = () => {
           poi={selectedPoi} 
           onClose={() => setSelectedPoi(null)} 
           categories={categories}
-          allPoints={mockPoints}
+        />
+      )}
+      {selectedItinerary && (
+        <ItineraryDetailModal
+          itinerary={selectedItinerary}
+          allPois={allPois}
+          onClose={() => setSelectedItinerary(null)}
+          onSelectPoiInItinerary={setSelectedPoi}
         />
       )}
     </div>

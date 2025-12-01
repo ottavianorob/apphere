@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from '../App';
 import MapPinIcon from './icons/MapPinIcon';
 import SettingsIcon from './icons/SettingsIcon';
+import RouteIcon from './icons/RouteIcon';
 
 interface BottomNavProps {
   currentView: View;
@@ -23,7 +24,7 @@ const NavItem: React.FC<{
       className={`flex flex-col items-center justify-center w-full transition-colors duration-200 ${isActive ? activeClasses : inactiveClasses}`}
     >
       {icon}
-      <span className={`text-xs mt-1 ${isActive ? 'font-bold' : ''}`}>{label}</span>
+      <span className={`text-xs mt-1 font-sans-display ${isActive ? 'font-bold' : ''}`}>{label}</span>
     </button>
   );
 };
@@ -37,6 +38,12 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentView, setCurrentView }) =>
           icon={<MapPinIcon className="w-6 h-6" />}
           isActive={currentView === 'map'}
           onClick={() => setCurrentView('map')}
+        />
+        <NavItem
+          label="Itinerari"
+          icon={<RouteIcon className="w-6 h-6" />}
+          isActive={currentView === 'itineraries'}
+          onClick={() => setCurrentView('itineraries')}
         />
         <NavItem
           label="Impostazioni"

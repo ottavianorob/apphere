@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ReactMapGL, { Marker, Source, Layer, LngLatBounds } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
-import { Poi, Point, Category, Coordinates } from '../types';
+import { Poi, Category, Coordinates } from '../types';
 import { characters as allCharacters } from '../data/mockData';
 import CloseIcon from './icons/CloseIcon';
 import NavigationIcon from './icons/NavigationIcon';
@@ -11,7 +11,6 @@ import MapPinIcon from './icons/MapPinIcon';
 import ChevronLeftIcon from './icons/ChevronLeftIcon';
 import ChevronRightIcon from './icons/ChevronRightIcon';
 import CategoryIcon from './icons/CategoryIcon';
-import PathIcon from './icons/PathIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -30,13 +29,11 @@ interface PoiDetailModalProps {
   poi: Poi;
   onClose: () => void;
   categories: Category[];
-  allPoints: Point[];
 }
 
-const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories, allPoints }) => {
+const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const linkedCharacters = allCharacters.filter(c => poi.linkedCharacterIds.includes(c.id));
-  const pointsMap = useMemo(() => new Map(allPoints.map(p => [p.id, p])), [allPoints]);
 
   const handleNextImage = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -50,10 +47,7 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
   
   const getMarkerCoordinates = (): Coordinates => {
     if (poi.type === 'point') return poi.coordinates;
-    if (poi.type === 'path') {
-      const firstPoint = pointsMap.get(poi.pointIds[0]);
-      return firstPoint ? firstPoint.coordinates : { latitude: 0, longitude: 0 };
-    }
+    if (poi.type === 'path') return poi.pathCoordinates[0] || { latitude: 0, longitude: 0 };
     return getAreaCentroid(poi.bounds);
   }
 
@@ -90,12 +84,10 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
     const markerCoords = getMarkerCoordinates();
     
     if (poi.type === 'path') {
-        const pathPoints = poi.pointIds.map(id => pointsMap.get(id)).filter((p): p is Point => !!p);
-        if (pathPoints.length === 0) return null;
-
+        if (poi.pathCoordinates.length === 0) return null;
         const pathGeoJSON = {
             type: 'Feature' as const,
-            geometry: { type: 'LineString' as const, coordinates: pathPoints.map(p => [p.coordinates.longitude, p.coordinates.latitude]) }
+            geometry: { type: 'LineString' as const, coordinates: poi.pathCoordinates.map(p => [p.longitude, p.latitude]) }
         };
         
         return (
@@ -103,13 +95,9 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
                 <Source id="path" type="geojson" data={pathGeoJSON}>
                     <Layer id="path-layer" type="line" paint={{ 'line-color': '#B1352E', 'line-width': 3, 'line-dasharray': [2, 2] }} />
                 </Source>
-                {pathPoints.map((p, index) => (
-                    <Marker key={p.id} longitude={p.coordinates.longitude} latitude={p.coordinates.latitude} anchor="center">
-                        <div className={`w-5 h-5 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75 text-white text-xs font-bold`}>
-                          {index + 1}
-                        </div>
-                    </Marker>
-                ))}
+                <Marker longitude={markerCoords.longitude} latitude={markerCoords.latitude} anchor="center">
+                     <div className={`w-5 h-5 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75`}></div>
+                </Marker>
             </>
         );
     } else if (poi.type === 'area') {
@@ -142,15 +130,13 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
         </Marker>
     );
 
-  }, [poi, pointsMap, markerBg]);
+  }, [poi, markerBg]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => event.key === 'Escape' && onClose();
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
-
-  const pathPoints = poi.type === 'path' ? poi.pointIds.map(id => pointsMap.get(id)).filter((p): p is Point => !!p) : [];
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in" onClick={onClose}>
@@ -177,12 +163,7 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
           <div className="mt-6 space-y-6">
             {category && <div><span className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}><CategoryIcon categoryId={category.id} className="w-4 h-4" /><span>{category.name}</span></span></div>}
             <p className="italic text-[#2D3748] whitespace-pre-wrap leading-relaxed text-lg">{poi.description}</p>
-            {poi.type === 'path' && pathPoints.length > 0 && (
-                <div>
-                  <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1 flex items-center gap-2"><PathIcon className="w-5 h-5"/>Tappe del Percorso</h3>
-                  <div className="space-y-1 mt-4">{pathPoints.map((p, i) => (<div key={p.id} className="flex items-start gap-4 p-2"><div className="flex-shrink-0 bg-[#2D3748] text-[#FAF7F0] rounded-full h-8 w-8 flex items-center justify-center font-bold font-sans-display">{i+1}</div><div><p className="font-sans-display font-bold text-gray-800">{p.title}</p><p className="italic text-sm text-gray-600 line-clamp-1">{p.location}</p></div></div>))}</div>
-                </div>
-            )}
+            
             {linkedCharacters.length > 0 && (
               <div>
                 <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Personaggi Collegati</h3>
@@ -207,15 +188,10 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
                     onLoad={ event => {
                         const map = event.target;
                         let bounds: LngLatBounds | undefined;
-                        if(poi.type === 'path') {
-                             const pathPoints = poi.pointIds.map(id => pointsMap.get(id)).filter((p): p is Point => !!p);
-                             if (pathPoints.length > 1) {
-                                bounds = pathPoints.reduce((b, p) => b.extend([p.coordinates.longitude, p.coordinates.latitude]), new maplibregl.LngLatBounds([pathPoints[0].coordinates.longitude, pathPoints[0].coordinates.latitude],[pathPoints[0].coordinates.longitude, pathPoints[0].coordinates.latitude]));
-                             }
-                        } else if(poi.type === 'area') {
-                             if (poi.bounds.length > 0) {
-                                bounds = poi.bounds.reduce((b, c) => b.extend([c.longitude, c.latitude]), new maplibregl.LngLatBounds([poi.bounds[0].longitude, poi.bounds[0].latitude],[poi.bounds[0].longitude, poi.bounds[0].latitude]));
-                             }
+                        if(poi.type === 'path' && poi.pathCoordinates.length > 1) {
+                           bounds = poi.pathCoordinates.reduce((b, p) => b.extend([p.longitude, p.latitude]), new maplibregl.LngLatBounds([poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude],[poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude]));
+                        } else if(poi.type === 'area' && poi.bounds.length > 0) {
+                           bounds = poi.bounds.reduce((b, c) => b.extend([c.longitude, c.latitude]), new maplibregl.LngLatBounds([poi.bounds[0].longitude, poi.bounds[0].latitude],[poi.bounds[0].longitude, poi.bounds[0].latitude]));
                         }
                         if (bounds) {
                            map.fitBounds(bounds, { padding: 40, duration: 0 });
