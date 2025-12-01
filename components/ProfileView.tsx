@@ -1,5 +1,4 @@
 import React from 'react';
-import UserIcon from './icons/UserIcon';
 import PlusIcon from './icons/PlusIcon';
 
 interface ProfileViewProps {
@@ -17,31 +16,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({ onAddPoiClick, onAddCharacter
       </header>
 
       <div className="max-w-2xl mx-auto space-y-8 font-sans-display">
-        {/* User Info */}
-        <div className="flex flex-col items-center text-center p-6 border border-gray-300/80">
-          <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center mb-4">
-            <UserIcon className="w-12 h-12 text-gray-500" />
-          </div>
-          <h2 className="font-sans-display text-2xl font-bold text-[#134A79]">Mario Rossi</h2>
-          <p className="text-gray-600">mario.rossi@email.com</p>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div className="p-4 border border-gray-300/80">
-            <p className="text-2xl font-bold text-[#134A79]">12</p>
-            <p className="text-sm text-gray-600">Luoghi Visitati</p>
-          </div>
-          <div className="p-4 border border-gray-300/80">
-            <p className="text-2xl font-bold text-[#134A79]">5</p>
-            <p className="text-sm text-gray-600">Preferiti</p>
-          </div>
-          <div className="p-4 border border-gray-300/80">
-            <p className="text-2xl font-bold text-[#134A79]">2</p>
-            <p className="text-sm text-gray-600">Contributi</p>
-          </div>
-        </div>
-
         {/* Content Management */}
         <div className="border border-gray-300/80 p-6">
           <h2 className="font-serif-display text-2xl italic text-[#134A79] mb-4">Gestione Contenuti</h2>

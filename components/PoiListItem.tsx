@@ -52,7 +52,10 @@ const PoiListItem: React.FC<PoiListItemProps> = ({ poi, distance, onSelect, cate
                 className="w-full h-full rounded-full object-cover grayscale mix-blend-multiply group-hover:grayscale-0 group-hover:mix-blend-normal transition-all duration-300 ease-in-out"
               />
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none" title={`Tipo: ${poi.type}`}>
-                <PoiTypeIcon type={poi.type} className="w-10 h-10 text-white" style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.5))' }} />
+                {/* FIX: Moved inline style to a wrapper div as PoiTypeIcon does not accept a style prop. */}
+                <div style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.5))' }}>
+                  <PoiTypeIcon type={poi.type} className="w-10 h-10 text-white" />
+                </div>
               </div>
             </>
           ) : (

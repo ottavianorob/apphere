@@ -33,8 +33,8 @@ const AddCharacterModal: React.FC<AddCharacterModalProps> = ({ onClose, onSave }
     };
 
     const handleSubmit = () => {
-        if (!name || !description) {
-            alert('Nome e descrizione sono obbligatori.');
+        if (!name) {
+            alert('Il Nome è obbligatorio.');
             return;
         }
         
@@ -67,8 +67,8 @@ const AddCharacterModal: React.FC<AddCharacterModalProps> = ({ onClose, onSave }
                   <input id="char-name" type="text" value={name} onChange={e => setName(e.target.value)} className={inputStyle} required/>
               </div>
                <div>
-                  <label htmlFor="char-desc" className={labelStyle}>Descrizione *</label>
-                  <textarea id="char-desc" value={description} onChange={e => setDescription(e.target.value)} className={`${inputStyle} h-24`} required/>
+                  <label htmlFor="char-desc" className={labelStyle}>Descrizione</label>
+                  <textarea id="char-desc" value={description} onChange={e => setDescription(e.target.value)} className={`${inputStyle} h-24`} />
               </div>
               <div>
                   <label htmlFor="char-wiki" className={labelStyle}>URL Wikipedia</label>

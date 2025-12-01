@@ -118,9 +118,8 @@ const getPeriodIdFromYear = (year: number): string | null => {
 };
 
 const extractYear = (dateString: string): number | null => {
-    const match = dateString.match(/\b\d{4}\b/g);
-    if (match) {
-        return parseInt(match[match.length - 1], 10);
+    if (dateString && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        return parseInt(dateString.split('-')[0], 10);
     }
     return null;
 };
@@ -187,7 +186,7 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     };
 
     const handleSubmit = () => {
-      if (!title || !description || !eventDate || categoryIds.length === 0 || coordinates.length === 0 || !derivedPeriodId) {
+      if (!title || !eventDate || categoryIds.length === 0 || coordinates.length === 0 || !derivedPeriodId) {
           alert('Per favore, compila tutti i campi obbligatori (*).');
           return;
       }
@@ -198,8 +197,12 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
       const tags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
       const photos = photoDataUrl ? [{ id: `new_photo_${Date.now()}`, url: photoDataUrl, caption: photoCaption }] : [];
       
+      const [year, month, day] = eventDate.split('-').map(Number);
+      const dateObj = new Date(Date.UTC(year, month - 1, day));
+      const formattedDate = dateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+
       let newPoi: Omit<Poi, 'id' | 'creationDate' | 'author'>;
-      const commonData = { title, description, location: derivedLocation, eventDate, periodId: derivedPeriodId, categoryIds, photos, linkedCharacterIds, tags };
+      const commonData = { title, description, location: derivedLocation, eventDate: formattedDate, periodId: derivedPeriodId, categoryIds, photos, linkedCharacterIds, tags };
 
       if (type === 'point') {
         const pointPoi: Omit<Point, 'id' | 'creationDate' | 'author'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
@@ -240,8 +243,8 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                       <input id="poi-title" type="text" value={title} onChange={e => setTitle(e.target.value)} className={inputStyle} required/>
                   </div>
                    <div>
-                      <label htmlFor="poi-desc" className={labelStyle}>Descrizione *</label>
-                      <textarea id="poi-desc" value={description} onChange={e => setDescription(e.target.value)} className={`${inputStyle} h-24`} required/>
+                      <label htmlFor="poi-desc" className={labelStyle}>Descrizione</label>
+                      <textarea id="poi-desc" value={description} onChange={e => setDescription(e.target.value)} className={`${inputStyle} h-24`} />
                   </div>
                   <div>
                       <label className={labelStyle}>Tipologia *</label>
@@ -288,7 +291,7 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                   </div>
                    <div>
                         <label htmlFor="poi-date" className={labelStyle}>Data Evento *</label>
-                        <input id="poi-date" type="text" value={eventDate} onChange={e => setEventDate(e.target.value)} className={inputStyle} required placeholder="Es. 28 aprile 1945"/>
+                        <input id="poi-date" type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} className={inputStyle} required />
                     </div>
                   <div className="grid grid-cols-1">
                       <div>

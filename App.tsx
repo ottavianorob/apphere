@@ -46,80 +46,79 @@ const App: React.FC = () => {
   
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
 
+  const fetchData = async () => {
+    try {
+      // Fetch simple tables
+      const { data: categoriesData, error: catError } = await supabase.from('categories').select('*');
+      if (catError) throw catError;
+      setCategories(categoriesData || []);
+
+      const { data: periodsData, error: perError } = await supabase.from('periods').select('*');
+      if (perError) throw perError;
+      setPeriods(periodsData || []);
+      
+      const { data: charactersData, error: charError } = await supabase.from('characters').select('*');
+      if (charError) throw charError;
+      const transformedCharacters: Character[] = (charactersData || []).map(c => ({ ...c, wikipediaUrl: c.wikipedia_url }));
+      setCharacters(transformedCharacters);
+
+      const { data: profilesData, error: profError } = await supabase.from('profiles').select('*');
+      if (profError) throw profError;
+      const transformedUsers: User[] = (profilesData || []).map(p => ({ ...p, avatarUrl: p.avatar_url, contributions: 0 })); // Note: contributions are not in DB schema
+      setUsers(transformedUsers);
+
+      // Fetch POIs with relations
+      const { data: poisData, error: poisError } = await supabase.from('pois').select(`*, profiles(name), poi_categories(categories(id)), poi_characters(characters(id))`);
+      if (poisError) throw poisError;
+
+      const transformedPois: Poi[] = (poisData || []).map((p: any) => {
+          const basePoi = {
+              id: p.id,
+              creationDate: p.created_at,
+              author: p.profiles?.name || 'Anonimo',
+              periodId: p.period_id,
+              categoryIds: p.poi_categories.map((pc: any) => pc.categories.id),
+              title: p.title,
+              location: p.location,
+              eventDate: p.event_date,
+              description: p.description,
+              photos: p.photos || [],
+              linkedCharacterIds: p.poi_characters.map((pch: any) => pch.characters.id),
+              tags: p.tags || [],
+          };
+          switch (p.type) {
+              case 'point': return { ...basePoi, type: 'point', coordinates: p.coordinates } as Point;
+              case 'path': return { ...basePoi, type: 'path', pathCoordinates: p.path_coordinates } as Path;
+              case 'area': return { ...basePoi, type: 'area', bounds: p.bounds } as Area;
+              default: return null;
+          }
+      }).filter((p): p is Poi => p !== null);
+      setAllPois(transformedPois);
+      
+      // Fetch Itineraries with relations
+      const { data: itinerariesData, error: itError } = await supabase.from('itineraries').select(`*, profiles(name), itinerary_pois(poi_id)`);
+      if (itError) throw itError;
+      
+      const transformedItineraries: Itinerary[] = (itinerariesData || []).map((it: any) => ({
+          id: it.id,
+          title: it.title,
+          description: it.description,
+          estimatedDuration: it.estimated_duration,
+          poiIds: it.itinerary_pois.map((ip: any) => ip.poi_id),
+          author: it.profiles?.name || 'Anonimo',
+          tags: it.tags || [],
+          coverPhoto: it.cover_photo,
+      }));
+      setItineraries(transformedItineraries);
+
+    } catch (error) {
+      console.error("Errore nel caricamento dati da Supabase:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        // Fetch simple tables
-        const { data: categoriesData, error: catError } = await supabase.from('categories').select('*');
-        if (catError) throw catError;
-        setCategories(categoriesData || []);
-
-        const { data: periodsData, error: perError } = await supabase.from('periods').select('*');
-        if (perError) throw perError;
-        setPeriods(periodsData || []);
-        
-        const { data: charactersData, error: charError } = await supabase.from('characters').select('*');
-        if (charError) throw charError;
-        const transformedCharacters: Character[] = (charactersData || []).map(c => ({ ...c, wikipediaUrl: c.wikipedia_url }));
-        setCharacters(transformedCharacters);
-
-        const { data: profilesData, error: profError } = await supabase.from('profiles').select('*');
-        if (profError) throw profError;
-        const transformedUsers: User[] = (profilesData || []).map(p => ({ ...p, avatarUrl: p.avatar_url, contributions: 0 })); // Note: contributions are not in DB schema
-        setUsers(transformedUsers);
-
-        // Fetch POIs with relations
-        const { data: poisData, error: poisError } = await supabase.from('pois').select(`*, profiles(name), poi_categories(categories(id)), poi_characters(characters(id))`);
-        if (poisError) throw poisError;
-
-        const transformedPois: Poi[] = (poisData || []).map((p: any) => {
-            const basePoi = {
-                id: p.id,
-                creationDate: p.created_at,
-                author: p.profiles?.name || 'Anonimo',
-                periodId: p.period_id,
-                categoryIds: p.poi_categories.map((pc: any) => pc.categories.id),
-                title: p.title,
-                location: p.location,
-                eventDate: p.event_date,
-                description: p.description,
-                photos: p.photos || [],
-                linkedCharacterIds: p.poi_characters.map((pch: any) => pch.characters.id),
-                tags: p.tags || [],
-            };
-            switch (p.type) {
-                case 'point': return { ...basePoi, type: 'point', coordinates: p.coordinates } as Point;
-                case 'path': return { ...basePoi, type: 'path', pathCoordinates: p.path_coordinates } as Path;
-                case 'area': return { ...basePoi, type: 'area', bounds: p.bounds } as Area;
-                default: return null;
-            }
-        }).filter((p): p is Poi => p !== null);
-        setAllPois(transformedPois);
-        
-        // Fetch Itineraries with relations
-        const { data: itinerariesData, error: itError } = await supabase.from('itineraries').select(`*, profiles(name), itinerary_pois(poi_id)`);
-        if (itError) throw itError;
-        
-        const transformedItineraries: Itinerary[] = (itinerariesData || []).map((it: any) => ({
-            id: it.id,
-            title: it.title,
-            description: it.description,
-            estimatedDuration: it.estimated_duration,
-            poiIds: it.itinerary_pois.map((ip: any) => ip.poi_id),
-            author: it.profiles?.name || 'Anonimo',
-            tags: it.tags || [],
-            coverPhoto: it.cover_photo,
-        }));
-        setItineraries(transformedItineraries);
-
-      } catch (error) {
-        console.error("Errore nel caricamento dati da Supabase:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
   }, []);
 
@@ -164,31 +163,95 @@ const App: React.FC = () => {
     setSelectedItinerary(itinerary);
   };
   
-  const handleSavePoi = (newPoi: Omit<Poi, 'id' | 'creationDate' | 'author'>) => {
-    console.log("Saving new POI:", {
-      ...newPoi,
-      id: `new_poi_${Date.now()}`,
-      creationDate: new Date().toISOString(),
-      author: 'Mario Rossi' // Logged-in user
-    });
-    // TODO: Implement Supabase insert
-    setIsAddPoiModalOpen(false);
+  const handleSavePoi = async (newPoi: Omit<Poi, 'id' | 'creationDate' | 'author'>) => {
+    try {
+        const poiToInsert: any = {
+            title: newPoi.title,
+            description: newPoi.description,
+            location: newPoi.location,
+            event_date: newPoi.eventDate,
+            period_id: newPoi.periodId,
+            photos: newPoi.photos,
+            tags: newPoi.tags,
+            type: newPoi.type,
+        };
+        if (newPoi.type === 'point') poiToInsert.coordinates = (newPoi as Point).coordinates;
+        if (newPoi.type === 'path') poiToInsert.path_coordinates = (newPoi as Path).pathCoordinates;
+        if (newPoi.type === 'area') poiToInsert.bounds = (newPoi as Area).bounds;
+
+        const { data: poiData, error: poiError } = await supabase.from('pois').insert(poiToInsert).select().single();
+        if (poiError) throw poiError;
+        
+        const newPoiId = poiData.id;
+        
+        if (newPoi.categoryIds.length > 0) {
+            const poiCategories = newPoi.categoryIds.map(catId => ({ poi_id: newPoiId, category_id: catId }));
+            const { error: catError } = await supabase.from('poi_categories').insert(poiCategories);
+            if (catError) throw catError;
+        }
+
+        if (newPoi.linkedCharacterIds.length > 0) {
+            const poiCharacters = newPoi.linkedCharacterIds.map(charId => ({ poi_id: newPoiId, character_id: charId }));
+            const { error: charError } = await supabase.from('poi_characters').insert(poiCharacters);
+            if (charError) throw charError;
+        }
+
+        alert("Luogo salvato con successo!");
+        setIsAddPoiModalOpen(false);
+        await fetchData();
+    } catch (error) {
+        console.error("Errore nel salvataggio del POI:", error);
+        alert("Si è verificato un errore durante il salvataggio.");
+    }
   };
 
-  const handleSaveCharacter = (newCharacter: Omit<Character, 'id'>) => {
-    console.log("Saving new Character:", { ...newCharacter, id: `new_char_${Date.now()}` });
-    // TODO: Implement Supabase insert
-    setIsAddCharacterModalOpen(false);
+  const handleSaveCharacter = async (newCharacter: Omit<Character, 'id'>) => {
+    try {
+        const { error } = await supabase.from('characters').insert({
+            name: newCharacter.name,
+            description: newCharacter.description,
+            wikipedia_url: newCharacter.wikipediaUrl,
+            photos: newCharacter.photos,
+        });
+        if (error) throw error;
+
+        alert("Personaggio salvato con successo!");
+        setIsAddCharacterModalOpen(false);
+        await fetchData();
+    } catch (error) {
+        console.error("Errore nel salvataggio del Personaggio:", error);
+        alert("Si è verificato un errore durante il salvataggio.");
+    }
   };
 
-  const handleSaveItinerary = (newItinerary: Omit<Itinerary, 'id' | 'author'>) => {
-    console.log("Saving new Itinerary:", { 
-        ...newItinerary, 
-        id: `new_it_${Date.now()}`,
-        author: 'Mario Rossi'
-    });
-    // TODO: Implement Supabase insert
-    setIsAddItineraryModalOpen(false);
+  const handleSaveItinerary = async (newItinerary: Omit<Itinerary, 'id' | 'author'>) => {
+     try {
+        const itineraryToInsert = {
+            title: newItinerary.title,
+            description: newItinerary.description,
+            estimated_duration: newItinerary.estimatedDuration,
+            tags: newItinerary.tags,
+            cover_photo: newItinerary.coverPhoto,
+        };
+
+        const { data: itineraryData, error: itError } = await supabase.from('itineraries').insert(itineraryToInsert).select().single();
+        if (itError) throw itError;
+
+        const newItineraryId = itineraryData.id;
+
+        if (newItinerary.poiIds.length > 0) {
+            const itineraryPois = newItinerary.poiIds.map(poiId => ({ itinerary_id: newItineraryId, poi_id: poiId }));
+            const { error: itPoisError } = await supabase.from('itinerary_pois').insert(itineraryPois);
+            if (itPoisError) throw itPoisError;
+        }
+
+        alert("Itinerario salvato con successo!");
+        setIsAddItineraryModalOpen(false);
+        await fetchData();
+    } catch (error) {
+        console.error("Errore nel salvataggio dell'Itinerario:", error);
+        alert("Si è verificato un errore durante il salvataggio.");
+    }
   };
 
   const renderView = () => {

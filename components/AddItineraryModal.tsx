@@ -19,7 +19,8 @@ const AddItineraryModal: React.FC<AddItineraryModalProps> = ({ onClose, onSave, 
 
     const availablePois = useMemo(() => {
         const selectedIds = new Set(selectedPois.map(p => p.id));
-        return allPois.filter(p => !selectedIds.has(p));
+        // FIX: Correctly check for poi.id in the set.
+        return allPois.filter(p => !selectedIds.has(p.id));
     }, [allPois, selectedPois]);
 
     const estimatedDuration = useMemo(() => {

@@ -1,7 +1,8 @@
 import React from 'react';
 
 const CategoryIcon: React.FC<{ categoryId: string; className?: string }> = ({ categoryId, className }) => {
-  const commonProps = {
+  // FIX: Explicitly type commonProps to satisfy SVG attribute requirements.
+  const commonProps: React.SVGProps<SVGSVGElement> = {
     xmlns: "http://www.w3.org/2000/svg",
     className: className,
     width: "24",
