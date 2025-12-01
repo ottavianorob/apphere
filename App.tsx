@@ -8,6 +8,7 @@ import PoiDetailModal from './components/PoiDetailModal';
 import ItinerariesView from './components/ItinerariesView';
 import ItineraryDetailModal from './components/ItineraryDetailModal';
 import CharacterDetailModal from './components/CharacterDetailModal';
+import TagDetailModal from './components/TagDetailModal';
 
 export type View = 'map' | 'itineraries' | 'settings';
 
@@ -16,11 +17,12 @@ const App: React.FC = () => {
   const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null);
   const [selectedItinerary, setSelectedItinerary] = useState<Itinerary | null>(null);
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   
   const allPois: Poi[] = [...points, ...paths, ...areas];
 
   useEffect(() => {
-    const isModalOpen = selectedPoi || selectedItinerary || selectedCharacter;
+    const isModalOpen = selectedPoi || selectedItinerary || selectedCharacter || selectedTag;
     if (isModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -29,14 +31,35 @@ const App: React.FC = () => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [selectedPoi, selectedItinerary, selectedCharacter]);
+  }, [selectedPoi, selectedItinerary, selectedCharacter, selectedTag]);
 
-  const openCharacterModal = (characterId: string) => {
-    const character = characters.find(c => c.id === characterId);
-    if (character) {
-      setSelectedCharacter(character);
-    }
-  }
+  const openCharacterModal = (character: Character) => {
+    setSelectedPoi(null);
+    setSelectedItinerary(null);
+    setSelectedTag(null);
+    setSelectedCharacter(character);
+  };
+
+  const openTagModal = (tagName: string) => {
+    setSelectedPoi(null);
+    setSelectedItinerary(null);
+    setSelectedCharacter(null);
+    setSelectedTag(tagName);
+  };
+
+  const openPoiModal = (poi: Poi) => {
+    setSelectedItinerary(null);
+    setSelectedCharacter(null);
+    setSelectedTag(null);
+    setSelectedPoi(poi);
+  };
+
+  const openItineraryModal = (itinerary: Itinerary) => {
+    setSelectedPoi(null);
+    setSelectedCharacter(null);
+    setSelectedTag(null);
+    setSelectedItinerary(itinerary);
+  };
 
   const renderView = () => {
     switch (currentView) {
@@ -75,7 +98,11 @@ const App: React.FC = () => {
           poi={selectedPoi} 
           onClose={() => setSelectedPoi(null)} 
           categories={categories}
-          onSelectCharacter={openCharacterModal}
+          onSelectCharacter={(characterId: string) => {
+            const char = characters.find(c => c.id === characterId);
+            if (char) openCharacterModal(char);
+          }}
+          onSelectTag={openTagModal}
         />
       )}
       {selectedItinerary && (
@@ -83,7 +110,8 @@ const App: React.FC = () => {
           itinerary={selectedItinerary}
           allPois={allPois}
           onClose={() => setSelectedItinerary(null)}
-          onSelectPoiInItinerary={setSelectedPoi}
+          onSelectPoiInItinerary={openPoiModal}
+          onSelectTag={openTagModal}
         />
       )}
       {selectedCharacter && (
@@ -92,7 +120,27 @@ const App: React.FC = () => {
           allPois={allPois}
           categories={categories}
           onClose={() => setSelectedCharacter(null)}
-          onSelectPoi={setSelectedPoi}
+          onSelectPoi={openPoiModal}
+          onSelectTag={openTagModal}
+        />
+      )}
+      {selectedTag && (
+        <TagDetailModal
+          tag={selectedTag}
+          allPois={allPois}
+          allItineraries={itineraries}
+          allCharacters={characters}
+          categories={categories}
+          onClose={() => setSelectedTag(null)}
+          onSelectPoi={openPoiModal}
+          onSelectItinerary={(itineraryId: string) => {
+              const it = itineraries.find(i => i.id === itineraryId);
+              if (it) openItineraryModal(it);
+          }}
+          onSelectCharacter={(characterId: string) => {
+              const char = characters.find(c => c.id === characterId);
+              if(char) openCharacterModal(char);
+          }}
         />
       )}
     </div>

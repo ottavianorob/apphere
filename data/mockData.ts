@@ -9,11 +9,14 @@ export const categories: Category[] = [
 ];
 
 export const periods: Period[] = [
-  { id: 'rinascimento', name: 'Rinascimento' },
+  { id: 'risorgimento', name: 'Risorgimento' },
+  { id: 'belleepoque', name: 'Belle Époque (1871-1914)' },
+  { id: 'primog dopoguerra', name: 'Primo Dopoguerra (1919-1922)' },
   { id: 'resistenza', name: 'Resistenza (1943-1945)' },
   { id: 'boom', name: 'Dopoguerra e Boom Economico' },
   { id: 'anni60', name: 'Anni \'60' },
   { id: 'anni70', name: 'Anni di Piombo (\'70)' },
+  { id: 'anni90', name: 'Anni \'90' },
 ];
 
 export const characters: Character[] = [
@@ -56,6 +59,15 @@ export const characters: Character[] = [
       { id: 'ph_toscanini_3', url: 'https://picsum.photos/seed/toscanini_char_3/800/600', caption: 'Toscanini durante le prove' }
     ] 
   },
+   { 
+    id: 'tobagi', 
+    name: 'Walter Tobagi', 
+    description: 'Giornalista e scrittore, vittima del terrorismo', 
+    wikipediaUrl: 'https://it.wikipedia.org/wiki/Walter_Tobagi', 
+    photos: [
+      { id: 'ph_tobagi_1', url: 'https://picsum.photos/seed/tobagi_char/800/600', caption: 'Ritratto di Walter Tobagi' }
+    ] 
+  },
 ];
 
 export const points: Point[] = [
@@ -80,42 +92,39 @@ export const points: Point[] = [
     linkedCharacterIds: [],
     tags: ['terrorismo', 'strategia della tensione', 'milano', 'cronaca nera'],
   },
-  // Categoria: Musica
+  // Categoria: Storia
   {
     id: 'm2',
     type: 'point',
-    creationDate: '2023-11-01T11:00:00Z',
-    author: 'UserMusicFan',
-    coordinates: { latitude: 45.4674, longitude: 9.1883 },
-    periodId: 'boom',
-    categoryId: 'musica',
-    title: 'La Scala rinasce con Toscanini',
-    location: 'Milano',
-    eventDate: '11 maggio 1946',
-    description: 'L\'11 maggio 1946, il Teatro alla Scala, gravemente danneggiato dai bombardamenti del 1943, riaprì con un memorabile concerto diretto da Arturo Toscanini. L\'evento simboleggiò la rinascita culturale di Milano e dell\'Italia intera dopo la guerra.',
-    photos: [{ id: 'ph_m2', url: 'https://picsum.photos/seed/scala/800/600', caption: 'Il Teatro alla Scala' }],
-    linkedCharacterIds: ['toscanini'],
-    tags: ['musica classica', 'ricostruzione', 'dopoguerra', 'teatro'],
+    creationDate: '2024-01-15T10:00:00Z',
+    author: 'HistoryBuff',
+    coordinates: { latitude: 45.5748, longitude: 9.2736 },
+    periodId: 'belleepoque',
+    categoryId: 'storia',
+    title: 'L\'assassinio di Re Umberto I',
+    location: 'Monza',
+    eventDate: '29 luglio 1900',
+    description: 'All\'esterno della Villa Reale di Monza, l\'anarchico Gaetano Bresci sparò e uccise Re Umberto I di Savoia. L\'attentato scosse profondamente l\'Italia e segnò un punto di svolta politico all\'inizio del XX secolo.',
+    photos: [{ id: 'ph_m2_1', url: 'https://picsum.photos/seed/monza_reg/800/600', caption: 'La Villa Reale di Monza' }],
+    linkedCharacterIds: [],
+    tags: ['regicidio', 'anarchismo', 'storia italiana', 'savoia'],
   },
-  // Categoria: Arte
+  // Categoria: Storia
   {
     id: 'm3',
     type: 'point',
-    creationDate: '2023-11-01T12:00:00Z',
-    author: 'ArtExplorer',
-    coordinates: { latitude: 45.4664, longitude: 9.176 },
-    periodId: 'rinascimento',
-    categoryId: 'arte',
-    title: 'L\'Ultima Cena di Leonardo',
-    location: 'Milano',
-    eventDate: '1495-1498',
-    description: 'Nel refettorio del convento di Santa Maria delle Grazie, Leonardo da Vinci dipinse uno dei più grandi capolavori della storia dell\'arte: l\'Ultima Cena. L\'opera monumentale è celebre per la sua profondità psicologica e innovazione compositiva.',
-    photos: [
-      { id: 'ph_m3_1', url: 'https://picsum.photos/seed/cenacolo/800/600', caption: 'Il convento di Santa Maria delle Grazie' },
-      { id: 'ph_m3_2', url: 'https://picsum.photos/seed/cenacolo_interior/800/600', caption: 'Interno del refettorio' }
-    ],
-    linkedCharacterIds: ['leonardo'],
-    tags: ['rinascimento', 'affresco', 'capolavoro', 'unesco'],
+    creationDate: '2024-01-15T11:00:00Z',
+    author: 'HistoryBuff',
+    coordinates: { latitude: 45.4647, longitude: 9.1856 },
+    periodId: 'primog dopoguerra',
+    categoryId: 'storia',
+    title: 'La fondazione dei Fasci di Combattimento',
+    location: 'Piazza San Sepolcro, Milano',
+    eventDate: '23 marzo 1919',
+    description: 'In una sala riunioni affacciata su Piazza San Sepolcro, Benito Mussolini fondò i Fasci italiani di combattimento. Questo evento è considerato l\'atto di nascita del movimento fascista, che avrebbe tragicamente segnato la storia italiana ed europea.',
+    photos: [{ id: 'ph_m3_1', url: 'https://picsum.photos/seed/sansepolcro/800/600', caption: 'Piazza San Sepolcro' }],
+    linkedCharacterIds: [],
+    tags: ['fascismo', 'mussolini', 'storia politica', 'milano'],
   },
   // Categoria: Storia
   {
@@ -134,27 +143,22 @@ export const points: Point[] = [
     linkedCharacterIds: ['pertini'],
     tags: ['liberazione', 'fascismo', 'seconda guerra mondiale', 'partigiani'],
   },
-  // Categoria: Cinema
+  // Categoria: Società
   {
     id: 'm5',
     type: 'point',
-    creationDate: '2023-11-01T14:00:00Z',
+    creationDate: '2024-01-15T12:00:00Z',
     author: 'Cinephile',
-    coordinates: { latitude: 45.4655, longitude: 9.1898 },
-    periodId: 'boom',
-    categoryId: 'cinema',
-    title: 'Rocco e i suoi fratelli in Galleria',
-    location: 'Milano',
-    eventDate: '1960',
-    description: 'La Galleria Vittorio Emanuele II è stata una delle location principali del capolavoro di Luchino Visconti, "Rocco e i suoi fratelli". Le scene girate qui catturano l\'energia e le contraddizioni di una Milano in pieno boom economico.',
-    photos: [
-      { id: 'ph_m5_1', url: 'https://picsum.photos/seed/galleria/800/600', caption: 'La Galleria Vittorio Emanuele II' },
-      { id: 'ph_m5_2', url: 'https://picsum.photos/seed/galleria_floor/800/600', caption: 'Il mosaico del toro' },
-      { id: 'ph_m5_3', url: 'https://picsum.photos/seed/galleria_night/800/600', caption: 'La Galleria di notte' },
-      { id: 'ph_m5_4', url: 'https://picsum.photos/seed/galleria_roof/800/600', caption: 'La cupola della Galleria' }
-    ],
-    linkedCharacterIds: ['visconti'],
-    tags: ['neorealismo', 'cinema italiano', 'boom economico', 'location'],
+    coordinates: { latitude: 45.4800, longitude: 9.2110 },
+    periodId: 'primog dopoguerra',
+    categoryId: 'societa',
+    title: 'La strage del Teatro Diana',
+    location: 'Corso Buenos Aires, Milano',
+    eventDate: '23 marzo 1921',
+    description: 'Una bomba, piazzata da anarchici individualisti, esplose all\'ingresso del Teatro Diana, causando 21 morti e oltre 80 feriti tra il pubblico. Fu uno dei più sanguinosi attentati del turbolento Biennio Rosso.',
+    photos: [{ id: 'ph_m5_1', url: 'https://picsum.photos/seed/diana_teatro/800/600', caption: 'L\'area del ex-Teatro Diana oggi' }],
+    linkedCharacterIds: [],
+    tags: ['anarchismo', 'biennio rosso', 'violenza politica', 'milano'],
   },
   // Categoria: Società / Storia
   {
@@ -173,22 +177,22 @@ export const points: Point[] = [
     linkedCharacterIds: [],
     tags: ['shoah', 'memoria', 'deportazione', 'olocausto'],
   },
-  // Categoria: Arte
+    // Categoria: Società
   {
     id: 'm7',
     type: 'point',
-    creationDate: '2023-11-01T16:00:00Z',
-    author: 'ArtExplorer',
-    coordinates: { latitude: 45.4719, longitude: 9.1884 },
-    periodId: 'boom',
-    categoryId: 'arte',
-    title: 'La nascita della Grande Brera',
-    location: 'Milano',
-    eventDate: 'Anni \'70',
-    description: 'La Pinacoteca di Brera, cuore artistico di Milano, ha conosciuto un\'importante espansione e riorganizzazione negli anni \'70, sotto la direzione di Franco Russoli. Questo periodo ha consolidato il suo ruolo come uno dei più importanti musei italiani, aprendosi a un pubblico più vasto.',
-    photos: [{ id: 'ph_m7', url: 'https://picsum.photos/seed/brera/800/600', caption: 'Cortile della Pinacoteca di Brera' }],
+    creationDate: '2024-01-15T14:00:00Z',
+    author: 'Admin',
+    coordinates: { latitude: 45.4628, longitude: 9.1912 },
+    periodId: 'anni60',
+    categoryId: 'societa',
+    title: 'L\'occupazione della Statale del \'68',
+    location: 'Università Statale, Milano',
+    eventDate: 'marzo 1968',
+    description: 'L\'Università Statale di Milano fu uno degli epicentri del movimento studentesco del \'68 in Italia. Le sue occupazioni e le assemblee infuocate divennero un simbolo della contestazione giovanile contro l\'autoritarismo accademico e sociale.',
+    photos: [{ id: 'ph_m7_1', url: 'https://picsum.photos/seed/statale68/800/600', caption: 'Il cortile della "Ca\' Granda", sede dell\'Università Statale' }],
     linkedCharacterIds: [],
-    tags: ['museo', 'pittura', 'arte moderna', 'cultura'],
+    tags: ['sessantotto', 'movimento studentesco', 'protesta', 'università'],
   },
   // Categoria: Storia
   {
@@ -207,43 +211,39 @@ export const points: Point[] = [
     linkedCharacterIds: ['pertini'],
     tags: ['25 aprile', 'liberazione', 'antifascismo', 'discorso storico'],
   },
-  // Categoria: Musica
+  // Categoria: Società
   {
     id: 'm9',
     type: 'point',
-    creationDate: '2023-11-01T18:00:00Z',
-    author: 'UserMusicFan',
-    coordinates: { latitude: 45.4789, longitude: 9.1436 },
-    periodId: 'anni60',
-    categoryId: 'musica',
-    title: 'I Beatles al Velodromo Vigorelli',
-    location: 'Milano',
-    eventDate: '24 giugno 1965',
-    description: 'Nel giugno del 1965, i Beatles tennero due concerti al Velodromo Vigorelli di Milano, unica tappa italiana del loro tour europeo. Fu un evento epocale che portò la Beatlemania in Italia e segnò un\'intera generazione.',
-    photos: [
-      { id: 'ph_m9_1', url: 'https://picsum.photos/seed/vigorelli/800/600', caption: 'Velodromo Vigorelli' },
-      { id: 'ph_m9_2', url: 'https://picsum.photos/seed/vigorelli_stage/800/600', caption: 'Il palco del concerto' },
-      { id: 'ph_m9_3', url: 'https://picsum.photos/seed/vigorelli_crowd/800/600', caption: 'Il pubblico in attesa' }
-    ],
-    linkedCharacterIds: [],
-    tags: ['rock', 'beatles', 'concerto', 'cultura giovanile'],
+    creationDate: '2024-01-15T15:00:00Z',
+    author: 'Admin',
+    coordinates: { latitude: 45.4682, longitude: 9.1663 },
+    periodId: 'anni70',
+    categoryId: 'societa',
+    title: 'L\'omicidio di Walter Tobagi',
+    location: 'Via Salaino, Milano',
+    eventDate: '28 maggio 1980',
+    description: 'Il giornalista del Corriere della Sera Walter Tobagi, noto per le sue analisi lucide sul terrorismo, fu assassinato vicino a casa sua dalla "Brigata XXVIII marzo", un gruppo terroristico di sinistra. La sua morte fu un duro colpo per il giornalismo e la società civile.',
+    photos: [{ id: 'ph_m9_1', url: 'https://picsum.photos/seed/tobagi_via/800/600', caption: 'Via Salaino, luogo dell\'agguato' }],
+    linkedCharacterIds: ['tobagi'],
+    tags: ['terrorismo', 'anni di piombo', 'giornalismo', 'milano'],
   },
-  // Categoria: Cinema
+  // Categoria: Società
   {
     id: 'm10',
     type: 'point',
-    creationDate: '2023-11-01T19:00:00Z',
-    author: 'Cinephile',
-    coordinates: { latitude: 45.4705, longitude: 9.2045 },
-    periodId: 'boom', 
-    categoryId: 'cinema',
-    title: 'Villa Necchi Campiglio, set di "Io sono l\'amore"',
-    location: 'Milano',
-    eventDate: '2009',
-    description: 'Questa splendida villa degli anni \'30, gioiello dell\'architettura razionalista, è stata la sontuosa ambientazione del film "Io sono l\'amore" di Luca Guadagnino. La villa è diventata un personaggio a sé, rappresentando l\'eleganza e la decadenza dell\'alta borghesia milanese.',
-    photos: [{ id: 'ph_m10', url: 'https://picsum.photos/seed/necchi/800/600', caption: 'Piscina di Villa Necchi Campiglio' }],
+    creationDate: '2024-01-15T16:00:00Z',
+    author: 'Admin',
+    coordinates: { latitude: 45.4565, longitude: 9.1678 },
+    periodId: 'anni90',
+    categoryId: 'societa',
+    title: 'L\'inizio di Mani Pulite',
+    location: 'Pio Albergo Trivulzio, Milano',
+    eventDate: '17 febbraio 1992',
+    description: 'L\'arresto di Mario Chiesa, presidente del Pio Albergo Trivulzio, colto in flagrante mentre intascava una tangente, diede il via all\'inchiesta "Mani Pulite". Questo evento scoperchiò il sistema di corruzione dilagante noto come Tangentopoli, che cambiò per sempre il panorama politico italiano.',
+    photos: [{ id: 'ph_m10_1', url: 'https://picsum.photos/seed/trivulzio/800/600', caption: 'L\'ingresso del Pio Albergo Trivulzio' }],
     linkedCharacterIds: [],
-    tags: ['architettura', 'design', 'location cinematografica', 'guadagnino'],
+    tags: ['tangentopoli', 'mani pulite', 'corruzione', 'politica', 'milano'],
   },
   {
     id: 'm11',
@@ -268,7 +268,7 @@ export const paths: Path[] = [
     id: 'path1',
     type: 'path',
     title: 'Corteo funebre di Giuseppe Pinelli',
-    description: 'Il percorso del corteo funebre dell\'anarchico Giuseppe Pinelli, morto precipitando da una finestra della questura di Milano nel 1969.',
+    description: 'Il percorso del corteo funebre dell\'anarchico Giuseppe Pinelli, morto precipitando da una finestra della questura di Milano nel 1969, dopo la strage di Piazza Fontana.',
     pathCoordinates: [
       { latitude: 45.464204, longitude: 9.189982 }, // Piazza Fontana (partenza simbolica)
       { latitude: 45.465, longitude: 9.188 },
@@ -291,44 +291,44 @@ export const areas: Area[] = [
     {
         id: 'area1',
         type: 'area',
-        title: 'Il Quadrilatero della moda',
-        description: 'Il Quadrilatero della moda è un quartiere di Milano, noto per le boutique di lusso. È racchiuso da quattro strade: Via Montenapoleone, Via Manzoni, Via della Spiga e Corso Venezia.',
+        title: 'Epicentro del primo Sciopero Generale',
+        description: 'Nel settembre 1904, Milano fu il cuore del primo sciopero generale nella storia d\'Italia. Proclamato dalla Camera del Lavoro in seguito a eccidi proletari, lo sciopero paralizzò la città e segnò una tappa fondamentale nella storia del movimento operaio italiano.',
         bounds: [
-            { latitude: 45.4688, longitude: 9.1935 },
-            { latitude: 45.4715, longitude: 9.1965 },
-            { latitude: 45.4680, longitude: 9.2000 },
-            { latitude: 45.4653, longitude: 9.1968 }
+            { latitude: 45.47, longitude: 9.18 },
+            { latitude: 45.48, longitude: 9.22 },
+            { latitude: 45.45, longitude: 9.21 },
+            { latitude: 45.46, longitude: 9.17 }
         ],
         location: 'Milano',
-        eventDate: 'Dagli anni \'80 ad oggi',
-        creationDate: '2023-11-02T11:00:00Z',
+        eventDate: 'Settembre 1904',
+        creationDate: '2024-01-15T18:00:00Z',
         author: 'Admin',
-        periodId: 'boom',
-        categoryId: 'societa',
-        photos: [{id: 'ph_area1', url: 'https://picsum.photos/seed/quadrilatero/800/600', caption: 'Via Montenapoleone'}],
+        periodId: 'belleepoque',
+        categoryId: 'storia',
+        photos: [{id: 'ph_area1', url: 'https://picsum.photos/seed/sciopero1904/800/600', caption: 'Una via di Milano durante lo sciopero'}],
         linkedCharacterIds: [],
-        tags: ['moda', 'lusso', 'shopping', 'milano'],
+        tags: ['sciopero', 'sindacato', 'storia del lavoro', 'milano'],
     },
     {
         id: 'area2',
         type: 'area',
-        title: 'I Navigli',
-        description: 'Il quartiere dei Navigli è famoso per il sistema di canali navigabili e l\'atmosfera bohémien. Centro della movida milanese, è ricco di locali, ristoranti e botteghe d\'arte.',
+        title: 'Il cuore delle Cinque Giornate di Milano',
+        description: 'Tra il 18 e il 22 marzo 1848, le strade del centro di Milano furono teatro di una violenta insurrezione popolare contro il governo austriaco. Le barricate, erette in tutta la città, diventarono il simbolo della lotta per l\'indipendenza che infiammò il Risorgimento.',
         bounds: [
-            { latitude: 45.451, longitude: 9.172 },
-            { latitude: 45.455, longitude: 9.176 },
-            { latitude: 45.454, longitude: 9.185 },
-            { latitude: 45.449, longitude: 9.179 }
+            { latitude: 45.462, longitude: 9.185 },
+            { latitude: 45.468, longitude: 9.188 },
+            { latitude: 45.465, longitude: 9.195 },
+            { latitude: 45.460, longitude: 9.190 }
         ],
-        location: 'Milano',
-        eventDate: 'Dal Medioevo ad oggi',
-        creationDate: '2023-11-03T10:00:00Z',
+        location: 'Centro Storico, Milano',
+        eventDate: '18-22 Marzo 1848',
+        creationDate: '2024-01-15T19:00:00Z',
         author: 'Admin',
-        periodId: 'boom',
-        categoryId: 'societa',
-        photos: [{id: 'ph_area2', url: 'https://picsum.photos/seed/navigli/800/600', caption: 'Il Naviglio Grande al tramonto'}],
+        periodId: 'risorgimento',
+        categoryId: 'storia',
+        photos: [{id: 'ph_area2', url: 'https://picsum.photos/seed/cinquegiornate/800/600', caption: 'Monumento alle Cinque Giornate'}],
         linkedCharacterIds: [],
-        tags: ['movida', 'canali', 'storia', 'milano'],
+        tags: ['risorgimento', 'insurrezione', 'milano', 'storia'],
     }
 ];
 
@@ -345,20 +345,20 @@ export const itineraries: Itinerary[] = [
   },
   {
     id: 'it_m2',
-    title: 'Milano: Palcoscenici di Arte e Cultura',
-    description: 'Dal Rinascimento al cinema d\'autore, un itinerario che esplora i luoghi dove l\'arte, la musica e il cinema hanno fatto la storia di Milano.',
+    title: 'Milano nel Secolo Breve',
+    description: 'Dal seme del fascismo agli anni di piombo, fino alla crisi di Tangentopoli: un viaggio nei luoghi che hanno definito il tumultuoso Novecento milanese.',
     estimatedDuration: '4 ore',
-    poiIds: ['m3', 'm2', 'm5', 'm7'],
+    poiIds: ['m3', 'm7', 'm9', 'm10'],
     author: 'Admin',
-    tags: ['arte', 'milano', 'cultura', 'cinema', 'musica'],
-    coverPhoto: {id: 'ph_it_m2', url: 'https://picsum.photos/seed/arte_it/800/600', caption: 'Dettaglio artistico di Milano'}
+    tags: ['novecento', 'milano', 'storia politica', 'societa'],
+    coverPhoto: {id: 'ph_it_m2', url: 'https://picsum.photos/seed/900_it/800/600', caption: 'Un\'immagine simbolo del \'900 a Milano'}
   },
   {
     id: 'it_m3',
     title: 'Sulle tracce degli Anni di Piombo',
-    description: 'Un itinerario che ripercorre alcuni dei luoghi e degli eventi più significativi che hanno segnato Milano durante gli Anni di Piombo.',
-    estimatedDuration: '2 ore',
-    poiIds: ['m1', 'm11', 'path1'],
+    description: 'Un itinerario che ripercorre alcuni dei luoghi e degli eventi più significativi che hanno segnato Milano durante gli Anni di Piombo, dalla strategia della tensione al terrorismo rosso.',
+    estimatedDuration: '3 ore',
+    poiIds: ['m1', 'path1', 'm11', 'm9'],
     author: 'HistoryBuff',
     tags: ['storia', 'milano', 'anni di piombo', 'terrorismo'],
     coverPhoto: {id: 'ph_it_m3', url: 'https://picsum.photos/seed/annipiombo_it/800/600', caption: 'Milano, anni \'70'}

@@ -30,9 +30,10 @@ interface PoiDetailModalProps {
   onClose: () => void;
   categories: Category[];
   onSelectCharacter: (characterId: string) => void;
+  onSelectTag: (tag: string) => void;
 }
 
-const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories, onSelectCharacter }) => {
+const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories, onSelectCharacter, onSelectTag }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const linkedCharacters = allCharacters.filter(c => poi.linkedCharacterIds.includes(c.id));
 
@@ -179,7 +180,7 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
             {poi.tags && poi.tags.length > 0 && (
               <div>
                 <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Tags</h3>
-                <div className="flex flex-wrap gap-2">{poi.tags.map(tag => (<span key={tag} className="bg-gray-500/10 text-gray-600 px-3 py-1 text-sm font-sans-display font-semibold">#{tag}</span>))}</div>
+                <div className="flex flex-wrap gap-2">{poi.tags.map(tag => (<button key={tag} onClick={() => onSelectTag(tag)} className="bg-gray-500/10 text-gray-600 px-3 py-1 text-sm font-sans-display font-semibold hover:bg-gray-500/20 transition-colors">#{tag}</button>))}</div>
               </div>
             )}
             <div>

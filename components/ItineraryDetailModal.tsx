@@ -39,9 +39,10 @@ interface ItineraryDetailModalProps {
   allPois: Poi[];
   onClose: () => void;
   onSelectPoiInItinerary: (poi: Poi) => void;
+  onSelectTag: (tag: string) => void;
 }
 
-const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, allPois, onClose, onSelectPoiInItinerary }) => {
+const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, allPois, onClose, onSelectPoiInItinerary, onSelectTag }) => {
   const poisInItinerary = useMemo(() => 
     itinerary.poiIds.map(id => allPois.find(p => p.id === id)).filter((p): p is Poi => !!p),
     [itinerary, allPois]
@@ -73,6 +74,20 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
           </div>
           <div className="mt-6 space-y-6">
             <p className="italic text-[#2D3748] whitespace-pre-wrap leading-relaxed text-lg">{itinerary.description}</p>
+            
+            {itinerary.tags && itinerary.tags.length > 0 && (
+              <div>
+                <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {itinerary.tags.map(tag => (
+                    <button key={tag} onClick={() => onSelectTag(tag)} className="bg-gray-500/10 text-gray-600 px-3 py-1 text-sm font-sans-display font-semibold hover:bg-gray-500/20 transition-colors">
+                      #{tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div>
               <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Mappa dell'Itinerario</h3>
               <div className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
