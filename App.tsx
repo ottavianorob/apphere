@@ -60,6 +60,22 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
+  
+  const attemptAnonymousSignIn = async () => {
+    setConnectionError(null);
+    setLoading(true);
+    try {
+      const { data: { session: newSession }, error } = await supabase.auth.signInAnonymously();
+      if (error) throw error;
+      setSession(newSession);
+    } catch (error: any) {
+      console.error("Errore durante il sign-in anonimo:", error);
+      setConnectionError("Impossibile connettersi. Verifica la tua connessione a internet e riprova.");
+    } finally {
+      setSessionChecked(true);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -67,15 +83,7 @@ const App: React.FC = () => {
         setSession(session);
         setSessionChecked(true);
       } else {
-        supabase.auth.signInAnonymously().then(({ data: { session: newSession }, error }) => {
-            if (error) {
-                console.error("Errore durante il sign-in anonimo:", error);
-                setConnectionError("Impossibile stabilire una sessione utente anonima. Verifica che l'autenticazione anonima sia abilitata nelle impostazioni del tuo progetto Supabase.");
-            } else {
-                setSession(newSession);
-            }
-            setSessionChecked(true);
-        });
+        attemptAnonymousSignIn();
       }
     });
 
@@ -92,32 +100,39 @@ const App: React.FC = () => {
     try {
       setLoading(true);
       setConnectionError(null);
-      // Fetch simple tables
-      const { data: categoriesData, error: catError } = await supabase.from('categories').select('*');
-      if (catError) throw catError;
-      setCategories(categoriesData || []);
-
-      const { data: periodsData, error: perError } = await supabase.from('periods').select('*');
-      if (perError) throw perError;
-      setPeriods(periodsData || []);
       
-      const { data: charactersData, error: charError } = await supabase.from('characters').select('*, photos(*)');
+      const categoriesPromise = supabase.from('categories').select('*');
+      const periodsPromise = supabase.from('periods').select('*');
+      const charactersPromise = supabase.from('characters').select('*, photos(*)');
+      const profilesPromise = supabase.from('profiles').select('*');
+      const poisPromise = supabase.from('pois').select(`*, user_id, profiles:profiles!user_id(name), poi_categories(categories(id)), poi_characters(characters(id)), photos(*)`);
+      const itinerariesPromise = supabase.from('itineraries').select(`*, user_id, profiles:profiles!user_id(name), itinerary_pois(poi_id), coverPhoto:photos!cover_photo_id(*)`);
+
+      const [
+          { data: categoriesData, error: catError },
+          { data: periodsData, error: perError },
+          { data: charactersData, error: charError },
+          { data: profilesData, error: profError },
+          { data: poisData, error: poisError },
+          { data: itinerariesData, error: itError }
+      ] = await Promise.all([categoriesPromise, periodsPromise, charactersPromise, profilesPromise, poisPromise, itinerariesPromise]);
+
+      if (catError) throw catError;
+      if (perError) throw perError;
       if (charError) throw charError;
+      if (profError) throw profError;
+      if (poisError) throw poisError;
+      if (itError) throw itError;
+
+      setCategories(categoriesData || []);
+      setPeriods(periodsData || []);
+
       const transformedCharacters: Character[] = (charactersData || []).map(c => ({ 
         ...c, 
         wikipediaUrl: c.wikipedia_url,
-        photos: c.photos.map((p: any) => ({ id: p.id, url: p.url, caption: p.caption }))
+        photos: (c.photos || []).map((p: any) => ({ id: p.id, url: p.url, caption: p.caption }))
       }));
       setCharacters(transformedCharacters);
-
-      const { data: profilesData, error: profError } = await supabase.from('profiles').select('*');
-      if (profError) throw profError;
-      const transformedUsers: User[] = (profilesData || []).map(p => ({ ...p, avatarUrl: p.avatar_url, contributions: 0 })); // Note: contributions are not in DB schema
-      setUsers(transformedUsers);
-
-      // Fetch POIs with relations
-      const { data: poisData, error: poisError } = await supabase.from('pois').select(`*, profiles:profiles!user_id(name), poi_categories(categories(id)), poi_characters(characters(id)), photos(*)`);
-      if (poisError) throw poisError;
 
       const transformedPois: Poi[] = (poisData || []).map((p: any) => {
           const basePoi = {
@@ -125,39 +140,57 @@ const App: React.FC = () => {
               creationDate: p.created_at,
               author: p.profiles?.name || 'Anonimo',
               periodId: p.period_id,
-              categoryIds: p.poi_categories.map((pc: any) => pc.categories.id),
+              categoryIds: (p.poi_categories || []).map((pc: any) => pc.categories.id),
               title: p.title,
               location: p.location,
               eventDate: p.event_date,
               description: p.description,
-              photos: p.photos.map((ph: any) => ({ id: ph.id, url: ph.url, caption: ph.caption })) || [],
-              linkedCharacterIds: p.poi_characters.map((pch: any) => pch.characters.id),
+              photos: (p.photos || []).map((ph: any) => ({ id: ph.id, url: ph.url, caption: ph.caption })),
+              linkedCharacterIds: (p.poi_characters || []).map((pch: any) => pch.characters.id),
               tags: p.tags || [],
           };
           switch (p.type) {
               case 'point': return { ...basePoi, type: 'point', coordinates: p.coordinates } as Point;
               case 'path': return { ...basePoi, type: 'path', pathCoordinates: p.path_coordinates } as Path;
               case 'area': return { ...basePoi, type: 'area', bounds: p.bounds } as Area;
-              default: return null;
+              default:
+                console.warn(`POI con ID ${p.id} ha un tipo non valido: '${p.type}'. Verrà ignorato.`);
+                return null;
           }
       }).filter((p): p is Poi => p !== null);
       setAllPois(transformedPois);
-      
-      // Fetch Itineraries with relations
-      const { data: itinerariesData, error: itError } = await supabase.from('itineraries').select(`*, profiles:profiles!user_id(name), itinerary_pois(poi_id), coverPhoto:photos!cover_photo_id(*)`);
-      if (itError) throw itError;
       
       const transformedItineraries: Itinerary[] = (itinerariesData || []).map((it: any) => ({
           id: it.id,
           title: it.title,
           description: it.description,
           estimatedDuration: it.estimated_duration,
-          poiIds: it.itinerary_pois.map((ip: any) => ip.poi_id),
+          poiIds: (it.itinerary_pois || []).map((ip: any) => ip.poi_id),
           author: it.profiles?.name || 'Anonimo',
           tags: it.tags || [],
           coverPhoto: it.coverPhoto ? { id: it.coverPhoto.id, url: it.coverPhoto.url, caption: it.coverPhoto.caption } : { id: '', url: 'https://placehold.co/600x400', caption: 'No image' },
       }));
       setItineraries(transformedItineraries);
+      
+      const contributions = new Map<string, number>();
+      (poisData || []).forEach(p => {
+        if (p.user_id) contributions.set(p.user_id, (contributions.get(p.user_id) || 0) + 1);
+      });
+      (charactersData || []).forEach(c => {
+        if (c.user_id) contributions.set(c.user_id, (contributions.get(c.user_id) || 0) + 1);
+      });
+      (itinerariesData || []).forEach(i => {
+        if (i.user_id) contributions.set(i.user_id, (contributions.get(i.user_id) || 0) + 1);
+      });
+
+      const transformedUsers: User[] = (profilesData || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        avatarUrl: p.avatar_url,
+        contributions: contributions.get(p.id) || 0,
+      }));
+      setUsers(transformedUsers);
+
 
     } catch (error: any) {
       console.error("Errore nel caricamento dati da Supabase:", error);
@@ -171,7 +204,6 @@ const App: React.FC = () => {
     if (session) {
       fetchData();
     } else if (sessionChecked) {
-      // Session check is done, but we have no session (e.g. sign-in failed)
       setLoading(false);
     }
   }, [session, sessionChecked]);
@@ -722,6 +754,12 @@ const App: React.FC = () => {
           <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md max-w-lg">
             <p className="font-bold font-sans-display">Errore di Connessione</p>
             <p className="text-sm mt-2 font-serif-display">{connectionError}</p>
+            <button
+              onClick={attemptAnonymousSignIn}
+              className="mt-4 px-4 py-2 bg-red-600 text-white font-sans-display font-semibold rounded-md hover:bg-red-700 transition-colors"
+            >
+              Riprova
+            </button>
           </div>
         ) : (
           <p className="font-serif-display text-lg text-gray-700 mt-2">Caricamento della memoria collettiva...</p>
