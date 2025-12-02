@@ -83,7 +83,7 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [mapBounds, setMapBounds] = useState<LngLatBounds | null>(null);
   const [filtersVisible, setFiltersVisible] = useState(false);
-  const MAPTILER_KEY = 'get_your_own_OpIi9ZULNHzrESv6T2vL';
+  const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
   const mapRef = useRef<MapRef>(null);
   
   const [viewState, setViewState] = useState({
@@ -210,7 +210,7 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
           onLoad={() => mapRef.current && setMapBounds(mapRef.current.getBounds())}
           onMoveEnd={() => mapRef.current && setMapBounds(mapRef.current.getBounds())}
           style={{ width: '100%', height: '100%' }}
-          mapStyle={`https://api.maptiler.com/maps/dataviz/style.json?key=${MAPTILER_KEY}`}
+          mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
         >
           <NavigationControl position="top-right" showCompass={true} showPitch={true} />
           
