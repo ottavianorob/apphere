@@ -83,7 +83,7 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [mapBounds, setMapBounds] = useState<LngLatBounds | null>(null);
   const [filtersVisible, setFiltersVisible] = useState(false);
-  const MAPTILER_KEY = 'IIPnH80T6eAsOrGsVBLp';
+  const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
   const mapRef = useRef<MapRef>(null);
   
   const [viewState, setViewState] = useState({
