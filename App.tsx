@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Session } from '@supabase/supabase-js';
 import { Poi, Itinerary, Character, Category, Point, Path, Area, User, Period } from './types';
 import { supabase } from './services/supabaseClient';
 
@@ -34,6 +35,8 @@ const App: React.FC = () => {
   const [isAddPoiModalOpen, setIsAddPoiModalOpen] = useState(false);
   const [isAddCharacterModalOpen, setIsAddCharacterModalOpen] = useState(false);
   const [isAddItineraryModalOpen, setIsAddItineraryModalOpen] = useState(false);
+  
+  const [session, setSession] = useState<Session | null>(null);
 
   // Data states
   const [allPois, setAllPois] = useState<Poi[]>([]);
@@ -46,8 +49,23 @@ const App: React.FC = () => {
   
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const fetchData = async () => {
     try {
+      setLoading(true);
       // Fetch simple tables
       const { data: categoriesData, error: catError } = await supabase.from('categories').select('*');
       if (catError) throw catError;
@@ -391,6 +409,8 @@ const App: React.FC = () => {
         />;
       case 'profile':
         return <ProfileView 
+            session={session}
+            supabase={supabase}
             onAddPoiClick={() => setIsAddPoiModalOpen(true)}
             onAddCharacterClick={() => setIsAddCharacterModalOpen(true)}
             onAddItineraryClick={() => setIsAddItineraryModalOpen(true)}
