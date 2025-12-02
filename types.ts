@@ -52,6 +52,8 @@ export interface Point {
   photos: Photo[];
   linkedCharacterIds: string[];
   tags?: string[];
+  favoriteCount: number;
+  isFavorited: boolean;
 }
 
 export interface Path {
@@ -69,6 +71,8 @@ export interface Path {
   photos: Photo[];
   linkedCharacterIds: string[];
   tags?: string[];
+  favoriteCount: number;
+  isFavorited: boolean;
 }
 
 export interface Area {
@@ -86,6 +90,8 @@ export interface Area {
   photos: Photo[];
   linkedCharacterIds: string[];
   tags?: string[];
+  favoriteCount: number;
+  isFavorited: boolean;
 }
 
 export type Poi = Point | Path | Area;

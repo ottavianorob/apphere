@@ -11,6 +11,7 @@ import ChevronLeftIcon from './icons/ChevronLeftIcon';
 import ChevronRightIcon from './icons/ChevronRightIcon';
 import CategoryIcon from './icons/CategoryIcon';
 import CameraIcon from './icons/CameraIcon';
+import StarIcon from './icons/StarIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -32,9 +33,10 @@ interface PoiDetailModalProps {
   characters: Character[];
   onSelectCharacter: (characterId: string) => void;
   onSelectTag: (tag: string) => void;
+  onToggleFavorite: (poiId: string) => void;
 }
 
-const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories, characters, onSelectCharacter, onSelectTag }) => {
+const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories, characters, onSelectCharacter, onSelectTag, onToggleFavorite }) => {
   const mapRef = useRef<MapRef>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -192,6 +194,15 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
             <div className="mt-4 flex items-center flex-wrap gap-x-6 gap-y-2 text-sm text-gray-700 font-sans-display border-b border-t border-gray-300 py-3">
               <div className="flex items-center gap-2"><CalendarIcon className="w-4 h-4 flex-shrink-0 text-gray-500" /><span>{poi.eventDate}</span></div>
               <div className="flex items-center gap-2"><MapPinIcon className="w-4 h-4 flex-shrink-0 text-gray-500" /><span>{poi.location}</span></div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => onToggleFavorite(poi.id)} className="flex items-center gap-1.5 group transition-transform active:scale-95">
+                  <StarIcon 
+                    isFilled={poi.isFavorited} 
+                    className={`w-5 h-5 transition-colors ${poi.isFavorited ? 'text-yellow-500' : 'text-gray-500 group-hover:text-yellow-400'}`}
+                  />
+                  <span className="font-semibold text-gray-700">{poi.favoriteCount}</span>
+                </button>
+              </div>
             </div>
             <div className="mt-6 space-y-6">
               <div className="flex flex-wrap gap-2">

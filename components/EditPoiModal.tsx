@@ -38,7 +38,7 @@ const italianDateToISODate = (dateString: string) => {
 
 interface EditPoiModalProps {
   onClose: () => void;
-  onSave: (poiId: string, poiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>, photosToUpload: { file: File, caption: string }[], photosToDelete: Photo[], newUrlPhotos: { url: string; caption: string }[]) => void;
+  onSave: (poiId: string, poiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'>, photosToUpload: { file: File, caption: string }[], photosToDelete: Photo[], newUrlPhotos: { url: string; caption: string }[]) => void;
   poi: Poi;
   categories: Category[];
   periods: Period[];
@@ -225,16 +225,16 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
         }
 
         const commonData = { title, description, location, eventDate: finalEventDate, periodId: finalPeriodId!, categoryIds, linkedCharacterIds, tags };
-        let updatedPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>;
+        let updatedPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'>;
 
         if (type === 'point') {
-            const pointData: Omit<Point, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
+            const pointData: Omit<Point, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
             updatedPoiData = pointData;
         } else if (type === 'path') {
-            const pathData: Omit<Path, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'path', pathCoordinates: coordinates };
+            const pathData: Omit<Path, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'> = { ...commonData, type: 'path', pathCoordinates: coordinates };
             updatedPoiData = pathData;
         } else {
-            const areaData: Omit<Area, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'area', bounds: coordinates };
+            const areaData: Omit<Area, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'> = { ...commonData, type: 'area', bounds: coordinates };
             updatedPoiData = areaData;
         }
         

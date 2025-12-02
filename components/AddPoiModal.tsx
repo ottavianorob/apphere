@@ -12,7 +12,7 @@ type NewPhoto = { type: 'file', file: File, dataUrl: string, caption: string } |
 
 interface AddPoiModalProps {
   onClose: () => void;
-  onSave: (poiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>, photosToUpload: { file: File, caption: string }[], urlPhotos: { url: string; caption: string }[]) => void;
+  onSave: (poiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'>, photosToUpload: { file: File, caption: string }[], urlPhotos: { url: string; caption: string }[]) => void;
   categories: Category[];
   periods: Period[];
   characters: CharacterType[];
@@ -203,16 +203,16 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
         }
 
         const commonData = { title, description, location, eventDate: finalEventDate, periodId: finalPeriodId!, categoryIds, linkedCharacterIds, tags };
-        let newPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>;
+        let newPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'>;
 
         if (type === 'point') {
-            const pointData: Omit<Point, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
+            const pointData: Omit<Point, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
             newPoiData = pointData;
         } else if (type === 'path') {
-            const pathData: Omit<Path, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'path', pathCoordinates: coordinates };
+            const pathData: Omit<Path, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'> = { ...commonData, type: 'path', pathCoordinates: coordinates };
             newPoiData = pathData;
         } else {
-            const areaData: Omit<Area, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'area', bounds: coordinates };
+            const areaData: Omit<Area, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'> = { ...commonData, type: 'area', bounds: coordinates };
             newPoiData = areaData;
         }
         

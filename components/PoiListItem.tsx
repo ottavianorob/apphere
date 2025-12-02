@@ -5,6 +5,7 @@ import CalendarIcon from './icons/CalendarIcon';
 import CameraIcon from './icons/CameraIcon';
 import UserIcon from './icons/UserIcon';
 import CategoryIcon from './icons/CategoryIcon';
+import StarIcon from './icons/StarIcon';
 import PathIcon from './icons/PathIcon';
 import AreaIcon from './icons/AreaIcon';
 
@@ -87,12 +88,18 @@ const PoiListItem: React.FC<PoiListItemProps> = ({ poi, distance, onSelect, cate
               </div>
             )}
           
-          {poi.photos && poi.photos.length > 0 && (
-            <div className="flex items-center gap-1.5 text-sm text-gray-600 font-sans-display" title="Numero di fotografie">
-              <CameraIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />
-              <span className="font-semibold">{poi.photos.length}</span>
+          <div className="flex items-center gap-3 ml-auto text-sm text-gray-600 font-sans-display">
+            {poi.photos && poi.photos.length > 0 && (
+              <div className="flex items-center gap-1.5" title="Numero di fotografie">
+                <CameraIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />
+                <span className="font-semibold">{poi.photos.length}</span>
+              </div>
+            )}
+             <div className="flex items-center gap-1.5" title="Numero di preferiti">
+                <StarIcon isFilled={poi.isFavorited} className={`w-4 h-4 flex-shrink-0 ${poi.isFavorited ? 'text-yellow-500' : 'text-gray-500'}`} />
+                <span className="font-semibold">{poi.favoriteCount}</span>
             </div>
-          )}
+          </div>
         </div>
         
         <h3 className="font-serif-display text-lg font-semibold text-[#134A79] group-hover:text-[#B1352E] transition-colors">{poi.title}</h3>

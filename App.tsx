@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { Poi, Itinerary, Character, Category, Point, Path, Area, User, Period, Photo } from './types';
@@ -106,8 +107,16 @@ const App: React.FC = () => {
       const periodsPromise = supabase.from('periods').select('*');
       const charactersPromise = supabase.from('characters').select('*, photos(*)');
       const profilesPromise = supabase.from('profiles').select('*');
-      const poisPromise = supabase.from('pois').select(`*, user_id, profiles:profiles!user_id(name), poi_categories(categories(id)), poi_characters(characters(id)), photos(*)`);
+      const poisPromise = supabase.from('pois').select(`*, user_id, profiles:profiles!user_id(name), poi_categories(categories(id)), poi_characters(characters(id)), photos(*), user_poi_favorites(count)`);
       const itinerariesPromise = supabase.from('itineraries').select(`*, user_id, profiles:profiles!user_id(name), itinerary_pois(poi_id), coverPhoto:photos!cover_photo_id(*)`);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      // FIX: The userFavoritesPromise was incorrectly typed because its initial value was a resolved promise,
+      // but it was later reassigned a Supabase query builder, which is not a standard Promise.
+      // Using a ternary operator ensures the correct type is inferred based on whether a user exists.
+      const userFavoritesPromise = user
+          ? supabase.from('user_poi_favorites').select('poi_id').eq('user_id', user.id)
+          : Promise.resolve({ data: [], error: null });
 
       const [
           { data: categoriesData, error: catError },
@@ -115,8 +124,9 @@ const App: React.FC = () => {
           { data: charactersData, error: charError },
           { data: profilesData, error: profError },
           { data: poisData, error: poisError },
-          { data: itinerariesData, error: itError }
-      ] = await Promise.all([categoriesPromise, periodsPromise, charactersPromise, profilesPromise, poisPromise, itinerariesPromise]);
+          { data: itinerariesData, error: itError },
+          { data: userFavoritesData, error: userFavoritesError }
+      ] = await Promise.all([categoriesPromise, periodsPromise, charactersPromise, profilesPromise, poisPromise, itinerariesPromise, userFavoritesPromise]);
 
       if (catError) throw catError;
       if (perError) throw perError;
@@ -124,6 +134,9 @@ const App: React.FC = () => {
       if (profError) throw profError;
       if (poisError) throw poisError;
       if (itError) throw itError;
+      if (userFavoritesError) throw userFavoritesError;
+      
+      const favoritePoiIds = new Set(userFavoritesData?.map(fav => fav.poi_id) || []);
 
       setCategories(categoriesData || []);
       setPeriods(periodsData || []);
@@ -149,6 +162,8 @@ const App: React.FC = () => {
               photos: (p.photos || []).map((ph: any) => ({ id: ph.id, url: ph.url, caption: ph.caption })),
               linkedCharacterIds: (p.poi_characters || []).map((pch: any) => pch.characters.id),
               tags: p.tags || [],
+              favoriteCount: p.user_poi_favorites[0]?.count || 0,
+              isFavorited: favoritePoiIds.has(p.id),
           };
           switch (p.type) {
               case 'point': return { ...basePoi, type: 'point', coordinates: p.coordinates } as Point;
@@ -249,9 +264,49 @@ const App: React.FC = () => {
     setSelectedTag(null);
     setSelectedItinerary(itinerary);
   };
+
+  const handleToggleFavorite = async (poiId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        setToast({ message: "Devi essere autenticato per aggiungere preferiti.", type: 'error' });
+        return;
+    }
+
+    const originalPois = [...allPois];
+    const targetPoi = originalPois.find(p => p.id === poiId);
+    if (!targetPoi) return;
+
+    // Optimistic UI Update
+    const updatedPois = allPois.map(p => {
+        if (p.id === poiId) {
+            const isFavorited = !p.isFavorited;
+            const favoriteCount = isFavorited ? p.favoriteCount + 1 : p.favoriteCount - 1;
+            return { ...p, isFavorited, favoriteCount };
+        }
+        return p;
+    });
+    setAllPois(updatedPois);
+    if (selectedPoi && selectedPoi.id === poiId) {
+        setSelectedPoi(updatedPois.find(p => p.id === poiId) || null);
+    }
+
+    try {
+        if (targetPoi.isFavorited) {
+            const { error } = await supabase.from('user_poi_favorites').delete().match({ user_id: user.id, poi_id: poiId });
+            if (error) throw error;
+        } else {
+            const { error } = await supabase.from('user_poi_favorites').insert({ user_id: user.id, poi_id: poiId });
+            if (error) throw error;
+        }
+    } catch (error: any) {
+        setAllPois(originalPois);
+        if (selectedPoi && selectedPoi.id === poiId) setSelectedPoi(targetPoi);
+        setToast({ message: `Errore: ${error.message}`, type: 'error' });
+    }
+  };
   
   const handleSavePoi = async (
-    newPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>,
+    newPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'>,
     photosToUpload: { file: File; caption: string }[],
     urlPhotos: { url: string; caption: string }[]
   ) => {
@@ -526,7 +581,7 @@ const App: React.FC = () => {
 
   const handleUpdatePoi = async (
     poiId: string,
-    updatedData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>,
+    updatedData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'>,
     photosToUpload: { file: File; caption: string }[],
     photosToDelete: Photo[],
     newUrlPhotos: { url: string; caption: string }[]
@@ -832,6 +887,7 @@ const App: React.FC = () => {
             if (char) openCharacterModal(char);
           }}
           onSelectTag={openTagModal}
+          onToggleFavorite={handleToggleFavorite}
         />
       )}
       {selectedItinerary && (
