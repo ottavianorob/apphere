@@ -3,6 +3,7 @@ import PlusIcon from './icons/PlusIcon';
 import { Poi, Character, Itinerary, Category, Period } from '../types';
 import PencilIcon from './icons/PencilIcon';
 import TrashIcon from './icons/TrashIcon';
+import LinkIcon from './icons/LinkIcon';
 
 interface ProfileViewProps {
   onAddPoiClick: () => void;
@@ -34,7 +35,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   periods
 }) => {
   const tableHeaderStyle = "p-2 font-semibold text-left border-b-2 border-gray-300";
-  const tableCellStyle = "p-2 border-b border-gray-200";
+  const tableCellStyle = "p-2 border-b border-gray-200 align-top";
   const actionButtonStyle = "p-1 text-gray-500 hover:text-gray-800 transition-colors";
 
   return (
@@ -86,6 +87,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                         <th className={tableHeaderStyle}>Titolo</th>
                         <th className={tableHeaderStyle}>Tipo</th>
                         <th className={tableHeaderStyle}>Autore</th>
+                        <th className={tableHeaderStyle}>Data Evento</th>
+                        <th className={tableHeaderStyle}>Categorie</th>
                         <th className={tableHeaderStyle}>Azioni</th>
                       </tr>
                     </thead>
@@ -95,6 +98,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                           <td className={tableCellStyle}>{poi.title}</td>
                           <td className={tableCellStyle}>{poi.type}</td>
                           <td className={tableCellStyle}>{poi.author}</td>
+                          <td className={tableCellStyle}>{poi.eventDate}</td>
+                          <td className={`${tableCellStyle} text-xs max-w-xs`}>{poi.categoryIds.map(id => categories.find(c=>c.id===id)?.name).join(', ')}</td>
                           <td className={tableCellStyle}>
                             <div className="flex gap-2">
                                 <button onClick={() => onModify('poi', poi)} className={actionButtonStyle} title="Modifica"><PencilIcon className="w-4 h-4" /></button>
@@ -115,6 +120,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                       <tr>
                         <th className={tableHeaderStyle}>Nome</th>
                         <th className={tableHeaderStyle}>Descrizione</th>
+                        <th className={tableHeaderStyle}>Wikipedia</th>
                         <th className={tableHeaderStyle}>Azioni</th>
                       </tr>
                     </thead>
@@ -122,7 +128,14 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                       {characters.map(char => (
                         <tr key={char.id}>
                           <td className={tableCellStyle}>{char.name}</td>
-                          <td className={tableCellStyle}>{char.description.substring(0, 50)}...</td>
+                          <td className={`${tableCellStyle} max-w-sm`}>{char.description.substring(0, 70)}...</td>
+                          <td className={tableCellStyle}>
+                            {char.wikipediaUrl && (
+                              <a href={char.wikipediaUrl} target="_blank" rel="noopener noreferrer" className={actionButtonStyle} title="Vai a Wikipedia">
+                                <LinkIcon className="w-4 h-4" />
+                              </a>
+                            )}
+                          </td>
                           <td className={tableCellStyle}>
                             <div className="flex gap-2">
                                 <button onClick={() => onModify('character', char)} className={actionButtonStyle} title="Modifica"><PencilIcon className="w-4 h-4" /></button>
@@ -143,6 +156,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                       <tr>
                         <th className={tableHeaderStyle}>Titolo</th>
                         <th className={tableHeaderStyle}>N° Tappe</th>
+                        <th className={tableHeaderStyle}>Autore</th>
+                        <th className={tableHeaderStyle}>Durata</th>
                         <th className={tableHeaderStyle}>Azioni</th>
                       </tr>
                     </thead>
@@ -151,6 +166,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                         <tr key={it.id}>
                           <td className={tableCellStyle}>{it.title}</td>
                           <td className={tableCellStyle}>{it.poiIds.length}</td>
+                          <td className={tableCellStyle}>{it.author}</td>
+                          <td className={tableCellStyle}>{it.estimatedDuration}</td>
                           <td className={tableCellStyle}>
                             <div className="flex gap-2">
                                 <button onClick={() => onModify('itinerary', it)} className={actionButtonStyle} title="Modifica"><PencilIcon className="w-4 h-4" /></button>

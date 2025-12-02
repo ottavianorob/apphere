@@ -26,8 +26,8 @@ import EditPoiModal from './components/EditPoiModal';
 import EditCharacterModal from './components/EditCharacterModal';
 import EditItineraryModal from './components/EditItineraryModal';
 
-
 import BottomNav from './components/BottomNav';
+import Toast from './components/Toast';
 
 
 export type View = 'home' | 'qui' | 'itineraries' | 'search' | 'profile';
@@ -49,6 +49,7 @@ const App: React.FC = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [sessionChecked, setSessionChecked] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
   // Data states
   const [allPois, setAllPois] = useState<Poi[]>([]);
@@ -256,7 +257,7 @@ const App: React.FC = () => {
       try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) {
-              alert("Sessione non valida. Ricarica la pagina.");
+              setToast({ message: "Sessione non valida. Ricarica la pagina.", type: 'error' });
               return;
           }
 
@@ -316,12 +317,12 @@ const App: React.FC = () => {
               if (charError) throw charError;
           }
 
-          alert("Luogo salvato con successo!");
+          setToast({ message: "Luogo salvato con successo!", type: 'success' });
           setIsAddPoiModalOpen(false);
           await fetchData();
-      } catch (error) {
+      } catch (error: any) {
           console.error("Errore nel salvataggio del POI:", error);
-          alert("Si è verificato un errore durante il salvataggio.");
+          setToast({ message: `Errore nel salvataggio: ${error.message}`, type: 'error' });
       }
   };
 
@@ -332,7 +333,7 @@ const App: React.FC = () => {
       try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) {
-              alert("Sessione non valida. Ricarica la pagina.");
+              setToast({ message: "Sessione non valida. Ricarica la pagina.", type: 'error' });
               return;
           }
 
@@ -369,12 +370,12 @@ const App: React.FC = () => {
             if(photosInsertError) throw photosInsertError;
           }
 
-          alert("Personaggio salvato con successo!");
+          setToast({ message: "Personaggio salvato con successo!", type: 'success' });
           setIsAddCharacterModalOpen(false);
           await fetchData();
-      } catch (error) {
+      } catch (error: any) {
           console.error("Errore nel salvataggio del Personaggio:", error);
-          alert("Si è verificato un errore durante il salvataggio.");
+          setToast({ message: `Errore nel salvataggio: ${error.message}`, type: 'error' });
       }
   };
 
@@ -385,12 +386,12 @@ const App: React.FC = () => {
      try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-            alert("Sessione non valida. Ricarica la pagina.");
+            setToast({ message: "Sessione non valida. Ricarica la pagina.", type: 'error' });
             return;
         }
 
         if (!coverPhotoFile) {
-          alert("È necessaria una foto di copertina.");
+          setToast({ message: "È necessaria una foto di copertina.", type: 'error' });
           return;
         }
 
@@ -430,12 +431,12 @@ const App: React.FC = () => {
             if (itPoisError) throw itPoisError;
         }
 
-        alert("Itinerario salvato con successo!");
+        setToast({ message: "Itinerario salvato con successo!", type: 'success' });
         setIsAddItineraryModalOpen(false);
         await fetchData();
-    } catch (error) {
+    } catch (error: any) {
         console.error("Errore nel salvataggio dell'Itinerario:", error);
-        alert("Si è verificato un errore durante il salvataggio.");
+        setToast({ message: `Errore nel salvataggio: ${error.message}`, type: 'error' });
     }
   };
   
@@ -444,12 +445,12 @@ const App: React.FC = () => {
       const id = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/--+/g, '-');
       const { error } = await supabase.from('categories').insert({ id, name });
       if (error) throw error;
-      alert("Categoria salvata con successo!");
+      setToast({ message: "Categoria salvata con successo!", type: 'success' });
       setIsAddCategoryModalOpen(false);
       await fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Errore nel salvataggio della Categoria:", error);
-      alert("Si è verificato un errore durante il salvataggio.");
+      setToast({ message: `Errore nel salvataggio: ${error.message}`, type: 'error' });
     }
   };
 
@@ -458,12 +459,12 @@ const App: React.FC = () => {
       const id = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/--+/g, '-');
       const { error } = await supabase.from('periods').insert({ id, name, start_year, end_year });
       if (error) throw error;
-      alert("Periodo salvato con successo!");
+      setToast({ message: "Periodo salvato con successo!", type: 'success' });
       setIsAddPeriodModalOpen(false);
       await fetchData();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Errore nel salvataggio del Periodo:", error);
-      alert("Si è verificato un errore durante il salvataggio.");
+      setToast({ message: `Errore nel salvataggio: ${error.message}`, type: 'error' });
     }
   };
 
@@ -472,11 +473,11 @@ const App: React.FC = () => {
       try {
         const { error } = await supabase.from(table).delete().eq('id', id);
         if (error) throw error;
-        alert("Elemento eliminato con successo.");
+        setToast({ message: "Elemento eliminato con successo.", type: 'success' });
         await fetchData();
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Errore nell'eliminazione da ${table}:`, error);
-        alert("Si è verificato un errore durante l'eliminazione.");
+        setToast({ message: `Errore di eliminazione: ${error.message}`, type: 'error' });
       }
     }
   };
@@ -489,12 +490,12 @@ const App: React.FC = () => {
     try {
         const { error } = await supabase.from('categories').update({ name }).eq('id', id);
         if (error) throw error;
-        alert("Categoria aggiornata con successo!");
+        setToast({ message: "Categoria aggiornata con successo!", type: 'success' });
         setEditingItem(null);
         await fetchData();
-    } catch (error) {
+    } catch (error: any) {
         console.error("Errore nell'aggiornamento della Categoria:", error);
-        alert("Si è verificato un errore durante l'aggiornamento.");
+        setToast({ message: `Errore di aggiornamento: ${error.message}`, type: 'error' });
     }
   };
 
@@ -502,12 +503,12 @@ const App: React.FC = () => {
     try {
         const { error } = await supabase.from('periods').update({ name, start_year, end_year }).eq('id', id);
         if (error) throw error;
-        alert("Periodo aggiornato con successo!");
+        setToast({ message: "Periodo aggiornato con successo!", type: 'success' });
         setEditingItem(null);
         await fetchData();
-    } catch (error) {
+    } catch (error: any) {
         console.error("Errore nell'aggiornamento del Periodo:", error);
-        alert("Si è verificato un errore durante l'aggiornamento.");
+        setToast({ message: `Errore di aggiornamento: ${error.message}`, type: 'error' });
     }
   };
 
@@ -578,12 +579,12 @@ const App: React.FC = () => {
             await supabase.from('photos').insert(newPhotos);
           }
 
-          alert("Luogo aggiornato con successo!");
+          setToast({ message: "Luogo aggiornato con successo!", type: 'success' });
           setEditingItem(null);
           await fetchData();
       } catch (error: any) {
           console.error("Errore nell'aggiornamento del POI:", error);
-          alert(`Si è verificato un errore durante l'aggiornamento: ${error.message}`);
+          setToast({ message: `Errore durante l'aggiornamento: ${error.message}`, type: 'error' });
       }
   };
 
@@ -623,12 +624,12 @@ const App: React.FC = () => {
             await supabase.from('photos').insert(newPhotos);
           }
 
-          alert("Personaggio aggiornato con successo!");
+          setToast({ message: "Personaggio aggiornato con successo!", type: 'success' });
           setEditingItem(null);
           await fetchData();
       } catch (error: any) {
           console.error("Errore nell'aggiornamento del Personaggio:", error);
-          alert(`Si è verificato un errore durante l'aggiornamento: ${error.message}`);
+          setToast({ message: `Errore durante l'aggiornamento: ${error.message}`, type: 'error' });
       }
   };
 
@@ -680,12 +681,12 @@ const App: React.FC = () => {
               await supabase.from('itinerary_pois').insert(itineraryPois);
           }
           
-          alert("Itinerario aggiornato con successo!");
+          setToast({ message: "Itinerario aggiornato con successo!", type: 'success' });
           setEditingItem(null);
           await fetchData();
       } catch (error: any) {
           console.error("Errore nell'aggiornamento dell'Itinerario:", error);
-          alert(`Si è verificato un errore durante l'aggiornamento: ${error.message}`);
+          setToast({ message: `Errore durante l'aggiornamento: ${error.message}`, type: 'error' });
       }
   };
 
@@ -907,6 +908,7 @@ const App: React.FC = () => {
           allPois={allPois}
         />
       )}
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };
