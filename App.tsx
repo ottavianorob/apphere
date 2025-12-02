@@ -37,6 +37,7 @@ const App: React.FC = () => {
   const [isAddItineraryModalOpen, setIsAddItineraryModalOpen] = useState(false);
   
   const [session, setSession] = useState<Session | null>(null);
+  const [sessionChecked, setSessionChecked] = useState(false);
 
   // Data states
   const [allPois, setAllPois] = useState<Poi[]>([]);
@@ -53,9 +54,15 @@ const App: React.FC = () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setSession(session);
+        setSessionChecked(true);
       } else {
-        supabase.auth.signInAnonymously().then(({ data: { session } }) => {
-            setSession(session);
+        supabase.auth.signInAnonymously().then(({ data: { session: newSession }, error }) => {
+            if (error) {
+                console.error("Errore durante il sign-in anonimo:", error);
+            } else {
+                setSession(newSession);
+            }
+            setSessionChecked(true);
         });
       }
     });
@@ -147,8 +154,13 @@ const App: React.FC = () => {
   };
   
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (session) {
+      fetchData();
+    } else if (sessionChecked) {
+      // Session check is done, but we have no session (e.g. sign-in failed)
+      setLoading(false);
+    }
+  }, [session, sessionChecked]);
 
 
   useEffect(() => {
@@ -432,7 +444,7 @@ const App: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (!sessionChecked || loading) {
     return (
       <div className="min-h-screen flex flex-col justify-center items-center bg-[#FAF7F0]">
         <h1 className="font-sans-display text-2xl font-bold text-[#2D3748]">Cosa è successo qui?</h1>
