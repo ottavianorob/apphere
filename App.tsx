@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Session } from '@supabase/supabase-js';
-import { Poi, Itinerary, Character, Category, Point, Path, Area, User, Period } from './types';
+import { Poi, Itinerary, Character, Category, Point, Path, Area, User, Period, Photo } from './types';
 import { supabase } from './services/supabaseClient';
 
 // Import Views
@@ -22,6 +22,9 @@ import AddCategoryModal from './components/AddCategoryModal';
 import AddPeriodModal from './components/AddPeriodModal';
 import EditCategoryModal from './components/EditCategoryModal';
 import EditPeriodModal from './components/EditPeriodModal';
+import EditPoiModal from './components/EditPoiModal';
+import EditCharacterModal from './components/EditCharacterModal';
+import EditItineraryModal from './components/EditItineraryModal';
 
 
 import BottomNav from './components/BottomNav';
@@ -447,10 +450,6 @@ const App: React.FC = () => {
   };
 
   const handleModify = (type: string, data: any) => {
-    if (type === 'poi' || type === 'character' || type === 'itinerary') {
-        alert(`La funzione di modifica per ${type} non è ancora completamente implementata.`);
-        return;
-    }
     setEditingItem({ type, data });
   };
   
@@ -478,6 +477,183 @@ const App: React.FC = () => {
         console.error("Errore nell'aggiornamento del Periodo:", error);
         alert("Si è verificato un errore durante l'aggiornamento.");
     }
+  };
+
+  const handleUpdatePoi = async (
+    poiId: string,
+    updatedData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>,
+    photosToUpload: { file: File; caption: string }[],
+    photosToDelete: Photo[]
+  ) => {
+      try {
+          // 1. Update main POI data
+          const poiToUpdate: any = {
+              title: updatedData.title,
+              description: updatedData.description,
+              location: updatedData.location,
+              event_date: updatedData.eventDate,
+              period_id: updatedData.periodId,
+              tags: updatedData.tags,
+              type: updatedData.type,
+          };
+          if (updatedData.type === 'point') poiToUpdate.coordinates = (updatedData as Point).coordinates;
+          if (updatedData.type === 'path') poiToUpdate.path_coordinates = (updatedData as Path).pathCoordinates;
+          if (updatedData.type === 'area') poiToUpdate.bounds = (updatedData as Area).bounds;
+
+          const { error: poiError } = await supabase.from('pois').update(poiToUpdate).eq('id', poiId);
+          if (poiError) throw poiError;
+
+          // 2. Handle relations (delete all and re-insert)
+          await supabase.from('poi_categories').delete().eq('poi_id', poiId);
+          if (updatedData.categoryIds.length > 0) {
+              const poiCategories = updatedData.categoryIds.map(catId => ({ poi_id: poiId, category_id: catId }));
+              const { error: catError } = await supabase.from('poi_categories').insert(poiCategories);
+              if (catError) throw catError;
+          }
+
+          await supabase.from('poi_characters').delete().eq('poi_id', poiId);
+          if (updatedData.linkedCharacterIds.length > 0) {
+              const poiCharacters = updatedData.linkedCharacterIds.map(charId => ({ poi_id: poiId, character_id: charId }));
+              const { error: charError } = await supabase.from('poi_characters').insert(poiCharacters);
+              if (charError) throw charError;
+          }
+
+          // 3. Handle photo deletions
+          if (photosToDelete.length > 0) {
+              const photoIds = photosToDelete.map(p => p.id);
+              const filePaths = photosToDelete.map(p => new URL(p.url).pathname.split('/media/').pop() || '');
+              
+              const { error: dbError } = await supabase.from('photos').delete().in('id', photoIds);
+              if (dbError) throw dbError;
+
+              const { error: storageError } = await supabase.storage.from('media').remove(filePaths);
+              if (storageError) console.warn("Errore eliminazione file dallo storage (potrebbe essere già stato rimosso):", storageError.message);
+          }
+
+          // 4. Handle photo uploads
+          if (photosToUpload.length > 0) {
+            const photoUploadPromises = photosToUpload.map(async (photo) => {
+              const sanitizedFileName = photo.file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
+              const fileName = `${Date.now()}_${sanitizedFileName}`;
+              const filePath = `pois/${fileName}`;
+              
+              await supabase.storage.from('media').upload(filePath, photo.file);
+              const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
+              
+              return { url: publicUrl, caption: photo.caption, poi_id: poiId };
+            });
+            const newPhotos = await Promise.all(photoUploadPromises);
+            await supabase.from('photos').insert(newPhotos);
+          }
+
+          alert("Luogo aggiornato con successo!");
+          setEditingItem(null);
+          await fetchData();
+      } catch (error) {
+          console.error("Errore nell'aggiornamento del POI:", error);
+          alert("Si è verificato un errore durante l'aggiornamento.");
+      }
+  };
+
+  const handleUpdateCharacter = async (
+    charId: string,
+    updatedData: Omit<Character, 'id' | 'photos'>,
+    photosToUpload: { file: File; caption: string }[],
+    photosToDelete: Photo[]
+  ) => {
+      try {
+          // 1. Update main character data
+          await supabase.from('characters').update({
+              name: updatedData.name,
+              description: updatedData.description,
+              wikipedia_url: updatedData.wikipediaUrl
+          }).eq('id', charId);
+
+          // 2. Handle photo deletions
+          if (photosToDelete.length > 0) {
+              const photoIds = photosToDelete.map(p => p.id);
+              const filePaths = photosToDelete.map(p => new URL(p.url).pathname.split('/media/').pop() || '');
+              await supabase.from('photos').delete().in('id', photoIds);
+              await supabase.storage.from('media').remove(filePaths);
+          }
+          
+          // 3. Handle photo uploads
+          if (photosToUpload.length > 0) {
+            const photoUploadPromises = photosToUpload.map(async (photo) => {
+                const sanitizedFileName = photo.file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
+                const fileName = `${Date.now()}_${sanitizedFileName}`;
+                const filePath = `characters/${fileName}`;
+                await supabase.storage.from('media').upload(filePath, photo.file);
+                const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
+                return { url: publicUrl, caption: photo.caption, character_id: charId };
+            });
+            const newPhotos = await Promise.all(photoUploadPromises);
+            await supabase.from('photos').insert(newPhotos);
+          }
+
+          alert("Personaggio aggiornato con successo!");
+          setEditingItem(null);
+          await fetchData();
+      } catch (error) {
+          console.error("Errore nell'aggiornamento del Personaggio:", error);
+          alert("Si è verificato un errore durante l'aggiornamento.");
+      }
+  };
+
+  const handleUpdateItinerary = async (
+    itineraryId: string,
+    updatedData: Omit<Itinerary, 'id' | 'author' | 'coverPhoto'>,
+    coverPhotoFile: File | null
+  ) => {
+      try {
+          let coverPhotoId = editingItem?.data.coverPhoto.id;
+
+          // 1. Handle cover photo update
+          if (coverPhotoFile) {
+              // Delete old photo if it exists
+              const oldPhotoPath = new URL(editingItem?.data.coverPhoto.url).pathname.split('/media/').pop();
+              if (oldPhotoPath) {
+                  await supabase.storage.from('media').remove([oldPhotoPath]);
+                  await supabase.from('photos').delete().eq('id', coverPhotoId);
+              }
+
+              // Upload new photo
+              const sanitizedFileName = coverPhotoFile.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
+              const fileName = `${Date.now()}_${sanitizedFileName}`;
+              const filePath = `itineraries/${fileName}`;
+              await supabase.storage.from('media').upload(filePath, coverPhotoFile);
+              const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
+
+              const { data: photoData } = await supabase.from('photos').insert({
+                url: publicUrl,
+                caption: `Cover for ${updatedData.title}`
+              }).select().single();
+              coverPhotoId = photoData.id;
+          }
+
+          // 2. Update main itinerary data
+          await supabase.from('itineraries').update({
+              title: updatedData.title,
+              description: updatedData.description,
+              estimated_duration: updatedData.estimatedDuration,
+              tags: updatedData.tags,
+              cover_photo_id: coverPhotoId,
+          }).eq('id', itineraryId);
+
+          // 3. Update POI relations
+          await supabase.from('itinerary_pois').delete().eq('itinerary_id', itineraryId);
+          if (updatedData.poiIds.length > 0) {
+              const itineraryPois = updatedData.poiIds.map(poiId => ({ itinerary_id: itineraryId, poi_id: poiId }));
+              await supabase.from('itinerary_pois').insert(itineraryPois);
+          }
+          
+          alert("Itinerario aggiornato con successo!");
+          setEditingItem(null);
+          await fetchData();
+      } catch (error) {
+          console.error("Errore nell'aggiornamento dell'Itinerario:", error);
+          alert("Si è verificato un errore durante l'aggiornamento.");
+      }
   };
 
 
@@ -664,6 +840,31 @@ const App: React.FC = () => {
           onClose={() => setEditingItem(null)}
           onSave={handleUpdatePeriod}
           period={editingItem.data}
+        />
+      )}
+      {editingItem?.type === 'poi' && (
+        <EditPoiModal
+          onClose={() => setEditingItem(null)}
+          onSave={handleUpdatePoi}
+          poi={editingItem.data}
+          categories={categories}
+          periods={periods}
+          characters={characters}
+        />
+      )}
+      {editingItem?.type === 'character' && (
+        <EditCharacterModal
+          onClose={() => setEditingItem(null)}
+          onSave={handleUpdateCharacter}
+          character={editingItem.data}
+        />
+      )}
+      {editingItem?.type === 'itinerary' && (
+        <EditItineraryModal
+          onClose={() => setEditingItem(null)}
+          onSave={handleUpdateItinerary}
+          itinerary={editingItem.data}
+          allPois={allPois}
         />
       )}
     </div>
