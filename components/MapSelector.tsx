@@ -14,7 +14,7 @@ interface MapSelectorProps {
 }
 
 const MapSelector = forwardRef<MapRef, MapSelectorProps>(({ type, coordinates, setCoordinates, userLocation, initialViewState }, ref) => {
-    const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
+    const MAPTILER_KEY = 'IIPnH80T6eAsOrGsVBLp';
     const mapContainerRef = useRef<HTMLDivElement>(null);
 
     const [viewState, setViewState] = useState(
