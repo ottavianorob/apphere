@@ -51,7 +51,13 @@ const App: React.FC = () => {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+      if (session) {
+        setSession(session);
+      } else {
+        supabase.auth.signInAnonymously().then(({ data: { session } }) => {
+            setSession(session);
+        });
+      }
     });
 
     const {
@@ -192,7 +198,7 @@ const App: React.FC = () => {
       try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) {
-              alert("Devi essere loggato per creare un contenuto.");
+              alert("Sessione non valida. Ricarica la pagina.");
               return;
           }
 
@@ -268,7 +274,7 @@ const App: React.FC = () => {
       try {
           const { data: { user } } = await supabase.auth.getUser();
           if (!user) {
-              alert("Devi essere loggato per creare un contenuto.");
+              alert("Sessione non valida. Ricarica la pagina.");
               return;
           }
 
@@ -321,7 +327,7 @@ const App: React.FC = () => {
      try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-            alert("Devi essere loggato per creare un contenuto.");
+            alert("Sessione non valida. Ricarica la pagina.");
             return;
         }
 
@@ -409,8 +415,6 @@ const App: React.FC = () => {
         />;
       case 'profile':
         return <ProfileView 
-            session={session}
-            supabase={supabase}
             onAddPoiClick={() => setIsAddPoiModalOpen(true)}
             onAddCharacterClick={() => setIsAddCharacterModalOpen(true)}
             onAddItineraryClick={() => setIsAddItineraryModalOpen(true)}

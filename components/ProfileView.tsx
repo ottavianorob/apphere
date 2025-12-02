@@ -1,12 +1,8 @@
 import React from 'react';
-import { Session, SupabaseClient } from '@supabase/supabase-js';
 import PlusIcon from './icons/PlusIcon';
 import { Poi, Character, Itinerary } from '../types';
-import Auth from './Auth';
 
 interface ProfileViewProps {
-  session: Session | null;
-  supabase: SupabaseClient;
   onAddPoiClick: () => void;
   onAddCharacterClick: () => void;
   onAddItineraryClick: () => void;
@@ -17,8 +13,6 @@ interface ProfileViewProps {
 
 
 const ProfileView: React.FC<ProfileViewProps> = ({ 
-  session,
-  supabase,
   onAddPoiClick, 
   onAddCharacterClick, 
   onAddItineraryClick,
@@ -29,15 +23,11 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   const tableHeaderStyle = "p-2 font-semibold text-left border-b-2 border-gray-300";
   const tableCellStyle = "p-2 border-b border-gray-200";
 
-  if (!session) {
-    return <Auth />;
-  }
-
   return (
     <div>
       <header className="mb-8 border-b-2 border-[#2D3748] pb-4 text-center">
         <h1 className="font-sans-display text-4xl sm:text-5xl font-bold text-[#2D3748]">Profilo</h1>
-        <p className="font-sans-display text-sm text-gray-600 mt-2">Loggato come: <strong className="font-bold text-gray-800">{session.user.email}</strong></p>
+        <p className="font-sans-display text-sm text-gray-600 mt-2">Gestisci i contenuti e visualizza i dati dell'applicazione.</p>
       </header>
 
       <div className="max-w-4xl mx-auto space-y-8 font-sans-display">
@@ -139,14 +129,6 @@ const ProfileView: React.FC<ProfileViewProps> = ({
            </div>
         </div>
         
-        <div className="text-center">
-            <button
-              onClick={() => supabase.auth.signOut()}
-              className="px-6 py-2 bg-red-600 text-white font-sans-display font-semibold rounded-md hover:bg-red-700 transition-colors"
-            >
-              Logout
-            </button>
-        </div>
       </div>
     </div>
   );
