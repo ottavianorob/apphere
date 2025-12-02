@@ -6,7 +6,6 @@ import CategoryIcon from './icons/CategoryIcon';
 import CameraIcon from './icons/CameraIcon';
 import MapSelector from './MapSelector';
 import useGeolocation from '../hooks/useGeolocation';
-// FIX: Import TrashIcon component to resolve missing reference.
 import TrashIcon from './icons/TrashIcon';
 
 type PhotoUpload = {
@@ -71,6 +70,18 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
     const [location, setLocation] = useState('');
     const [isFetchingLocation, setIsFetchingLocation] = useState(false);
 
+    const formatAddress = (address: any): string | null => {
+        if (!address) return null;
+        const road = address.road || '';
+        const houseNumber = address.house_number || '';
+        const city = address.city || address.town || address.village || '';
+        const streetPart = `${road} ${houseNumber}`.trim();
+        if (streetPart && city) return `${streetPart}, ${city}`;
+        if (streetPart) return streetPart;
+        if (city) return city;
+        return null;
+    };
+
     useEffect(() => {
         if(poi) {
             setTitle(poi.title);
@@ -110,7 +121,8 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
                 fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coord.latitude}&lon=${coord.longitude}`)
                     .then(res => res.json())
                     .then(data => {
-                        setLocation(data.display_name || `Coordinate: ${coord.latitude.toFixed(4)}, ${coord.longitude.toFixed(4)}`);
+                        const formatted = formatAddress(data.address);
+                        setLocation(formatted || data.display_name || `Coordinate: ${coord.latitude.toFixed(4)}, ${coord.longitude.toFixed(4)}`);
                     })
                     .catch(() => {
                         setLocation(`Coordinate: ${coord.latitude.toFixed(4)}, ${coord.longitude.toFixed(4)}`);
