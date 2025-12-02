@@ -10,6 +10,7 @@ import CategoryIcon from './icons/CategoryIcon';
 import PathIcon from './icons/PathIcon';
 import AreaIcon from './icons/AreaIcon';
 import MapPinIcon from './icons/MapPinIcon';
+import StarIcon from './icons/StarIcon';
 
 // Fix for cross-origin error
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -40,9 +41,10 @@ interface ItineraryDetailModalProps {
   onClose: () => void;
   onSelectPoiInItinerary: (poi: Poi) => void;
   onSelectTag: (tag: string) => void;
+  onToggleFavorite: (itineraryId: string) => void;
 }
 
-const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, allPois, onClose, onSelectPoiInItinerary, onSelectTag }) => {
+const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, allPois, onClose, onSelectPoiInItinerary, onSelectTag, onToggleFavorite }) => {
   const mapRef = useRef<MapRef>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
@@ -87,6 +89,15 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
             <div className="mt-4 flex items-center flex-wrap gap-x-6 gap-y-2 text-sm text-gray-700 font-sans-display border-b border-t border-gray-300 py-3">
               <div className="flex items-center gap-2"><RouteIcon className="w-4 h-4 flex-shrink-0 text-gray-500" /><span>{poisInItinerary.length} Tappe</span></div>
               <div className="flex items-center gap-2"><ClockIcon className="w-4 h-4 flex-shrink-0 text-gray-500" /><span>{itinerary.estimatedDuration}</span></div>
+               <div className="flex items-center gap-2">
+                <button onClick={() => onToggleFavorite(itinerary.id)} className="flex items-center gap-1.5 group transition-transform active:scale-95">
+                  <StarIcon 
+                    isFilled={itinerary.isFavorited} 
+                    className={`w-5 h-5 transition-colors ${itinerary.isFavorited ? 'text-yellow-500' : 'text-gray-500 group-hover:text-yellow-400'}`}
+                  />
+                  <span className="font-semibold text-gray-700">{itinerary.favoriteCount}</span>
+                </button>
+              </div>
             </div>
             <div className="mt-6 space-y-6">
               <p className="italic text-[#2D3748] whitespace-pre-wrap leading-relaxed text-lg">{itinerary.description}</p>

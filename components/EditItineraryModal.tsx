@@ -7,7 +7,7 @@ interface EditItineraryModalProps {
   onClose: () => void;
   onSave: (
     itineraryId: string,
-    itineraryData: Omit<Itinerary, 'id' | 'author' | 'coverPhoto'>,
+    itineraryData: Omit<Itinerary, 'id' | 'author' | 'coverPhoto' | 'favoriteCount' | 'isFavorited'>,
     coverPhotoFile: File | null
   ) => void;
   itinerary: Itinerary;
@@ -103,7 +103,7 @@ const EditItineraryModal: React.FC<EditItineraryModalProps> = ({ onClose, onSave
         }
 
         const tags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
-        const updatedData: Omit<Itinerary, 'id' | 'author' | 'coverPhoto'> = {
+        const updatedData: Omit<Itinerary, 'id' | 'author' | 'coverPhoto' | 'favoriteCount' | 'isFavorited'> = {
             title, description, estimatedDuration, poiIds: selectedPois.map(p => p.id), tags,
         };
         onSave(itinerary.id, updatedData, coverPhotoFile);

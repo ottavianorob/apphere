@@ -5,7 +5,7 @@ import CameraIcon from './icons/CameraIcon';
 
 interface AddItineraryModalProps {
   onClose: () => void;
-  onSave: (itinerary: Omit<Itinerary, 'id' | 'author' | 'coverPhoto'>, coverPhotoFile: File | null) => void;
+  onSave: (itinerary: Omit<Itinerary, 'id' | 'author' | 'coverPhoto' | 'favoriteCount' | 'isFavorited'>, coverPhotoFile: File | null) => void;
   allPois: Poi[];
 }
 
@@ -105,7 +105,7 @@ const AddItineraryModal: React.FC<AddItineraryModalProps> = ({ onClose, onSave, 
 
         const tags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
         
-        const newItineraryData: Omit<Itinerary, 'id' | 'author' | 'coverPhoto'> = {
+        const newItineraryData: Omit<Itinerary, 'id' | 'author' | 'coverPhoto' | 'favoriteCount' | 'isFavorited'> = {
             title,
             description,
             estimatedDuration,

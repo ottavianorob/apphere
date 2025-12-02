@@ -2,6 +2,7 @@ import React from 'react';
 import { Itinerary } from '../types';
 import RouteIcon from './icons/RouteIcon';
 import ClockIcon from './icons/ClockIcon';
+import StarIcon from './icons/StarIcon';
 
 interface ItinerariesViewProps {
   itineraries: Itinerary[];
@@ -30,6 +31,10 @@ const ItineraryListItem: React.FC<{ itinerary: Itinerary; onSelect: () => void; 
             <div className="flex items-center gap-1.5" title="Durata stimata">
                 <ClockIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />
                 <span>{itinerary.estimatedDuration}</span>
+            </div>
+            <div className="flex items-center gap-1.5" title="Numero di preferiti">
+                <StarIcon isFilled={itinerary.isFavorited} className={`w-4 h-4 flex-shrink-0 ${itinerary.isFavorited ? 'text-yellow-500' : 'text-gray-500'}`} />
+                <span className="font-semibold">{itinerary.favoriteCount}</span>
             </div>
         </div>
       </div>

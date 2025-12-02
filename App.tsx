@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { Poi, Itinerary, Character, Category, Point, Path, Area, User, Period, Photo } from './types';
@@ -108,14 +107,16 @@ const App: React.FC = () => {
       const charactersPromise = supabase.from('characters').select('*, photos(*)');
       const profilesPromise = supabase.from('profiles').select('*');
       const poisPromise = supabase.from('pois').select(`*, user_id, profiles:profiles!user_id(name), poi_categories(categories(id)), poi_characters(characters(id)), photos(*), user_poi_favorites(count)`);
-      const itinerariesPromise = supabase.from('itineraries').select(`*, user_id, profiles:profiles!user_id(name), itinerary_pois(poi_id), coverPhoto:photos!cover_photo_id(*)`);
+      const itinerariesPromise = supabase.from('itineraries').select(`*, user_id, profiles:profiles!user_id(name), itinerary_pois(poi_id), coverPhoto:photos!cover_photo_id(*), user_itinerary_favorites(count)`);
       
       const { data: { user } } = await supabase.auth.getUser();
-      // FIX: The userFavoritesPromise was incorrectly typed because its initial value was a resolved promise,
-      // but it was later reassigned a Supabase query builder, which is not a standard Promise.
-      // Using a ternary operator ensures the correct type is inferred based on whether a user exists.
-      const userFavoritesPromise = user
+
+      const userPoiFavoritesPromise = user
           ? supabase.from('user_poi_favorites').select('poi_id').eq('user_id', user.id)
+          : Promise.resolve({ data: [], error: null });
+
+      const userItineraryFavoritesPromise = user
+          ? supabase.from('user_itinerary_favorites').select('itinerary_id').eq('user_id', user.id)
           : Promise.resolve({ data: [], error: null });
 
       const [
@@ -125,8 +126,9 @@ const App: React.FC = () => {
           { data: profilesData, error: profError },
           { data: poisData, error: poisError },
           { data: itinerariesData, error: itError },
-          { data: userFavoritesData, error: userFavoritesError }
-      ] = await Promise.all([categoriesPromise, periodsPromise, charactersPromise, profilesPromise, poisPromise, itinerariesPromise, userFavoritesPromise]);
+          { data: userPoiFavoritesData, error: userPoiFavoritesError },
+          { data: userItineraryFavoritesData, error: userItineraryFavoritesError }
+      ] = await Promise.all([categoriesPromise, periodsPromise, charactersPromise, profilesPromise, poisPromise, itinerariesPromise, userPoiFavoritesPromise, userItineraryFavoritesPromise]);
 
       if (catError) throw catError;
       if (perError) throw perError;
@@ -134,9 +136,11 @@ const App: React.FC = () => {
       if (profError) throw profError;
       if (poisError) throw poisError;
       if (itError) throw itError;
-      if (userFavoritesError) throw userFavoritesError;
+      if (userPoiFavoritesError) throw userPoiFavoritesError;
+      if (userItineraryFavoritesError) throw userItineraryFavoritesError;
       
-      const favoritePoiIds = new Set(userFavoritesData?.map(fav => fav.poi_id) || []);
+      const favoritePoiIds = new Set(userPoiFavoritesData?.map(fav => fav.poi_id) || []);
+      const favoriteItineraryIds = new Set(userItineraryFavoritesData?.map(fav => fav.itinerary_id) || []);
 
       setCategories(categoriesData || []);
       setPeriods(periodsData || []);
@@ -185,6 +189,8 @@ const App: React.FC = () => {
           author: it.profiles?.name || 'Anonimo',
           tags: it.tags || [],
           coverPhoto: it.coverPhoto ? { id: it.coverPhoto.id, url: it.coverPhoto.url, caption: it.coverPhoto.caption } : { id: '', url: 'https://placehold.co/600x400', caption: 'No image' },
+          favoriteCount: it.user_itinerary_favorites[0]?.count || 0,
+          isFavorited: favoriteItineraryIds.has(it.id),
       }));
       setItineraries(transformedItineraries);
       
@@ -301,6 +307,46 @@ const App: React.FC = () => {
     } catch (error: any) {
         setAllPois(originalPois);
         if (selectedPoi && selectedPoi.id === poiId) setSelectedPoi(targetPoi);
+        setToast({ message: `Errore: ${error.message}`, type: 'error' });
+    }
+  };
+  
+  const handleToggleItineraryFavorite = async (itineraryId: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        setToast({ message: "Devi essere autenticato per aggiungere preferiti.", type: 'error' });
+        return;
+    }
+
+    const originalItineraries = [...itineraries];
+    const targetItinerary = originalItineraries.find(i => i.id === itineraryId);
+    if (!targetItinerary) return;
+
+    // Optimistic UI Update
+    const updatedItineraries = itineraries.map(i => {
+        if (i.id === itineraryId) {
+            const isFavorited = !i.isFavorited;
+            const favoriteCount = isFavorited ? i.favoriteCount + 1 : i.favoriteCount - 1;
+            return { ...i, isFavorited, favoriteCount };
+        }
+        return i;
+    });
+    setItineraries(updatedItineraries);
+    if (selectedItinerary && selectedItinerary.id === itineraryId) {
+        setSelectedItinerary(updatedItineraries.find(i => i.id === itineraryId) || null);
+    }
+
+    try {
+        if (targetItinerary.isFavorited) {
+            const { error } = await supabase.from('user_itinerary_favorites').delete().match({ user_id: user.id, itinerary_id: itineraryId });
+            if (error) throw error;
+        } else {
+            const { error } = await supabase.from('user_itinerary_favorites').insert({ user_id: user.id, itinerary_id: itineraryId });
+            if (error) throw error;
+        }
+    } catch (error: any) {
+        setItineraries(originalItineraries);
+        if (selectedItinerary && selectedItinerary.id === itineraryId) setSelectedItinerary(targetItinerary);
         setToast({ message: `Errore: ${error.message}`, type: 'error' });
     }
   };
@@ -447,7 +493,7 @@ const App: React.FC = () => {
   };
 
   const handleSaveItinerary = async (
-    newItineraryData: Omit<Itinerary, 'id' | 'author' | 'coverPhoto'>,
+    newItineraryData: Omit<Itinerary, 'id' | 'author' | 'coverPhoto' | 'favoriteCount' | 'isFavorited'>,
     coverPhotoFile: File | null
   ) => {
      try {
@@ -728,7 +774,7 @@ const App: React.FC = () => {
 
   const handleUpdateItinerary = async (
     itineraryId: string,
-    updatedData: Omit<Itinerary, 'id' | 'author' | 'coverPhoto'>,
+    updatedData: Omit<Itinerary, 'id' | 'author' | 'coverPhoto' | 'favoriteCount' | 'isFavorited'>,
     coverPhotoFile: File | null
   ) => {
       try {
@@ -897,6 +943,7 @@ const App: React.FC = () => {
           onClose={() => setSelectedItinerary(null)}
           onSelectPoiInItinerary={openPoiModal}
           onSelectTag={openTagModal}
+          onToggleFavorite={handleToggleItineraryFavorite}
         />
       )}
       {selectedCharacter && (

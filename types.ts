@@ -105,4 +105,6 @@ export interface Itinerary {
   author: string;
   tags?: string[];
   coverPhoto: Photo;
+  favoriteCount: number;
+  isFavorited: boolean;
 }
