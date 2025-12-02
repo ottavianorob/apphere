@@ -581,9 +581,9 @@ const App: React.FC = () => {
           alert("Luogo aggiornato con successo!");
           setEditingItem(null);
           await fetchData();
-      } catch (error) {
+      } catch (error: any) {
           console.error("Errore nell'aggiornamento del POI:", error);
-          alert("Si è verificato un errore durante l'aggiornamento.");
+          alert(`Si è verificato un errore durante l'aggiornamento: ${error.message}`);
       }
   };
 
@@ -626,9 +626,9 @@ const App: React.FC = () => {
           alert("Personaggio aggiornato con successo!");
           setEditingItem(null);
           await fetchData();
-      } catch (error) {
+      } catch (error: any) {
           console.error("Errore nell'aggiornamento del Personaggio:", error);
-          alert("Si è verificato un errore durante l'aggiornamento.");
+          alert(`Si è verificato un errore durante l'aggiornamento: ${error.message}`);
       }
   };
 
@@ -644,7 +644,7 @@ const App: React.FC = () => {
           if (coverPhotoFile) {
               // Delete old photo if it exists
               const oldPhotoPath = new URL(editingItem?.data.coverPhoto.url).pathname.split('/media/').pop();
-              if (oldPhotoPath) {
+              if (oldPhotoPath && editingItem?.data.coverPhoto.url.includes('supabase')) {
                   await supabase.storage.from('media').remove([oldPhotoPath]);
                   await supabase.from('photos').delete().eq('id', coverPhotoId);
               }
@@ -656,10 +656,11 @@ const App: React.FC = () => {
               await supabase.storage.from('media').upload(filePath, coverPhotoFile);
               const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
 
-              const { data: photoData } = await supabase.from('photos').insert({
+              const { data: photoData, error: photoInsertError } = await supabase.from('photos').insert({
                 url: publicUrl,
                 caption: `Cover for ${updatedData.title}`
               }).select().single();
+              if (photoInsertError) throw photoInsertError;
               coverPhotoId = photoData.id;
           }
 
@@ -682,9 +683,9 @@ const App: React.FC = () => {
           alert("Itinerario aggiornato con successo!");
           setEditingItem(null);
           await fetchData();
-      } catch (error) {
+      } catch (error: any) {
           console.error("Errore nell'aggiornamento dell'Itinerario:", error);
-          alert("Si è verificato un errore durante l'aggiornamento.");
+          alert(`Si è verificato un errore durante l'aggiornamento: ${error.message}`);
       }
   };
 
