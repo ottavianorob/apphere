@@ -55,9 +55,9 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({ character, 
         <button onClick={onClose} className="absolute top-3 right-3 text-gray-800 bg-white/60 rounded-full p-1.5 hover:bg-white/90 backdrop-blur-sm transition-colors z-30"><CloseIcon className="w-5 h-5" /></button>
         <div className="overflow-y-auto">
           <div className="p-6">
-            <div className="relative flex-shrink-0 group">
+            <div className="relative flex-shrink-0 group bg-black">
               {character.photos.length > 0 ? (
-                <img src={character.photos[currentImageIndex].url} alt={character.photos[currentImageIndex].caption} className="w-full h-64 object-cover" />
+                <img src={character.photos[currentImageIndex].url} alt={character.photos[currentImageIndex].caption} className="w-full h-64 object-contain" />
               ) : (
                 <div className="w-full h-64 bg-gray-300 flex items-center justify-center">
                   <span className="font-serif-display text-gray-500">Nessuna immagine</span>
