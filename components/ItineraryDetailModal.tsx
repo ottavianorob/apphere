@@ -61,7 +61,7 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
     return () => resizeObserver.disconnect();
   }, []);
 
-  const MAPTILER_KEY = 'IIPnH80T6eAsOrGsVBLp';
+  const MAPTILER_KEY = 'get_your_own_OpIi9ZULNHzrESv6T2vL';
   const mapMarkerBgColors: { [key: string]: string } = {
     'storia': 'bg-sky-700', 'arte': 'bg-amber-600', 'societa': 'bg-red-700',
     'cinema': 'bg-emerald-600', 'musica': 'bg-indigo-600',
@@ -112,7 +112,7 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
                     mapLib={maplibregl}
                     initialViewState={{ longitude: 9.189982, latitude: 45.464204, zoom: 12 }}
                     style={{ width: '100%', height: '100%' }}
-                    mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
+                    mapStyle={`https://api.maptiler.com/maps/dataviz/style.json?key=${MAPTILER_KEY}`}
                     onLoad={event => {
                       const map = event.target;
                       if (poisInItinerary.length > 0) {

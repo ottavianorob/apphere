@@ -70,7 +70,7 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
   };
   
   const mapsUrl = getDirectionsUrl();
-  const MAPTILER_KEY = 'IIPnH80T6eAsOrGsVBLp';
+  const MAPTILER_KEY = 'get_your_own_OpIi9ZULNHzrESv6T2vL';
 
   const categoryPillColors: { [key: string]: string } = {
     'storia': 'bg-sky-700 text-white', 'arte': 'bg-amber-600 text-white', 'societa': 'bg-red-700 text-white',
@@ -234,7 +234,7 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
                       mapLib={maplibregl}
                       initialViewState={{ longitude: getMarkerCoordinates().longitude, latitude: getMarkerCoordinates().latitude, zoom: 15, pitch: 20 }}
                       style={{ width: '100%', height: '100%' }}
-                      mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
+                      mapStyle={`https://api.maptiler.com/maps/dataviz/style.json?key=${MAPTILER_KEY}`}
                       interactive={false}
                       onLoad={event => {
                           const map = event.target;
