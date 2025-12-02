@@ -20,6 +20,8 @@ import AddCharacterModal from './components/AddCharacterModal';
 import AddItineraryModal from './components/AddItineraryModal';
 import AddCategoryModal from './components/AddCategoryModal';
 import AddPeriodModal from './components/AddPeriodModal';
+import EditCategoryModal from './components/EditCategoryModal';
+import EditPeriodModal from './components/EditPeriodModal';
 
 
 import BottomNav from './components/BottomNav';
@@ -39,6 +41,7 @@ const App: React.FC = () => {
   const [isAddItineraryModalOpen, setIsAddItineraryModalOpen] = useState(false);
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isAddPeriodModalOpen, setIsAddPeriodModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<{ type: string; data: any } | null>(null);
   
   const [session, setSession] = useState<Session | null>(null);
   const [sessionChecked, setSessionChecked] = useState(false);
@@ -172,7 +175,7 @@ const App: React.FC = () => {
 
 
   useEffect(() => {
-    const isModalOpen = selectedPoi || selectedItinerary || selectedCharacter || selectedTag || isAddPoiModalOpen || isAddCharacterModalOpen || isAddItineraryModalOpen || isAddCategoryModalOpen || isAddPeriodModalOpen;
+    const isModalOpen = selectedPoi || selectedItinerary || selectedCharacter || selectedTag || isAddPoiModalOpen || isAddCharacterModalOpen || isAddItineraryModalOpen || isAddCategoryModalOpen || isAddPeriodModalOpen || editingItem;
     if (isModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -181,7 +184,7 @@ const App: React.FC = () => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [selectedPoi, selectedItinerary, selectedCharacter, selectedTag, isAddPoiModalOpen, isAddCharacterModalOpen, isAddItineraryModalOpen, isAddCategoryModalOpen, isAddPeriodModalOpen]);
+  }, [selectedPoi, selectedItinerary, selectedCharacter, selectedTag, isAddPoiModalOpen, isAddCharacterModalOpen, isAddItineraryModalOpen, isAddCategoryModalOpen, isAddPeriodModalOpen, editingItem]);
 
   const openCharacterModal = (character: Character) => {
     setSelectedPoi(null);
@@ -443,9 +446,40 @@ const App: React.FC = () => {
     }
   };
 
-  const handleModify = (type: string, id: string) => {
-    alert(`La funzione di modifica per ${type} con ID ${id} non è ancora implementata.`);
+  const handleModify = (type: string, data: any) => {
+    if (type === 'poi' || type === 'character' || type === 'itinerary') {
+        alert(`La funzione di modifica per ${type} non è ancora completamente implementata.`);
+        return;
+    }
+    setEditingItem({ type, data });
   };
+  
+  const handleUpdateCategory = async (id: string, name: string) => {
+    try {
+        const { error } = await supabase.from('categories').update({ name }).eq('id', id);
+        if (error) throw error;
+        alert("Categoria aggiornata con successo!");
+        setEditingItem(null);
+        await fetchData();
+    } catch (error) {
+        console.error("Errore nell'aggiornamento della Categoria:", error);
+        alert("Si è verificato un errore durante l'aggiornamento.");
+    }
+  };
+
+  const handleUpdatePeriod = async (id: string, name: string, start_year: number, end_year: number) => {
+    try {
+        const { error } = await supabase.from('periods').update({ name, start_year, end_year }).eq('id', id);
+        if (error) throw error;
+        alert("Periodo aggiornato con successo!");
+        setEditingItem(null);
+        await fetchData();
+    } catch (error) {
+        console.error("Errore nell'aggiornamento del Periodo:", error);
+        alert("Si è verificato un errore durante l'aggiornamento.");
+    }
+  };
+
 
   const renderView = () => {
     switch (currentView) {
@@ -616,6 +650,20 @@ const App: React.FC = () => {
         <AddPeriodModal
           onClose={() => setIsAddPeriodModalOpen(false)}
           onSave={handleSavePeriod}
+        />
+      )}
+      {editingItem?.type === 'category' && (
+        <EditCategoryModal
+          onClose={() => setEditingItem(null)}
+          onSave={handleUpdateCategory}
+          category={editingItem.data}
+        />
+      )}
+      {editingItem?.type === 'period' && (
+        <EditPeriodModal
+          onClose={() => setEditingItem(null)}
+          onSave={handleUpdatePeriod}
+          period={editingItem.data}
         />
       )}
     </div>

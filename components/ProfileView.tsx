@@ -11,7 +11,7 @@ interface ProfileViewProps {
   onAddCategoryClick: () => void;
   onAddPeriodClick: () => void;
   onDelete: (table: string, id: string, name: string) => void;
-  onModify: (type: string, id: string) => void;
+  onModify: (type: string, data: any) => void;
   pois: Poi[];
   characters: Character[];
   itineraries: Itinerary[];
@@ -97,7 +97,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                           <td className={tableCellStyle}>{poi.author}</td>
                           <td className={tableCellStyle}>
                             <div className="flex gap-2">
-                                <button onClick={() => onModify('poi', poi.id)} className={actionButtonStyle} title="Modifica"><PencilIcon className="w-4 h-4" /></button>
+                                <button onClick={() => onModify('poi', poi)} className={actionButtonStyle} title="Modifica"><PencilIcon className="w-4 h-4" /></button>
                                 <button onClick={() => onDelete('pois', poi.id, poi.title)} className={actionButtonStyle} title="Elimina"><TrashIcon className="w-4 h-4" /></button>
                             </div>
                           </td>
@@ -125,7 +125,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                           <td className={tableCellStyle}>{char.description.substring(0, 50)}...</td>
                           <td className={tableCellStyle}>
                             <div className="flex gap-2">
-                                <button onClick={() => onModify('character', char.id)} className={actionButtonStyle} title="Modifica"><PencilIcon className="w-4 h-4" /></button>
+                                <button onClick={() => onModify('character', char)} className={actionButtonStyle} title="Modifica"><PencilIcon className="w-4 h-4" /></button>
                                 <button onClick={() => onDelete('characters', char.id, char.name)} className={actionButtonStyle} title="Elimina"><TrashIcon className="w-4 h-4" /></button>
                             </div>
                           </td>
@@ -153,7 +153,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                           <td className={tableCellStyle}>{it.poiIds.length}</td>
                           <td className={tableCellStyle}>
                             <div className="flex gap-2">
-                                <button onClick={() => onModify('itinerary', it.id)} className={actionButtonStyle} title="Modifica"><PencilIcon className="w-4 h-4" /></button>
+                                <button onClick={() => onModify('itinerary', it)} className={actionButtonStyle} title="Modifica"><PencilIcon className="w-4 h-4" /></button>
                                 <button onClick={() => onDelete('itineraries', it.id, it.title)} className={actionButtonStyle} title="Elimina"><TrashIcon className="w-4 h-4" /></button>
                             </div>
                           </td>
@@ -181,7 +181,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                           <td className={tableCellStyle}>{cat.id}</td>
                           <td className={tableCellStyle}>
                             <div className="flex gap-2">
-                                <button onClick={() => onModify('category', cat.id)} className={actionButtonStyle} title="Modifica"><PencilIcon className="w-4 h-4" /></button>
+                                <button onClick={() => onModify('category', cat)} className={actionButtonStyle} title="Modifica"><PencilIcon className="w-4 h-4" /></button>
                                 <button onClick={() => onDelete('categories', cat.id, cat.name)} className={actionButtonStyle} title="Elimina"><TrashIcon className="w-4 h-4" /></button>
                             </div>
                           </td>
@@ -211,7 +211,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                           <td className={tableCellStyle}>{p.end_year}</td>
                           <td className={tableCellStyle}>
                             <div className="flex gap-2">
-                                <button onClick={() => onModify('period', p.id)} className={actionButtonStyle} title="Modifica"><PencilIcon className="w-4 h-4" /></button>
+                                <button onClick={() => onModify('period', p)} className={actionButtonStyle} title="Modifica"><PencilIcon className="w-4 h-4" /></button>
                                 <button onClick={() => onDelete('periods', p.id, p.name)} className={actionButtonStyle} title="Elimina"><TrashIcon className="w-4 h-4" /></button>
                             </div>
                           </td>
