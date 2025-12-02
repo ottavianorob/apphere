@@ -252,7 +252,8 @@ const App: React.FC = () => {
   
   const handleSavePoi = async (
     newPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>,
-    photosToUpload: { file: File; caption: string }[]
+    photosToUpload: { file: File; caption: string }[],
+    urlPhotos: { url: string; caption: string }[]
   ) => {
       try {
           const { data: { user } } = await supabase.auth.getUser();
@@ -280,7 +281,13 @@ const App: React.FC = () => {
           if (poiError) throw poiError;
           const newPoiId = poiData.id;
 
-          // 2. Upload photos and insert into photos table
+          // 2. Prepare all photos for insertion
+          let allNewPhotos: { url: string; caption: string; poi_id: string }[] = [];
+
+          if (urlPhotos.length > 0) {
+              allNewPhotos = urlPhotos.map(p => ({ ...p, poi_id: newPoiId }));
+          }
+
           if (photosToUpload.length > 0) {
             const photoUploadPromises = photosToUpload.map(async (photo) => {
               const sanitizedFileName = photo.file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
@@ -292,15 +299,14 @@ const App: React.FC = () => {
 
               const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
               
-              return {
-                url: publicUrl,
-                caption: photo.caption,
-                poi_id: newPoiId
-              };
+              return { url: publicUrl, caption: photo.caption, poi_id: newPoiId };
             });
+            const uploadedPhotosData = await Promise.all(photoUploadPromises);
+            allNewPhotos = [...allNewPhotos, ...uploadedPhotosData];
+          }
 
-            const newPhotos = await Promise.all(photoUploadPromises);
-            const { error: photosInsertError } = await supabase.from('photos').insert(newPhotos);
+          if (allNewPhotos.length > 0) {
+            const { error: photosInsertError } = await supabase.from('photos').insert(allNewPhotos);
             if (photosInsertError) throw photosInsertError;
           }
 
@@ -328,7 +334,8 @@ const App: React.FC = () => {
 
   const handleSaveCharacter = async (
     newCharacterData: Omit<Character, 'id' | 'photos'>,
-    photosToUpload: { file: File; caption: string }[]
+    photosToUpload: { file: File; caption: string }[],
+    urlPhotos: { url: string; caption: string }[]
   ) => {
       try {
           const { data: { user } } = await supabase.auth.getUser();
@@ -347,7 +354,13 @@ const App: React.FC = () => {
           if (charError) throw charError;
           const newCharId = charData.id;
 
-          // 2. Upload photos and link them
+          // 2. Prepare and insert all photos
+          let allNewPhotos: { url: string; caption: string; character_id: string }[] = [];
+
+          if (urlPhotos.length > 0) {
+              allNewPhotos = urlPhotos.map(p => ({ ...p, character_id: newCharId }));
+          }
+
           if (photosToUpload.length > 0) {
             const photoUploadPromises = photosToUpload.map(async (photo) => {
                 const sanitizedFileName = photo.file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
@@ -358,15 +371,14 @@ const App: React.FC = () => {
                 if (uploadError) throw uploadError;
                 
                 const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
-                return {
-                  url: publicUrl,
-                  caption: photo.caption,
-                  character_id: newCharId,
-                };
+                return { url: publicUrl, caption: photo.caption, character_id: newCharId };
             });
+            const uploadedPhotosData = await Promise.all(photoUploadPromises);
+            allNewPhotos = [...allNewPhotos, ...uploadedPhotosData];
+          }
 
-            const newPhotos = await Promise.all(photoUploadPromises);
-            const { error: photosInsertError } = await supabase.from('photos').insert(newPhotos);
+          if (allNewPhotos.length > 0) {
+            const { error: photosInsertError } = await supabase.from('photos').insert(allNewPhotos);
             if(photosInsertError) throw photosInsertError;
           }
 
@@ -516,7 +528,8 @@ const App: React.FC = () => {
     poiId: string,
     updatedData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>,
     photosToUpload: { file: File; caption: string }[],
-    photosToDelete: Photo[]
+    photosToDelete: Photo[],
+    newUrlPhotos: { url: string; caption: string }[]
   ) => {
       try {
           // 1. Update main POI data
@@ -554,16 +567,24 @@ const App: React.FC = () => {
           // 3. Handle photo deletions
           if (photosToDelete.length > 0) {
               const photoIds = photosToDelete.map(p => p.id);
-              const filePaths = photosToDelete.map(p => new URL(p.url).pathname.split('/media/').pop() || '');
+              const filePaths = photosToDelete.map(p => new URL(p.url).pathname.split('/media/').pop() || '').filter(Boolean);
               
               const { error: dbError } = await supabase.from('photos').delete().in('id', photoIds);
               if (dbError) throw dbError;
 
-              const { error: storageError } = await supabase.storage.from('media').remove(filePaths);
-              if (storageError) console.warn("Errore eliminazione file dallo storage (potrebbe essere già stato rimosso):", storageError.message);
+              if (filePaths.length > 0) {
+                const { error: storageError } = await supabase.storage.from('media').remove(filePaths);
+                if (storageError) console.warn("Errore eliminazione file dallo storage:", storageError.message);
+              }
+          }
+          
+          // 4. Handle new photos (files and URLs)
+          let allNewPhotos: { url: string; caption: string; poi_id: string }[] = [];
+
+          if (newUrlPhotos.length > 0) {
+              allNewPhotos = newUrlPhotos.map(p => ({ ...p, poi_id: poiId }));
           }
 
-          // 4. Handle photo uploads
           if (photosToUpload.length > 0) {
             const photoUploadPromises = photosToUpload.map(async (photo) => {
               const sanitizedFileName = photo.file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
@@ -575,8 +596,12 @@ const App: React.FC = () => {
               
               return { url: publicUrl, caption: photo.caption, poi_id: poiId };
             });
-            const newPhotos = await Promise.all(photoUploadPromises);
-            await supabase.from('photos').insert(newPhotos);
+            const uploadedPhotosData = await Promise.all(photoUploadPromises);
+            allNewPhotos = [...allNewPhotos, ...uploadedPhotosData];
+          }
+
+          if (allNewPhotos.length > 0) {
+              await supabase.from('photos').insert(allNewPhotos);
           }
 
           setToast({ message: "Luogo aggiornato con successo!", type: 'success' });
@@ -592,7 +617,8 @@ const App: React.FC = () => {
     charId: string,
     updatedData: Omit<Character, 'id' | 'photos'>,
     photosToUpload: { file: File; caption: string }[],
-    photosToDelete: Photo[]
+    photosToDelete: Photo[],
+    newUrlPhotos: { url: string; caption: string }[]
   ) => {
       try {
           // 1. Update main character data
@@ -605,12 +631,20 @@ const App: React.FC = () => {
           // 2. Handle photo deletions
           if (photosToDelete.length > 0) {
               const photoIds = photosToDelete.map(p => p.id);
-              const filePaths = photosToDelete.map(p => new URL(p.url).pathname.split('/media/').pop() || '');
+              const filePaths = photosToDelete.map(p => new URL(p.url).pathname.split('/media/').pop() || '').filter(Boolean);
               await supabase.from('photos').delete().in('id', photoIds);
-              await supabase.storage.from('media').remove(filePaths);
+              if (filePaths.length > 0) {
+                await supabase.storage.from('media').remove(filePaths);
+              }
           }
           
-          // 3. Handle photo uploads
+          // 3. Handle new photos (files and URLs)
+          let allNewPhotos: { url: string; caption: string; character_id: string }[] = [];
+
+          if (newUrlPhotos.length > 0) {
+              allNewPhotos = newUrlPhotos.map(p => ({ ...p, character_id: charId }));
+          }
+
           if (photosToUpload.length > 0) {
             const photoUploadPromises = photosToUpload.map(async (photo) => {
                 const sanitizedFileName = photo.file.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
@@ -620,8 +654,12 @@ const App: React.FC = () => {
                 const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
                 return { url: publicUrl, caption: photo.caption, character_id: charId };
             });
-            const newPhotos = await Promise.all(photoUploadPromises);
-            await supabase.from('photos').insert(newPhotos);
+            const uploadedPhotosData = await Promise.all(photoUploadPromises);
+            allNewPhotos = [...allNewPhotos, ...uploadedPhotosData];
+          }
+          
+          if(allNewPhotos.length > 0) {
+              await supabase.from('photos').insert(allNewPhotos);
           }
 
           setToast({ message: "Personaggio aggiornato con successo!", type: 'success' });

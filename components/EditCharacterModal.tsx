@@ -4,11 +4,7 @@ import CloseIcon from './icons/CloseIcon';
 import CameraIcon from './icons/CameraIcon';
 import TrashIcon from './icons/TrashIcon';
 
-type PhotoUpload = {
-    file: File;
-    dataUrl: string;
-    caption: string;
-};
+type NewPhoto = { type: 'file', file: File, dataUrl: string, caption: string } | { type: 'url', url: string, caption: string };
 
 interface EditCharacterModalProps {
   onClose: () => void;
@@ -16,7 +12,8 @@ interface EditCharacterModalProps {
     charId: string,
     characterData: Omit<Character, 'id' | 'photos'>,
     photosToUpload: { file: File, caption: string }[],
-    photosToDelete: Photo[]
+    photosToDelete: Photo[],
+    newUrlPhotos: { url: string; caption: string }[]
   ) => void;
   character: Character;
 }
@@ -26,8 +23,12 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
     const [description, setDescription] = useState('');
     const [wikipediaUrl, setWikipediaUrl] = useState('');
     const [existingPhotos, setExistingPhotos] = useState<Photo[]>([]);
-    const [newPhotos, setNewPhotos] = useState<PhotoUpload[]>([]);
+    const [newPhotos, setNewPhotos] = useState<NewPhoto[]>([]);
     const [photosToDelete, setPhotosToDelete] = useState<Photo[]>([]);
+
+    const [photoInputMode, setPhotoInputMode] = useState<'upload' | 'url'>('upload');
+    const [photoUrl, setPhotoUrl] = useState('');
+    const [photoUrlCaption, setPhotoUrlCaption] = useState('');
 
     useEffect(() => {
         if (character) {
@@ -49,10 +50,23 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
                 }
                 const reader = new FileReader();
                 reader.onloadend = () => {
-                    setNewPhotos(prev => [...prev, { file, dataUrl: reader.result as string, caption: '' }]);
+                    setNewPhotos(prev => [...prev, { type: 'file', file, dataUrl: reader.result as string, caption: '' }]);
                 };
                 reader.readAsDataURL(file);
             });
+        }
+    };
+    
+    const handleAddUrlPhoto = () => {
+        if (photoUrl.trim()) {
+            try {
+                new URL(photoUrl);
+                setNewPhotos(prev => [...prev, { type: 'url', url: photoUrl, caption: photoUrlCaption }]);
+                setPhotoUrl('');
+                setPhotoUrlCaption('');
+            } catch (_) {
+                alert('Per favore, inserisci un URL valido.');
+            }
         }
     };
     
@@ -76,7 +90,10 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
         }
 
         const updatedData: Omit<Character, 'id' | 'photos'> = { name, description, wikipediaUrl };
-        onSave(character.id, updatedData, newPhotos.map(p => ({ file: p.file, caption: p.caption })), photosToDelete);
+        const photosToUpload = newPhotos.filter((p): p is Extract<NewPhoto, { type: 'file' }> => p.type === 'file').map(p => ({ file: p.file, caption: p.caption }));
+        const newUrlPhotos = newPhotos.filter((p): p is Extract<NewPhoto, { type: 'url' }> => p.type === 'url').map(p => ({ url: p.url, caption: p.caption }));
+
+        onSave(character.id, updatedData, photosToUpload, photosToDelete, newUrlPhotos);
     };
 
     const labelStyle = "font-sans-display text-sm font-semibold text-gray-700 mb-1 block";
@@ -116,20 +133,34 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
                         ))}
                         {newPhotos.map((photo, index) => (
                             <div key={index} className="relative group border border-blue-400 border-dashed p-1">
-                                <img src={photo.dataUrl} alt={`Nuova foto ${index + 1}`} className="w-full h-24 object-cover"/>
+                                <img src={photo.type === 'file' ? photo.dataUrl : photo.url} alt={`Nuova foto ${index + 1}`} className="w-full h-24 object-cover"/>
                                 <input type="text" placeholder="Didascalia..." value={photo.caption} onChange={(e) => handleNewPhotoCaptionChange(index, e.target.value)} className="w-full text-xs p-1 border-t border-gray-300/80" />
                                 <button onClick={() => handleRemoveNewPhoto(index)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <CloseIcon className="w-3 h-3"/>
                                 </button>
                             </div>
                         ))}
-                       <label htmlFor="char-photo-upload" className="cursor-pointer w-full h-32 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors">
-                            <div className="text-center p-2">
-                                <CameraIcon className="w-8 h-8 mx-auto"/>
-                                <span className="text-xs font-sans-display mt-1 block">Aggiungi foto</span>
+                    </div>
+                     <div className="mt-4">
+                        <div className="flex border-b border-gray-300 mb-2">
+                            <button onClick={() => setPhotoInputMode('upload')} className={`px-4 py-2 text-sm font-sans-display font-semibold ${photoInputMode === 'upload' ? 'border-b-2 border-[#134A79] text-[#134A79]' : 'text-gray-500'}`}>Upload File</button>
+                            <button onClick={() => setPhotoInputMode('url')} className={`px-4 py-2 text-sm font-sans-display font-semibold ${photoInputMode === 'url' ? 'border-b-2 border-[#134A79] text-[#134A79]' : 'text-gray-500'}`}>Da URL</button>
+                        </div>
+
+                        {photoInputMode === 'upload' ? (
+                            <>
+                            <label htmlFor="char-photo-upload" className="cursor-pointer mt-2 w-full h-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors">
+                                <div className="text-center p-2"><CameraIcon className="w-8 h-8 mx-auto"/><span className="text-xs font-sans-display mt-1 block">Aggiungi foto</span></div>
+                            </label>
+                            <input id="char-photo-upload" type="file" multiple className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
+                            </>
+                        ) : (
+                            <div className="space-y-2 p-2 border border-dashed border-gray-300 rounded-md mt-2">
+                                <input type="url" placeholder="Incolla URL immagine" value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} className={inputStyle} />
+                                <input type="text" placeholder="Didascalia (opzionale)" value={photoUrlCaption} onChange={e => setPhotoUrlCaption(e.target.value)} className={inputStyle} />
+                                <button type="button" onClick={handleAddUrlPhoto} className="px-3 py-1 text-sm bg-[#134A79] text-white rounded-md font-sans-display">Aggiungi Foto da URL</button>
                             </div>
-                        </label>
-                        <input id="char-photo-upload" type="file" multiple className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
+                        )}
                     </div>
               </div>
             </div>

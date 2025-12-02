@@ -7,15 +7,12 @@ import CameraIcon from './icons/CameraIcon';
 import useGeolocation from '../hooks/useGeolocation';
 import MapSelector from './MapSelector';
 
-type PhotoUpload = {
-    file: File;
-    dataUrl: string;
-    caption: string;
-};
+type NewPhoto = { type: 'file', file: File, dataUrl: string, caption: string } | { type: 'url', url: string, caption: string };
+
 
 interface AddPoiModalProps {
   onClose: () => void;
-  onSave: (poiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>, photosToUpload: { file: File, caption: string }[]) => void;
+  onSave: (poiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>, photosToUpload: { file: File, caption: string }[], urlPhotos: { url: string; caption: string }[]) => void;
   categories: Category[];
   periods: Period[];
   characters: CharacterType[];
@@ -42,7 +39,7 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     const [type, setType] = useState<'point' | 'path' | 'area'>('point');
     const [categoryIds, setCategoryIds] = useState<string[]>([]);
     const [coordinates, setCoordinates] = useState<Coordinates[]>([]);
-    const [photos, setPhotos] = useState<PhotoUpload[]>([]);
+    const [photos, setPhotos] = useState<NewPhoto[]>([]);
     const [tagsText, setTagsText] = useState('');
     const [linkedCharacterIds, setLinkedCharacterIds] = useState<string[]>([]);
     const { data: userLocation } = useGeolocation();
@@ -51,6 +48,11 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     const [addressQuery, setAddressQuery] = useState('');
     const [location, setLocation] = useState('');
     const [isFetchingLocation, setIsFetchingLocation] = useState(false);
+    
+    const [photoInputMode, setPhotoInputMode] = useState<'upload' | 'url'>('upload');
+    const [photoUrl, setPhotoUrl] = useState('');
+    const [photoUrlCaption, setPhotoUrlCaption] = useState('');
+
 
     const formatAddress = (address: any): string | null => {
         if (!address) return null;
@@ -123,10 +125,23 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                 }
                 const reader = new FileReader();
                 reader.onloadend = () => {
-                    setPhotos(prev => [...prev, { file, dataUrl: reader.result as string, caption: '' }]);
+                    setPhotos(prev => [...prev, { type: 'file', file, dataUrl: reader.result as string, caption: '' }]);
                 };
                 reader.readAsDataURL(file);
             });
+        }
+    };
+    
+    const handleAddUrlPhoto = () => {
+        if (photoUrl.trim()) {
+            try {
+                new URL(photoUrl); // Validate URL format
+                setPhotos(prev => [...prev, { type: 'url', url: photoUrl, caption: photoUrlCaption }]);
+                setPhotoUrl('');
+                setPhotoUrlCaption('');
+            } catch (_) {
+                alert('Per favore, inserisci un URL valido.');
+            }
         }
     };
     
@@ -191,20 +206,20 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
         let newPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>;
 
         if (type === 'point') {
-            // FIX: Create a correctly typed object to avoid excess property errors on union types.
             const pointData: Omit<Point, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
             newPoiData = pointData;
         } else if (type === 'path') {
-            // FIX: Create a correctly typed object to avoid excess property errors on union types.
             const pathData: Omit<Path, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'path', pathCoordinates: coordinates };
             newPoiData = pathData;
         } else {
-            // FIX: Create a correctly typed object to avoid excess property errors on union types.
             const areaData: Omit<Area, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'area', bounds: coordinates };
             newPoiData = areaData;
         }
+        
+        const photosToUpload = photos.filter((p): p is Extract<NewPhoto, { type: 'file' }> => p.type === 'file').map(p => ({ file: p.file, caption: p.caption }));
+        const urlPhotos = photos.filter((p): p is Extract<NewPhoto, { type: 'url' }> => p.type === 'url').map(p => ({ url: p.url, caption: p.caption }));
       
-        onSave(newPoiData, photos.map(p => ({ file: p.file, caption: p.caption })));
+        onSave(newPoiData, photosToUpload, urlPhotos);
     };
     
     const labelStyle = "font-sans-display text-sm font-semibold text-gray-700 mb-1 block";
@@ -311,15 +326,32 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
                             {photos.map((photo, index) => (
                                 <div key={index} className="relative group border border-gray-300/80 p-1">
-                                    <img src={photo.dataUrl} alt={`Anteprima ${index + 1}`} className="w-full h-24 object-cover"/>
+                                    <img src={photo.type === 'file' ? photo.dataUrl : photo.url} alt={`Anteprima ${index + 1}`} className="w-full h-24 object-cover"/>
                                     <input type="text" placeholder="Didascalia..." value={photo.caption} onChange={(e) => handlePhotoCaptionChange(index, e.target.value)} className="w-full text-xs p-1 border-t border-gray-300/80" />
                                     <button onClick={() => handleRemovePhoto(index)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"><CloseIcon className="w-3 h-3"/></button>
                                 </div>
                             ))}
-                           <label htmlFor="poi-photo-upload" className="cursor-pointer w-full h-32 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors">
-                                <div className="text-center p-2"><CameraIcon className="w-8 h-8 mx-auto"/><span className="text-xs font-sans-display mt-1 block">Aggiungi foto</span></div>
-                            </label>
-                            <input id="poi-photo-upload" type="file" multiple className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
+                        </div>
+                        <div className="mt-4">
+                            <div className="flex border-b border-gray-300 mb-2">
+                                <button onClick={() => setPhotoInputMode('upload')} className={`px-4 py-2 text-sm font-sans-display font-semibold ${photoInputMode === 'upload' ? 'border-b-2 border-[#134A79] text-[#134A79]' : 'text-gray-500'}`}>Upload File</button>
+                                <button onClick={() => setPhotoInputMode('url')} className={`px-4 py-2 text-sm font-sans-display font-semibold ${photoInputMode === 'url' ? 'border-b-2 border-[#134A79] text-[#134A79]' : 'text-gray-500'}`}>Da URL</button>
+                            </div>
+
+                            {photoInputMode === 'upload' ? (
+                                <>
+                                <label htmlFor="poi-photo-upload" className="cursor-pointer mt-2 w-full h-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors">
+                                    <div className="text-center p-2"><CameraIcon className="w-8 h-8 mx-auto"/><span className="text-xs font-sans-display mt-1 block">Aggiungi foto</span></div>
+                                </label>
+                                <input id="poi-photo-upload" type="file" multiple className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
+                                </>
+                            ) : (
+                                <div className="space-y-2 p-2 border border-dashed border-gray-300 rounded-md mt-2">
+                                    <input type="url" placeholder="Incolla URL immagine" value={photoUrl} onChange={e => setPhotoUrl(e.target.value)} className={inputStyle} />
+                                    <input type="text" placeholder="Didascalia (opzionale)" value={photoUrlCaption} onChange={e => setPhotoUrlCaption(e.target.value)} className={inputStyle} />
+                                    <button type="button" onClick={handleAddUrlPhoto} className="px-3 py-1 text-sm bg-[#134A79] text-white rounded-md font-sans-display">Aggiungi Foto da URL</button>
+                                </div>
+                            )}
                         </div>
                   </div>
                    <div>
