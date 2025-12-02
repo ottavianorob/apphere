@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Character, Photo } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import CameraIcon from './icons/CameraIcon';
+import TrashIcon from './icons/TrashIcon';
 
 type PhotoUpload = {
     file: File;
@@ -34,12 +35,18 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
             setDescription(character.description);
             setWikipediaUrl(character.wikipediaUrl);
             setExistingPhotos(character.photos);
+            setNewPhotos([]);
+            setPhotosToDelete([]);
         }
     }, [character]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             Array.from(e.target.files).forEach(file => {
+                if (file.size > 2 * 1024 * 1024) {
+                    alert(`Il file ${file.name} è troppo grande (max 2MB).`);
+                    return;
+                }
                 const reader = new FileReader();
                 reader.onloadend = () => {
                     setNewPhotos(prev => [...prev, { file, dataUrl: reader.result as string, caption: '' }]);
@@ -47,6 +54,10 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
                 reader.readAsDataURL(file);
             });
         }
+    };
+    
+    const handleNewPhotoCaptionChange = (index: number, caption: string) => {
+        setNewPhotos(prev => prev.map((p, i) => i === index ? { ...p, caption } : p));
     };
 
     const handleRemoveNewPhoto = (index: number) => {
@@ -83,7 +94,14 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
                   <label htmlFor="char-name" className={labelStyle}>Nome *</label>
                   <input id="char-name" type="text" value={name} onChange={e => setName(e.target.value)} className={inputStyle} required/>
               </div>
-              {/* ... other fields ... */}
+              <div>
+                  <label htmlFor="char-desc" className={labelStyle}>Descrizione</label>
+                  <textarea id="char-desc" value={description} onChange={e => setDescription(e.target.value)} className={`${inputStyle} h-24`} />
+              </div>
+              <div>
+                  <label htmlFor="char-wiki" className={labelStyle}>URL Wikipedia</label>
+                  <input id="char-wiki" type="url" value={wikipediaUrl} onChange={e => setWikipediaUrl(e.target.value)} className={inputStyle} placeholder="https://it.wikipedia.org/..."/>
+              </div>
               <div>
                   <label className={labelStyle}>Foto</label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
@@ -91,18 +109,15 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
                             <div key={photo.id} className="relative group border border-gray-300/80 p-1">
                                 <img src={photo.url} alt={photo.caption} className="w-full h-24 object-cover"/>
                                 <p className="w-full text-xs p-1 border-t border-gray-300/80 truncate">{photo.caption || 'Nessuna didascalia'}</p>
-                                <button onClick={() => handleRemoveExistingPhoto(photo)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <CloseIcon className="w-3 h-3"/>
+                                <button onClick={() => handleRemoveExistingPhoto(photo)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <TrashIcon className="w-3 h-3"/>
                                 </button>
                             </div>
                         ))}
                         {newPhotos.map((photo, index) => (
                             <div key={index} className="relative group border border-blue-400 border-dashed p-1">
                                 <img src={photo.dataUrl} alt={`Nuova foto ${index + 1}`} className="w-full h-24 object-cover"/>
-                                <input type="text" placeholder="Didascalia..." value={photo.caption} onChange={(e) => {
-                                    const newCaption = e.target.value;
-                                    setNewPhotos(current => current.map((p, i) => i === index ? {...p, caption: newCaption} : p));
-                                }} className="w-full text-xs p-1 border-t border-gray-300/80" />
+                                <input type="text" placeholder="Didascalia..." value={photo.caption} onChange={(e) => handleNewPhotoCaptionChange(index, e.target.value)} className="w-full text-xs p-1 border-t border-gray-300/80" />
                                 <button onClick={() => handleRemoveNewPhoto(index)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <CloseIcon className="w-3 h-3"/>
                                 </button>
@@ -123,6 +138,7 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
                 <button onClick={handleSubmit} className="px-4 py-2 text-white bg-[#134A79] font-sans-display font-semibold hover:bg-[#103a60] transition-colors rounded-md">Salva Modifiche</button>
             </footer>
         </div>
+         <style>{`@keyframes fade-in{from{opacity:0}to{opacity:1}}.animate-fade-in{animation:fade-in .3s ease-out forwards}@keyframes slide-up{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}.animate-slide-up{animation:slide-up .3s ease-out forwards}`}</style>
       </div>
     );
 };

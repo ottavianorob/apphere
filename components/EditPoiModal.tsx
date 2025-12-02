@@ -6,6 +6,8 @@ import CategoryIcon from './icons/CategoryIcon';
 import CameraIcon from './icons/CameraIcon';
 import MapSelector from './MapSelector';
 import useGeolocation from '../hooks/useGeolocation';
+// FIX: Import TrashIcon component to resolve missing reference.
+import TrashIcon from './icons/TrashIcon';
 
 type PhotoUpload = {
     file: File;
@@ -79,13 +81,16 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
             setTagsText(poi.tags?.join(', ') || '');
             setLinkedCharacterIds(poi.linkedCharacterIds);
             setExistingPhotos(poi.photos);
+            setAddressQuery(poi.location);
 
             if (poi.type === 'point') setCoordinates([poi.coordinates]);
             else if (poi.type === 'path') setCoordinates(poi.pathCoordinates);
             else if (poi.type === 'area') setCoordinates(poi.bounds);
             
             const isoDate = italianDateToISODate(poi.eventDate);
-            if (isoDate && new Date(isoDate).getFullYear() > 1) { // Check for valid date
+            const firstDayOfYear = poi.eventDate.startsWith('1 Gennaio');
+            
+            if (isoDate && !firstDayOfYear) {
                 setDateMode('date');
                 setEventDate(isoDate);
                 setPeriodId(null);
@@ -144,6 +149,39 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
         }
     };
     
+    const handleToggleCharacter = (charId: string) => {
+      setLinkedCharacterIds(prev => prev.includes(charId) ? prev.filter(id => id !== charId) : [...prev, charId]);
+    };
+
+    const handleToggleCategory = (catId: string) => {
+      setCategoryIds(prev => prev.includes(catId) ? prev.filter(id => id !== catId) : [...prev, catId]);
+    };
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            Array.from(e.target.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    setNewPhotos(prev => [...prev, { file, dataUrl: reader.result as string, caption: '' }]);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    };
+
+    const handleNewPhotoCaptionChange = (index: number, caption: string) => {
+        setNewPhotos(prev => prev.map((p, i) => i === index ? { ...p, caption } : p));
+    };
+
+    const handleRemoveNewPhoto = (index: number) => {
+        setNewPhotos(prev => prev.filter((_, i) => i !== index));
+    };
+    
+    const handleRemoveExistingPhoto = (photo: Photo) => {
+        setExistingPhotos(prev => prev.filter(p => p.id !== photo.id));
+        setPhotosToDelete(prev => [...prev, photo]);
+    };
+
     const handleSubmit = () => {
         const finalPeriodId = dateMode === 'date' ? derivedPeriodIdFromDate(eventDate) : periodId;
         if (!finalPeriodId) {
@@ -165,15 +203,12 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
         let updatedPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>;
 
         if (type === 'point') {
-            // FIX: Create a correctly typed object to avoid excess property errors on union types.
             const pointData: Omit<Point, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
             updatedPoiData = pointData;
         } else if (type === 'path') {
-            // FIX: Create a correctly typed object to avoid excess property errors on union types.
             const pathData: Omit<Path, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'path', pathCoordinates: coordinates };
             updatedPoiData = pathData;
         } else {
-            // FIX: Create a correctly typed object to avoid excess property errors on union types.
             const areaData: Omit<Area, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'area', bounds: coordinates };
             updatedPoiData = areaData;
         }
@@ -184,8 +219,14 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
     const labelStyle = "font-sans-display text-sm font-semibold text-gray-700 mb-1 block";
     const inputStyle = "w-full px-3 py-2 border border-gray-300 bg-white/50 focus:ring-1 focus:ring-[#134A79] focus:border-[#134A79] outline-none font-sans-display";
     
-    // Omitting other handlers and UI definitions for brevity as they are identical to AddPoiModal
-    // The full code will have all the UI elements. This is just a summary for the description.
+    const categoryColors: { [key: string]: { selected: string; unselected: string; ring: string; } } = {
+        'storia':   { selected: 'bg-sky-700 text-white', unselected: 'text-sky-700 border border-sky-700 bg-transparent', ring: 'focus:ring-sky-500' },
+        'arte':     { selected: 'bg-amber-600 text-white', unselected: 'text-amber-600 border border-amber-600 bg-transparent', ring: 'focus:ring-amber-500' },
+        'societa':  { selected: 'bg-red-700 text-white', unselected: 'text-red-700 border border-red-700 bg-transparent', ring: 'focus:ring-red-500' },
+        'cinema':   { selected: 'bg-emerald-600 text-white', unselected: 'text-emerald-600 border border-emerald-600 bg-transparent', ring: 'focus:ring-emerald-500' },
+        'musica':   { selected: 'bg-indigo-600 text-white', unselected: 'text-indigo-600 border border-indigo-600 bg-transparent', ring: 'focus:ring-indigo-500' },
+    };
+    const defaultColors = { selected: 'bg-gray-600 text-white', unselected: 'text-gray-600 border border-gray-600 bg-transparent', ring: 'focus:ring-gray-500' };
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[60] p-4 animate-fade-in" onClick={onClose}>
@@ -195,7 +236,6 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
                   <button onClick={onClose} className="text-gray-500 hover:text-gray-800"><CloseIcon className="w-6 h-6" /></button>
                 </header>
                 <div className="overflow-y-auto p-6 space-y-4">
-                  {/* Title, Description, Type */}
                   <div><label htmlFor="poi-title" className={labelStyle}>Titolo *</label><input id="poi-title" type="text" value={title} onChange={e => setTitle(e.target.value)} className={inputStyle} required/></div>
                   <div><label htmlFor="poi-desc" className={labelStyle}>Descrizione</label><textarea id="poi-desc" value={description} onChange={e => setDescription(e.target.value)} className={`${inputStyle} h-24`} /></div>
                   <div>
@@ -209,26 +249,87 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
                           ))}
                       </div>
                   </div>
-                  {/* Address Search */}
                    <div>
                         <label htmlFor="address-search" className={labelStyle}>Cerca Indirizzo sulla Mappa</label>
                         <div className="flex gap-2"><input id="address-search" type="text" value={addressQuery} onChange={e => setAddressQuery(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddressSearch(); } }} className={inputStyle} placeholder="Es. Via Duomo, Milano"/><button type="button" onClick={handleAddressSearch} className="px-4 py-2 text-white bg-[#134A79] font-sans-display font-semibold hover:bg-[#103a60] transition-colors rounded-md">Cerca</button></div>
                     </div>
-                  {/* Map */}
                   <div>
                       <label className={labelStyle}>Posizione Geografica *</label>
                       <MapSelector ref={mapRef} type={type} coordinates={coordinates} setCoordinates={setCoordinates} userLocation={userLocation} initialViewState={coordinates.length > 0 ? { longitude: coordinates[0].longitude, latitude: coordinates[0].latitude, zoom: 15 } : undefined} />
                       <div className="flex gap-2 mt-2"><button onClick={() => setCoordinates(c => c.slice(0, -1))} className="text-xs font-sans-display px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-md">Annulla ultimo punto</button><button onClick={() => setCoordinates([])} className="text-xs font-sans-display px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-md">Pulisci</button></div>
                   </div>
-                   {/* Detected Address */}
                   <div><label className={labelStyle}>Indirizzo Rilevato</label><div className="w-full px-3 py-2 bg-gray-100 border border-gray-200 text-sm font-sans-display text-gray-600 min-h-[40px] rounded-md">{isFetchingLocation ? 'Caricamento...' : location || 'Seleziona un punto sulla mappa.'}</div></div>
-                  {/* Date/Period, Categories, etc. would follow */}
+                  <div>
+                        <label className={labelStyle}>Data o Periodo *</label>
+                        <div className="flex gap-4 font-sans-display mb-2">
+                            <label className="flex items-center cursor-pointer"><input type="radio" name="date-mode" value="date" checked={dateMode === 'date'} onChange={() => setDateMode('date')} className="h-4 w-4 text-[#134A79] focus:ring-[#134A79]"/><span className="ml-2">Data Precisa</span></label>
+                            <label className="flex items-center cursor-pointer"><input type="radio" name="date-mode" value="period" checked={dateMode === 'period'} onChange={() => setDateMode('period')} className="h-4 w-4 text-[#134A79] focus:ring-[#134A79]"/><span className="ml-2">Periodo Storico</span></label>
+                        </div>
+                        {dateMode === 'date' ? (
+                            <div>
+                                <input id="poi-date" type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} className={inputStyle} required />
+                                {derivedPeriodIdFromDate(eventDate) && <p className="text-xs text-gray-600 mt-1 font-sans-display">Periodo dedotto: <span className="font-semibold">{periods.find(p => p.id === derivedPeriodIdFromDate(eventDate))?.name}</span></p>}
+                            </div>
+                        ) : (
+                            <select id="poi-period" value={periodId || ''} onChange={e => setPeriodId(e.target.value)} className={inputStyle} required>
+                                <option value="" disabled>Seleziona un periodo...</option>
+                                {periods.map(p => <option key={p.id} value={p.id}>{p.name} ({p.start_year}-{p.end_year})</option>)}
+                            </select>
+                        )}
+                    </div>
+                    <div>
+                        <label className={labelStyle}>Categoria/e *</label>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">{categories.map(c => {
+                                const colors = categoryColors[c.id] || defaultColors;
+                                return <button key={c.id} onClick={() => handleToggleCategory(c.id)} className={`inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#FAF7F0] ${categoryIds.includes(c.id) ? colors.selected : colors.unselected} ${colors.ring}`}><CategoryIcon categoryId={c.id} className="w-4 h-4" /><span>{c.name}</span></button>;
+                        })}</div>
+                    </div>
+                  <div>
+                      <label className={labelStyle}>Foto</label>
+                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
+                            {existingPhotos.map((photo) => (
+                                <div key={photo.id} className="relative group border border-gray-300/80 p-1">
+                                    <img src={photo.url} alt={photo.caption} className="w-full h-24 object-cover"/>
+                                    <p className="w-full text-xs p-1 border-t border-gray-300/80 truncate">{photo.caption || 'Nessuna didascalia'}</p>
+                                    <button onClick={() => handleRemoveExistingPhoto(photo)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <TrashIcon className="w-3 h-3"/>
+                                    </button>
+                                </div>
+                            ))}
+                            {newPhotos.map((photo, index) => (
+                                <div key={index} className="relative group border border-blue-400 border-dashed p-1">
+                                    <img src={photo.dataUrl} alt={`Nuova foto ${index + 1}`} className="w-full h-24 object-cover"/>
+                                    <input type="text" placeholder="Didascalia..." value={photo.caption} onChange={(e) => handleNewPhotoCaptionChange(index, e.target.value)} className="w-full text-xs p-1 border-t border-gray-300/80" />
+                                    <button onClick={() => handleRemoveNewPhoto(index)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <CloseIcon className="w-3 h-3"/>
+                                    </button>
+                                </div>
+                            ))}
+                           <label htmlFor="poi-photo-upload" className="cursor-pointer w-full h-32 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors">
+                                <div className="text-center p-2"><CameraIcon className="w-8 h-8 mx-auto"/><span className="text-xs font-sans-display mt-1 block">Aggiungi foto</span></div>
+                            </label>
+                            <input id="poi-photo-upload" type="file" multiple className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
+                        </div>
+                  </div>
+                  <div><label htmlFor="poi-tags" className={labelStyle}>Tags</label><input id="poi-tags" type="text" value={tagsText} onChange={e => setTagsText(e.target.value)} className={inputStyle} placeholder="es. storia, milano, ..."/><p className="text-xs text-gray-500 mt-1 font-sans-display">Separa i tag con una virgola.</p></div>
+                  <div>
+                      <label className={labelStyle}>Personaggi Collegati</label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {characters.map(char => (
+                              <button key={char.id} onClick={() => handleToggleCharacter(char.id)} className={`p-2 text-left rounded-md flex items-center gap-2 transition-colors border ${linkedCharacterIds.includes(char.id) ? 'bg-[#134A79]/20 border-[#134A79]' : 'bg-white/50 border-gray-300/80 hover:bg-gray-200/50'}`}>
+                                  <img src={char.photos[0]?.url || 'https://placehold.co/100x100'} alt={char.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                                  <span className="text-sm font-sans-display font-semibold text-gray-800">{char.name}</span>
+                              </button>
+                          ))}
+                      </div>
+                  </div>
                 </div>
                 <footer className="p-4 border-t border-gray-300/80 flex justify-end gap-3 sticky bottom-0 bg-[#FAF7F0]/80 backdrop-blur-sm">
                     <button onClick={onClose} className="px-4 py-2 text-gray-700 bg-gray-200 font-sans-display font-semibold hover:bg-gray-300 transition-colors rounded-md">Annulla</button>
                     <button onClick={handleSubmit} className="px-4 py-2 text-white bg-[#134A79] font-sans-display font-semibold hover:bg-[#103a60] transition-colors rounded-md">Salva Modifiche</button>
                 </footer>
             </div>
+             <style>{`@keyframes fade-in{from{opacity:0}to{opacity:1}}.animate-fade-in{animation:fade-in .3s ease-out forwards}@keyframes slide-up{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}.animate-slide-up{animation:slide-up .3s ease-out forwards}`}</style>
         </div>
     );
 };

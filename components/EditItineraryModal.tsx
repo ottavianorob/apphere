@@ -21,6 +21,7 @@ const EditItineraryModal: React.FC<EditItineraryModalProps> = ({ onClose, onSave
     const [coverPhotoPreview, setCoverPhotoPreview] = useState('');
     const [tagsText, setTagsText] = useState('');
     const [selectedPois, setSelectedPois] = useState<Poi[]>([]);
+    const [draggedItem, setDraggedItem] = useState<Poi | null>(null);
     
     useEffect(() => {
         if (itinerary) {
@@ -62,9 +63,45 @@ const EditItineraryModal: React.FC<EditItineraryModalProps> = ({ onClose, onSave
         const file = e.target.files?.[0];
         setCoverPhotoFile(file || null);
     };
+    
+    const handleAddPoi = (poi: Poi) => {
+        setSelectedPois(prev => [...prev, poi]);
+    };
+    
+    const handleRemovePoi = (poiId: string) => {
+        setSelectedPois(prev => prev.filter(p => p.id !== poiId));
+    };
+
+    const onDragStart = (e: React.DragEvent<HTMLDivElement>, item: Poi) => {
+        setDraggedItem(item);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', e.currentTarget.outerHTML);
+    };
+
+    const onDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+        e.preventDefault();
+        if (!draggedItem) return;
+        const draggedOverItem = selectedPois[index];
+        if (draggedItem.id === draggedOverItem.id) return;
+        let items = selectedPois.filter(item => item.id !== draggedItem.id);
+        items.splice(index, 0, draggedItem);
+        setSelectedPois(items);
+    };
+
+    const onDragEnd = () => {
+        setDraggedItem(null);
+    };
 
     const handleSubmit = () => {
-        // Validation logic...
+        const errors: string[] = [];
+        if (!title.trim()) errors.push("Il titolo è obbligatorio.");
+        if (selectedPois.length === 0) errors.push("Aggiungi almeno una tappa.");
+
+        if (errors.length > 0) {
+            alert(`Errore:\n- ${errors.join('\n- ')}`);
+            return;
+        }
+
         const tags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
         const updatedData: Omit<Itinerary, 'id' | 'author' | 'coverPhoto'> = {
             title, description, estimatedDuration, poiIds: selectedPois.map(p => p.id), tags,
@@ -83,34 +120,35 @@ const EditItineraryModal: React.FC<EditItineraryModalProps> = ({ onClose, onSave
                   <button onClick={onClose} className="text-gray-500 hover:text-gray-800"><CloseIcon className="w-6 h-6" /></button>
                 </header>
                 <div className="overflow-y-auto p-6 space-y-4">
-                  <div>
-                      <label htmlFor="it-title" className={labelStyle}>Titolo *</label>
-                      <input id="it-title" type="text" value={title} onChange={e => setTitle(e.target.value)} className={inputStyle} required/>
-                  </div>
-                  {/* ... other fields ... */}
-                   <div>
+                  <div><label htmlFor="it-title" className={labelStyle}>Titolo *</label><input id="it-title" type="text" value={title} onChange={e => setTitle(e.target.value)} className={inputStyle} required/></div>
+                  <div><label htmlFor="it-desc" className={labelStyle}>Descrizione *</label><textarea id="it-desc" value={description} onChange={e => setDescription(e.target.value)} className={`${inputStyle} h-24`} required/></div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                     <div><label className={labelStyle}>Durata Stimata</label><p className="font-sans-display font-bold text-lg text-[#134A79] h-10 flex items-center">{estimatedDuration}</p></div>
+                     <div>
                         <label className={labelStyle}>Foto Copertina *</label>
                         <div className="mt-1">
                             <label htmlFor="it-cover-upload" className="cursor-pointer block w-full h-24 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors overflow-hidden">
-                                {coverPhotoPreview ? (
-                                    <img src={coverPhotoPreview} alt="Anteprima copertina" className="w-full h-full object-cover"/>
-                                ) : (
-                                    <div className="text-center">
-                                        <CameraIcon className="w-8 h-8 mx-auto"/>
-                                        <span className="text-xs font-sans-display mt-1 block">Cambia foto</span>
-                                    </div>
-                                )}
+                                {coverPhotoPreview ? <img src={coverPhotoPreview} alt="Anteprima copertina" className="w-full h-full object-cover"/> : <div className="text-center"><CameraIcon className="w-8 h-8 mx-auto"/><span className="text-xs font-sans-display mt-1 block">Cambia foto</span></div>}
                             </label>
                             <input id="it-cover-upload" type="file" className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
                         </div>
                     </div>
-                  {/* ... POI selection fields ... */}
+                  </div>
+                  <div><label htmlFor="it-tags" className={labelStyle}>Tags</label><input id="it-tags" type="text" value={tagsText} onChange={e => setTagsText(e.target.value)} className={inputStyle} placeholder="es. storia, milano, ..."/><p className="text-xs text-gray-500 mt-1 font-sans-display">Separa i tag con una virgola.</p></div>
+                  <div>
+                      <label className={labelStyle}>Tappe dell'itinerario *</label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="border border-gray-300 p-2 rounded-md"><h4 className="font-sans-display font-semibold text-center mb-2">Luoghi disponibili</h4><div className="max-h-48 overflow-y-auto space-y-1">{availablePois.map(poi => (<div key={poi.id} className="flex items-center justify-between p-1 rounded-md bg-white/80"><span className="text-sm font-sans-display">{poi.title}</span><button onClick={() => handleAddPoi(poi)} className="text-xs bg-green-200 text-green-800 rounded-full w-5 h-5 flex items-center justify-center font-bold hover:bg-green-300">+</button></div>))}</div></div>
+                        <div className="border border-gray-300 p-2 rounded-md"><h4 className="font-sans-display font-semibold text-center mb-2">Tappe selezionate</h4><div className="max-h-48 overflow-y-auto space-y-1">{selectedPois.length === 0 && <p className="text-xs text-center text-gray-500 py-4">Aggiungi tappe dall'elenco a sinistra.</p>}{selectedPois.map((poi, index) => (<div key={poi.id} draggable onDragStart={(e) => onDragStart(e, poi)} onDragOver={(e) => onDragOver(e, index)} onDragEnd={onDragEnd} className={`flex items-center justify-between p-1 rounded-md bg-white/80 cursor-grab ${draggedItem?.id === poi.id ? 'opacity-50' : ''}`}><div className="flex items-center gap-2"><span className="text-gray-400">☰</span><span className="text-sm font-sans-display">{poi.title}</span></div><button onClick={() => handleRemovePoi(poi.id)} className="text-xs bg-red-200 text-red-800 rounded-full w-5 h-5 flex items-center justify-center font-bold hover:bg-red-300">-</button></div>))}</div></div>
+                      </div>
+                  </div>
                 </div>
                 <footer className="p-4 border-t border-gray-300/80 flex justify-end gap-3 sticky bottom-0 bg-[#FAF7F0]/80 backdrop-blur-sm">
                     <button onClick={onClose} className="px-4 py-2 text-gray-700 bg-gray-200 font-sans-display font-semibold hover:bg-gray-300 transition-colors rounded-md">Annulla</button>
                     <button onClick={handleSubmit} className="px-4 py-2 text-white bg-[#134A79] font-sans-display font-semibold hover:bg-[#103a60] transition-colors rounded-md">Salva Modifiche</button>
                 </footer>
             </div>
+             <style>{`@keyframes fade-in{from{opacity:0}to{opacity:1}}.animate-fade-in{animation:fade-in .3s ease-out forwards}@keyframes slide-up{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}.animate-slide-up{animation:slide-up .3s ease-out forwards}`}</style>
         </div>
     );
 };
