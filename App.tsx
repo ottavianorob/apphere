@@ -38,6 +38,7 @@ const App: React.FC = () => {
   
   const [session, setSession] = useState<Session | null>(null);
   const [sessionChecked, setSessionChecked] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   // Data states
   const [allPois, setAllPois] = useState<Poi[]>([]);
@@ -59,6 +60,7 @@ const App: React.FC = () => {
         supabase.auth.signInAnonymously().then(({ data: { session: newSession }, error }) => {
             if (error) {
                 console.error("Errore durante il sign-in anonimo:", error);
+                setConnectionError("Impossibile stabilire una sessione utente anonima. Verifica che l'autenticazione anonima sia abilitata nelle impostazioni del tuo progetto Supabase.");
             } else {
                 setSession(newSession);
             }
@@ -79,6 +81,7 @@ const App: React.FC = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
+      setConnectionError(null);
       // Fetch simple tables
       const { data: categoriesData, error: catError } = await supabase.from('categories').select('*');
       if (catError) throw catError;
@@ -146,8 +149,9 @@ const App: React.FC = () => {
       }));
       setItineraries(transformedItineraries);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Errore nel caricamento dati da Supabase:", error);
+      setConnectionError(`Errore nel caricamento dei dati: ${error.message}. Verifica le policy di Row Level Security (RLS) per le tabelle.`);
     } finally {
       setLoading(false);
     }
@@ -446,9 +450,16 @@ const App: React.FC = () => {
 
   if (!sessionChecked || loading) {
     return (
-      <div className="min-h-screen flex flex-col justify-center items-center bg-[#FAF7F0]">
+      <div className="min-h-screen flex flex-col justify-center items-center bg-[#FAF7F0] p-4 text-center">
         <h1 className="font-sans-display text-2xl font-bold text-[#2D3748]">Cosa è successo qui?</h1>
-        <p className="font-serif-display text-lg text-gray-700 mt-2">Caricamento della memoria collettiva...</p>
+        {connectionError ? (
+          <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md max-w-lg">
+            <p className="font-bold font-sans-display">Errore di Connessione</p>
+            <p className="text-sm mt-2 font-serif-display">{connectionError}</p>
+          </div>
+        ) : (
+          <p className="font-serif-display text-lg text-gray-700 mt-2">Caricamento della memoria collettiva...</p>
+        )}
       </div>
     );
   }
@@ -456,6 +467,12 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-grow container mx-auto px-4 py-6 pb-24">
+        {connectionError && (
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+              <p className="font-bold">Si è verificato un errore</p>
+              <p>{connectionError}</p>
+            </div>
+        )}
         {renderView()}
       </main>
       <BottomNav currentView={currentView} setCurrentView={setCurrentView} />
