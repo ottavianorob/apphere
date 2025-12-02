@@ -1,106 +1,17 @@
-import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
-import ReactMapGL, { Marker, Source, Layer, MapRef } from 'react-map-gl';
-import maplibregl from 'maplibre-gl';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { MapRef } from 'react-map-gl';
 import { Poi, Category, Period, Character as CharacterType, Coordinates, Point, Path, Area } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import CategoryIcon from './icons/CategoryIcon';
 import CameraIcon from './icons/CameraIcon';
 import useGeolocation from '../hooks/useGeolocation';
-import TrashIcon from './icons/TrashIcon';
-
-// Fix for cross-origin error in sandboxed environments by setting worker URL
-(maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
+import MapSelector from './MapSelector';
 
 type PhotoUpload = {
     file: File;
     dataUrl: string;
     caption: string;
 };
-
-interface MapSelectorProps {
-  type: 'point' | 'path' | 'area';
-  coordinates: Coordinates[];
-  setCoordinates: React.Dispatch<React.SetStateAction<Coordinates[]>>;
-  userLocation: Coordinates | null;
-}
-
-const MapSelector: React.FC<MapSelectorProps> = ({ type, coordinates, setCoordinates, userLocation }) => {
-  const mapRef = useRef<MapRef>(null);
-  const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-
-  const [viewState, setViewState] = useState({
-    longitude: userLocation?.longitude || 9.189982,
-    latitude: userLocation?.latitude || 45.464204,
-    zoom: userLocation ? 15 : 12,
-  });
-
-  useEffect(() => {
-    const container = mapContainerRef.current;
-    if (!container) return;
-    const resizeObserver = new ResizeObserver(() => {
-        mapRef.current?.getMap().resize();
-    });
-    resizeObserver.observe(container);
-    return () => resizeObserver.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (userLocation && mapRef.current) {
-        mapRef.current.flyTo({
-            center: [userLocation.longitude, userLocation.latitude],
-            zoom: 15,
-            duration: 1500,
-        });
-    }
-  }, [userLocation]);
-
-  const handleClick = useCallback((event: maplibregl.MapLayerMouseEvent) => {
-    const { lng, lat } = event.lngLat;
-    const newCoord = { latitude: lat, longitude: lng };
-
-    if (type === 'point') {
-      setCoordinates([newCoord]);
-    } else {
-      setCoordinates(prev => [...prev, newCoord]);
-    }
-  }, [type, setCoordinates]);
-
-  const pathGeoJSON: any = { type: 'Feature', geometry: { type: 'LineString', coordinates: coordinates.map(c => [c.longitude, c.latitude]) } };
-  const areaGeoJSON: any = { type: 'Feature', geometry: { type: 'Polygon', coordinates: [coordinates.map(c => [c.longitude, c.latitude])] }};
-
-  return (
-    <div ref={mapContainerRef} className="h-64 w-full rounded-lg overflow-hidden relative border border-gray-300/80">
-      <ReactMapGL
-        mapLib={maplibregl}
-        ref={mapRef}
-        {...viewState}
-        onMove={evt => setViewState(evt.viewState)}
-        style={{ width: '100%', height: '100%' }}
-        mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
-        onClick={handleClick}
-        cursor="crosshair"
-      >
-        {coordinates.map((coord, index) => (
-          <Marker key={index} longitude={coord.longitude} latitude={coord.latitude} anchor="center">
-            <div className="w-3 h-3 bg-red-600 rounded-full border-2 border-white" />
-          </Marker>
-        ))}
-        {type === 'path' && coordinates.length > 1 && (
-          <Source id="path-preview" type="geojson" data={pathGeoJSON}>
-            <Layer id="path-preview-layer" type="line" paint={{ 'line-color': '#B1352E', 'line-width': 3, 'line-dasharray': [2, 2] }} />
-          </Source>
-        )}
-        {type === 'area' && coordinates.length > 2 && (
-           <Source id="area-preview" type="geojson" data={areaGeoJSON}>
-            <Layer id="area-preview-layer" type="fill" paint={{ 'fill-color': '#134A79', 'fill-opacity': 0.3, 'fill-outline-color': '#134A79' }} />
-          </Source>
-        )}
-      </ReactMapGL>
-    </div>
-  );
-};
-
 
 interface AddPoiModalProps {
   onClose: () => void;
@@ -135,25 +46,48 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     const [tagsText, setTagsText] = useState('');
     const [linkedCharacterIds, setLinkedCharacterIds] = useState<string[]>([]);
     const { data: userLocation } = useGeolocation();
+    const mapRef = useRef<MapRef>(null);
+
+    const [addressQuery, setAddressQuery] = useState('');
+    const [location, setLocation] = useState('');
+    const [isFetchingLocation, setIsFetchingLocation] = useState(false);
 
     useEffect(() => {
         if (type === 'point' && userLocation && coordinates.length === 0) {
             setCoordinates([{ latitude: userLocation.latitude, longitude: userLocation.longitude }]);
         }
     }, [type, userLocation, coordinates.length]);
-
-    const derivedLocation = useMemo(() => {
-        if (coordinates.length > 0) {
-            const c = coordinates[0];
-            return `Lat: ${c.latitude.toFixed(4)}, Lon: ${c.longitude.toFixed(4)}`;
-        }
-        return 'N/A';
-    }, [coordinates]);
     
-    const derivedPeriodIdFromDate = useMemo(() => {
-        const year = extractYear(eventDate);
-        return year ? getPeriodIdFromYear(year, periods) : null;
-    }, [eventDate, periods]);
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            if (coordinates.length > 0) {
+                const coord = coordinates[0];
+                setIsFetchingLocation(true);
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${coord.latitude}&lon=${coord.longitude}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        setLocation(data.display_name || `Coordinate: ${coord.latitude.toFixed(4)}, ${coord.longitude.toFixed(4)}`);
+                    })
+                    .catch(() => {
+                        setLocation(`Coordinate: ${coord.latitude.toFixed(4)}, ${coord.longitude.toFixed(4)}`);
+                    })
+                    .finally(() => {
+                        setIsFetchingLocation(false);
+                    });
+            } else {
+                setLocation('');
+            }
+        }, 500);
+
+        return () => clearTimeout(handler);
+    }, [coordinates]);
+
+    const derivedPeriodIdFromDate = useCallback(
+        (date: string) => {
+            const year = extractYear(date);
+            return year ? getPeriodIdFromYear(year, periods) : null;
+        }, [periods]
+    );
     
     const handleToggleCharacter = (charId: string) => {
       setLinkedCharacterIds(prev =>
@@ -168,11 +102,10 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const files = e.target.files;
-        if (files) {
-            Array.from(files).forEach(file => {
-                if (file.size > 2 * 1024 * 1024) { // 2MB limit
-                    alert(`Il file ${file.name} è troppo grande. La dimensione massima è 2MB.`);
+        if (e.target.files) {
+            Array.from(e.target.files).forEach(file => {
+                if (file.size > 2 * 1024 * 1024) {
+                    alert(`Il file ${file.name} è troppo grande (max 2MB).`);
                     return;
                 }
                 const reader = new FileReader();
@@ -183,6 +116,28 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
             });
         }
     };
+    
+    const handleAddressSearch = async () => {
+        if (!addressQuery.trim()) return;
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addressQuery)}`);
+            const data = await response.json();
+            if (data && data.length > 0) {
+                const { lat, lon } = data[0];
+                const newCoords = { latitude: parseFloat(lat), longitude: parseFloat(lon) };
+                mapRef.current?.flyTo({ center: [newCoords.longitude, newCoords.latitude], zoom: 16 });
+                if (type === 'point') {
+                    setCoordinates([newCoords]);
+                }
+            } else {
+                alert('Indirizzo non trovato.');
+            }
+        } catch (error) {
+            console.error("Errore Geocoding:", error);
+            alert("Errore durante la ricerca dell'indirizzo.");
+        }
+    };
+
 
     const handlePhotoCaptionChange = (index: number, caption: string) => {
         setPhotos(prev => prev.map((p, i) => i === index ? { ...p, caption } : p));
@@ -193,52 +148,50 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     };
 
     const handleSubmit = () => {
-      const errors: string[] = [];
-      if (!title.trim()) errors.push("Il titolo è obbligatorio.");
-      if (dateMode === 'date' && !eventDate) errors.push("La data precisa dell'evento è obbligatoria.");
-      if (dateMode === 'period' && !periodId) errors.push("È obbligatorio selezionare un periodo storico.");
-      if (categoryIds.length === 0) errors.push("Seleziona almeno una categoria.");
-      if (coordinates.length === 0) errors.push("Indica la posizione sulla mappa.");
-      if (type === 'point' && coordinates.length !== 1) errors.push('Un "Punto" deve avere una sola coordinata.');
-      if (type === 'path' && coordinates.length < 2) errors.push('Un "Percorso" deve avere almeno due coordinate.');
-      if (type === 'area' && coordinates.length < 3) errors.push('Un\' "Area" deve avere almeno tre coordinate.');
+        const errors: string[] = [];
+        if (!title.trim()) errors.push("Il titolo è obbligatorio.");
+        if (dateMode === 'date' && !eventDate) errors.push("La data dell'evento è obbligatoria.");
+        if (dateMode === 'period' && !periodId) errors.push("Il periodo storico è obbligatorio.");
+        if (categoryIds.length === 0) errors.push("Seleziona almeno una categoria.");
+        if (coordinates.length === 0) errors.push("Indica la posizione sulla mappa.");
+        
+        const finalPeriodId = dateMode === 'date' ? derivedPeriodIdFromDate(eventDate) : periodId;
+        if (!finalPeriodId) {
+            errors.push("Periodo storico non valido.");
+        }
+        if (errors.length > 0) {
+            alert(`Correggi i seguenti errori:\n- ${errors.join('\n- ')}`);
+            return;
+        }
+
+        const tags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
+        let finalEventDate: string;
+        if (dateMode === 'date') {
+            const dateParts = eventDate.split('-');
+            finalEventDate = new Date(Date.UTC(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]))).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+        } else {
+            const selectedPeriod = periods.find(p => p.id === periodId);
+            finalEventDate = selectedPeriod ? `1 Gennaio ${selectedPeriod.start_year}` : '';
+        }
+
+        const commonData = { title, description, location, eventDate: finalEventDate, periodId: finalPeriodId!, categoryIds, linkedCharacterIds, tags };
+        let newPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>;
+
+        if (type === 'point') {
+            // FIX: Create a correctly typed object to avoid excess property errors on union types.
+            const pointData: Omit<Point, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
+            newPoiData = pointData;
+        } else if (type === 'path') {
+            // FIX: Create a correctly typed object to avoid excess property errors on union types.
+            const pathData: Omit<Path, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'path', pathCoordinates: coordinates };
+            newPoiData = pathData;
+        } else {
+            // FIX: Create a correctly typed object to avoid excess property errors on union types.
+            const areaData: Omit<Area, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'area', bounds: coordinates };
+            newPoiData = areaData;
+        }
       
-      const finalPeriodId = dateMode === 'date' ? derivedPeriodIdFromDate : periodId;
-      if (!finalPeriodId) {
-        errors.push("Non è stato possibile determinare un periodo storico. Seleziona una data valida o un periodo dall'elenco.");
-      }
-
-      if (errors.length > 0) {
-          alert(`Per favore, correggi i seguenti errori:\n\n- ${errors.join('\n- ')}`);
-          return;
-      }
-
-      const tags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
-      
-      let finalEventDate: string;
-      if (dateMode === 'date') {
-        const dateParts = eventDate.split('-');
-        finalEventDate = new Date(Date.UTC(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]))).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
-      } else {
-        const selectedPeriod = periods.find(p => p.id === periodId);
-        finalEventDate = selectedPeriod ? `1 Gennaio ${selectedPeriod.start_year}` : '';
-      }
-
-      let newPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>;
-      const commonData = { title, description, location: derivedLocation, eventDate: finalEventDate, periodId: finalPeriodId!, categoryIds, linkedCharacterIds, tags };
-
-      if (type === 'point') {
-        const pointData: Omit<Point, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
-        newPoiData = pointData;
-      } else if (type === 'path') {
-        const pathData: Omit<Path, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'path', pathCoordinates: coordinates };
-        newPoiData = pathData;
-      } else { // area
-        const areaData: Omit<Area, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'area', bounds: coordinates };
-        newPoiData = areaData;
-      }
-      
-      onSave(newPoiData, photos.map(p => ({ file: p.file, caption: p.caption })));
+        onSave(newPoiData, photos.map(p => ({ file: p.file, caption: p.caption })));
     };
     
     const labelStyle = "font-sans-display text-sm font-semibold text-gray-700 mb-1 block";
@@ -281,34 +234,50 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                       </div>
                   </div>
                   <div>
+                        <label htmlFor="address-search" className={labelStyle}>Cerca Indirizzo sulla Mappa</label>
+                        <div className="flex gap-2">
+                            <input
+                                id="address-search"
+                                type="text"
+                                value={addressQuery}
+                                onChange={e => setAddressQuery(e.target.value)}
+                                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddressSearch(); } }}
+                                className={inputStyle}
+                                placeholder="Es. Via Duomo, Milano"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleAddressSearch}
+                                className="px-4 py-2 text-white bg-[#134A79] font-sans-display font-semibold hover:bg-[#103a60] transition-colors rounded-md"
+                            >
+                                Cerca
+                            </button>
+                        </div>
+                    </div>
+                  <div>
                       <label className={labelStyle}>Posizione Geografica *</label>
-                      <p className="text-xs text-gray-500 mt-1 mb-2 font-sans-display">
-                        {type === 'point' 
-                          ? 'La posizione è impostata sulla tua posizione attuale. Clicca sulla mappa per modificarla.' 
-                          : 'Fai clic sulla mappa per definire i punti. Per Percorsi e Aree, fai clic più volte.'}
-                      </p>
-                      <MapSelector type={type} coordinates={coordinates} setCoordinates={setCoordinates} userLocation={userLocation} />
+                      <MapSelector ref={mapRef} type={type} coordinates={coordinates} setCoordinates={setCoordinates} userLocation={userLocation} />
                       <div className="flex gap-2 mt-2">
                         <button onClick={() => setCoordinates(c => c.slice(0, -1))} className="text-xs font-sans-display px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-md">Annulla ultimo punto</button>
                         <button onClick={() => setCoordinates([])} className="text-xs font-sans-display px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-md">Pulisci</button>
                       </div>
                   </div>
                    <div>
+                        <label className={labelStyle}>Indirizzo Rilevato</label>
+                        <div className="w-full px-3 py-2 bg-gray-100 border border-gray-200 text-sm font-sans-display text-gray-600 min-h-[40px] rounded-md">
+                            {isFetchingLocation ? 'Caricamento...' : location || 'Seleziona un punto sulla mappa.'}
+                        </div>
+                    </div>
+                   <div>
                         <label className={labelStyle}>Data o Periodo *</label>
                         <div className="flex gap-4 font-sans-display mb-2">
-                            <label className="flex items-center cursor-pointer">
-                                <input type="radio" name="date-mode" value="date" checked={dateMode === 'date'} onChange={() => setDateMode('date')} className="h-4 w-4 text-[#134A79] focus:ring-[#134A79]"/>
-                                <span className="ml-2">Data Precisa</span>
-                            </label>
-                             <label className="flex items-center cursor-pointer">
-                                <input type="radio" name="date-mode" value="period" checked={dateMode === 'period'} onChange={() => setDateMode('period')} className="h-4 w-4 text-[#134A79] focus:ring-[#134A79]"/>
-                                <span className="ml-2">Periodo Storico</span>
-                            </label>
+                            <label className="flex items-center cursor-pointer"><input type="radio" name="date-mode" value="date" checked={dateMode === 'date'} onChange={() => setDateMode('date')} className="h-4 w-4 text-[#134A79] focus:ring-[#134A79]"/><span className="ml-2">Data Precisa</span></label>
+                            <label className="flex items-center cursor-pointer"><input type="radio" name="date-mode" value="period" checked={dateMode === 'period'} onChange={() => setDateMode('period')} className="h-4 w-4 text-[#134A79] focus:ring-[#134A79]"/><span className="ml-2">Periodo Storico</span></label>
                         </div>
                         {dateMode === 'date' ? (
                             <div>
                                 <input id="poi-date" type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} className={inputStyle} required />
-                                {derivedPeriodIdFromDate && <p className="text-xs text-gray-600 mt-1 font-sans-display">Periodo dedotto: <span className="font-semibold">{periods.find(p => p.id === derivedPeriodIdFromDate)?.name}</span></p>}
+                                {derivedPeriodIdFromDate(eventDate) && <p className="text-xs text-gray-600 mt-1 font-sans-display">Periodo dedotto: <span className="font-semibold">{periods.find(p => p.id === derivedPeriodIdFromDate(eventDate))?.name}</span></p>}
                             </div>
                         ) : (
                             <select id="poi-period" value={periodId || ''} onChange={e => setPeriodId(e.target.value)} className={inputStyle} required>
@@ -319,22 +288,10 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                     </div>
                   <div>
                         <label className={labelStyle}>Categoria/e *</label>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                           {categories.map(c => {
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">{categories.map(c => {
                                 const colors = categoryColors[c.id] || defaultColors;
-                                const isSelected = categoryIds.includes(c.id);
-                                return (
-                                <button
-                                    key={c.id}
-                                    onClick={() => handleToggleCategory(c.id)}
-                                    className={`inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#FAF7F0] ${isSelected ? colors.selected : colors.unselected} ${colors.ring}`}
-                                >
-                                    <CategoryIcon categoryId={c.id} className="w-4 h-4" />
-                                    <span>{c.name}</span>
-                                </button>
-                                );
-                           })}
-                        </div>
+                                return <button key={c.id} onClick={() => handleToggleCategory(c.id)} className={`inline-flex w-full items-center justify-center gap-2 px-3 py-2 text-sm font-semibold rounded-full transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#FAF7F0] ${categoryIds.includes(c.id) ? colors.selected : colors.unselected} ${colors.ring}`}><CategoryIcon categoryId={c.id} className="w-4 h-4" /><span>{c.name}</span></button>;
+                        })}</div>
                     </div>
                   <div>
                       <label className={labelStyle}>Foto</label>
@@ -343,16 +300,11 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                                 <div key={index} className="relative group border border-gray-300/80 p-1">
                                     <img src={photo.dataUrl} alt={`Anteprima ${index + 1}`} className="w-full h-24 object-cover"/>
                                     <input type="text" placeholder="Didascalia..." value={photo.caption} onChange={(e) => handlePhotoCaptionChange(index, e.target.value)} className="w-full text-xs p-1 border-t border-gray-300/80" />
-                                    <button onClick={() => handleRemovePhoto(index)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <CloseIcon className="w-3 h-3"/>
-                                    </button>
+                                    <button onClick={() => handleRemovePhoto(index)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"><CloseIcon className="w-3 h-3"/></button>
                                 </div>
                             ))}
                            <label htmlFor="poi-photo-upload" className="cursor-pointer w-full h-32 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center text-gray-500 hover:border-[#134A79] hover:text-[#134A79] transition-colors">
-                                <div className="text-center p-2">
-                                    <CameraIcon className="w-8 h-8 mx-auto"/>
-                                    <span className="text-xs font-sans-display mt-1 block">Aggiungi foto</span>
-                                </div>
+                                <div className="text-center p-2"><CameraIcon className="w-8 h-8 mx-auto"/><span className="text-xs font-sans-display mt-1 block">Aggiungi foto</span></div>
                             </label>
                             <input id="poi-photo-upload" type="file" multiple className="hidden" onChange={handleFileChange} accept="image/png, image/jpeg" />
                         </div>
