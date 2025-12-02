@@ -70,7 +70,7 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
   };
   
   const mapsUrl = getDirectionsUrl();
-  const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
+  const MAPTILER_KEY = 'IIPnH80T6eAsOrGsVBLp';
 
   const categoryPillColors: { [key: string]: string } = {
     'storia': 'bg-sky-700 text-white', 'arte': 'bg-amber-600 text-white', 'societa': 'bg-red-700 text-white',

@@ -61,7 +61,7 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
     return () => resizeObserver.disconnect();
   }, []);
 
-  const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
+  const MAPTILER_KEY = 'IIPnH80T6eAsOrGsVBLp';
   const mapMarkerBgColors: { [key: string]: string } = {
     'storia': 'bg-sky-700', 'arte': 'bg-amber-600', 'societa': 'bg-red-700',
     'cinema': 'bg-emerald-600', 'musica': 'bg-indigo-600',
