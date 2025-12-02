@@ -167,10 +167,16 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
                     <>
                       <button onClick={handlePrevImage} disabled={currentImageIndex === 0} className="absolute top-1/2 left-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine precedente"><ChevronLeftIcon className="w-6 h-6" /></button>
                       <button onClick={handleNextImage} disabled={currentImageIndex === poi.photos.length - 1} className="absolute top-1/2 right-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine successiva"><ChevronRightIcon className="w-6 h-6" /></button>
-                      <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs font-sans-display font-semibold px-2 py-1 rounded-full z-10">{currentImageIndex + 1} / {poi.photos.length}</div>
                     </>
                   )}
-                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent flex justify-between items-end">
+                    {poi.photos[currentImageIndex].caption && (
+                      <p className="text-white text-sm font-sans-display drop-shadow-md max-w-[calc(100%-4rem)]">{poi.photos[currentImageIndex].caption}</p>
+                    )}
+                    {poi.photos.length > 1 && (
+                      <div className="bg-black/50 text-white text-xs font-sans-display font-semibold px-2 py-1 rounded-full ml-auto">{currentImageIndex + 1} / {poi.photos.length}</div>
+                    )}
+                  </div>
                 </>
               ) : (
                 <div className="w-full h-64 bg-gray-300 flex items-center justify-center">

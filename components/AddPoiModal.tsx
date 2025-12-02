@@ -110,16 +110,9 @@ interface AddPoiModalProps {
   characters: CharacterType[];
 }
 
-const getPeriodIdFromYear = (year: number): string | null => {
-    if (year <= 1870) return 'risorgimento';
-    if (year >= 1871 && year <= 1914) return 'belleepoque';
-    if (year >= 1919 && year <= 1922) return 'primog dopoguerra';
-    if (year >= 1943 && year <= 1945) return 'resistenza';
-    if (year >= 1946 && year <= 1959) return 'boom';
-    if (year >= 1960 && year <= 1969) return 'anni60';
-    if (year >= 1970 && year <= 1989) return 'anni70';
-    if (year >= 1990 && year <= 1999) return 'anni90';
-    return null;
+const getPeriodIdFromYear = (year: number, periods: Period[]): string | null => {
+    const period = periods.find(p => year >= p.start_year && year <= p.end_year);
+    return period ? period.id : null;
 };
 
 const extractYear = (dateString: string): number | null => {
@@ -132,7 +125,9 @@ const extractYear = (dateString: string): number | null => {
 const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, periods, characters }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
+    const [dateMode, setDateMode] = useState<'date' | 'period'>('date');
     const [eventDate, setEventDate] = useState('');
+    const [periodId, setPeriodId] = useState<string | null>(null);
     const [type, setType] = useState<'point' | 'path' | 'area'>('point');
     const [categoryIds, setCategoryIds] = useState<string[]>([]);
     const [coordinates, setCoordinates] = useState<Coordinates[]>([]);
@@ -155,10 +150,10 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
         return 'N/A';
     }, [coordinates]);
     
-    const derivedPeriodId = useMemo(() => {
+    const derivedPeriodIdFromDate = useMemo(() => {
         const year = extractYear(eventDate);
-        return year ? getPeriodIdFromYear(year) : null;
-    }, [eventDate]);
+        return year ? getPeriodIdFromYear(year, periods) : null;
+    }, [eventDate, periods]);
     
     const handleToggleCharacter = (charId: string) => {
       setLinkedCharacterIds(prev =>
@@ -200,13 +195,18 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     const handleSubmit = () => {
       const errors: string[] = [];
       if (!title.trim()) errors.push("Il titolo è obbligatorio.");
-      if (!eventDate) errors.push("La data dell'evento è obbligatoria.");
+      if (dateMode === 'date' && !eventDate) errors.push("La data precisa dell'evento è obbligatoria.");
+      if (dateMode === 'period' && !periodId) errors.push("È obbligatorio selezionare un periodo storico.");
       if (categoryIds.length === 0) errors.push("Seleziona almeno una categoria.");
       if (coordinates.length === 0) errors.push("Indica la posizione sulla mappa.");
       if (type === 'point' && coordinates.length !== 1) errors.push('Un "Punto" deve avere una sola coordinata.');
       if (type === 'path' && coordinates.length < 2) errors.push('Un "Percorso" deve avere almeno due coordinate.');
       if (type === 'area' && coordinates.length < 3) errors.push('Un\' "Area" deve avere almeno tre coordinate.');
-      if (!derivedPeriodId && eventDate) errors.push("La data inserita non corrisponde a nessun periodo storico valido.");
+      
+      const finalPeriodId = dateMode === 'date' ? derivedPeriodIdFromDate : periodId;
+      if (!finalPeriodId) {
+        errors.push("Non è stato possibile determinare un periodo storico. Seleziona una data valida o un periodo dall'elenco.");
+      }
 
       if (errors.length > 0) {
           alert(`Per favore, correggi i seguenti errori:\n\n- ${errors.join('\n- ')}`);
@@ -215,12 +215,12 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
 
       const tags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
       
-      const [year, month, day] = eventDate.split('-').map(Number);
-      const dateObj = new Date(Date.UTC(year, month - 1, day));
-      const formattedDate = dateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+      const finalEventDate = dateMode === 'date' ? 
+        new Date(Date.UTC(parseInt(eventDate.split('-')[0]), parseInt(eventDate.split('-')[1]) - 1, parseInt(eventDate.split('-')[2]))).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
+        : periods.find(p => p.id === periodId)?.name || '';
 
       let newPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>;
-      const commonData = { title, description, location: derivedLocation, eventDate: formattedDate, periodId: derivedPeriodId!, categoryIds, linkedCharacterIds, tags };
+      const commonData = { title, description, location: derivedLocation, eventDate: finalEventDate, periodId: finalPeriodId!, categoryIds, linkedCharacterIds, tags };
 
       if (type === 'point') {
         const pointData: Omit<Point, 'id' | 'creationDate' | 'author' | 'photos'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
@@ -269,7 +269,7 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                       <div className="flex gap-4 font-sans-display">
                           {(['point', 'path', 'area'] as const).map(t => (
                               <label key={t} className="flex items-center cursor-pointer">
-                                <input type="radio" name="poi-type" value={t} checked={type === t} onChange={() => { setType(t); setCoordinates([]); }} className="h-4 w-4"/>
+                                <input type="radio" name="poi-type" value={t} checked={type === t} onChange={() => { setType(t); setCoordinates([]); }} className="h-4 w-4 text-[#134A79] focus:ring-[#134A79]"/>
                                 <span className="ml-2 capitalize">{t === 'point' ? 'Punto' : t}</span>
                               </label>
                           ))}
@@ -287,32 +287,32 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                         <button onClick={() => setCoordinates(c => c.slice(0, -1))} className="text-xs font-sans-display px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-md">Annulla ultimo punto</button>
                         <button onClick={() => setCoordinates([])} className="text-xs font-sans-display px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-md">Pulisci</button>
                       </div>
-                      {type === 'path' && coordinates.length > 0 && (
-                        <div className="mt-2 p-2 border border-gray-300/80 rounded-md bg-white/50 max-h-28 overflow-y-auto">
-                            <h4 className="text-xs font-sans-display font-semibold mb-1 sticky top-0 bg-white/50">Punti del percorso:</h4>
-                            <ul className="space-y-1">
-                                {coordinates.map((coord, index) => (
-                                    <li key={index} className="text-xs font-sans-display flex justify-between items-center bg-gray-100/50 p-1 rounded-sm">
-                                        <span>Punto {index + 1}: {coord.latitude.toFixed(4)}, {coord.longitude.toFixed(4)}</span>
-                                        <button 
-                                            onClick={() => setCoordinates(coords => coords.filter((_, i) => i !== index))} 
-                                            className="text-red-600 hover:text-red-800"
-                                            title="Rimuovi punto"
-                                        >
-                                            <TrashIcon className="w-3 h-3"/>
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
                   </div>
                    <div>
-                        <label htmlFor="poi-date" className={labelStyle}>Data Evento *</label>
-                        <input id="poi-date" type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} className={inputStyle} required />
+                        <label className={labelStyle}>Data o Periodo *</label>
+                        <div className="flex gap-4 font-sans-display mb-2">
+                            <label className="flex items-center cursor-pointer">
+                                <input type="radio" name="date-mode" value="date" checked={dateMode === 'date'} onChange={() => setDateMode('date')} className="h-4 w-4 text-[#134A79] focus:ring-[#134A79]"/>
+                                <span className="ml-2">Data Precisa</span>
+                            </label>
+                             <label className="flex items-center cursor-pointer">
+                                <input type="radio" name="date-mode" value="period" checked={dateMode === 'period'} onChange={() => setDateMode('period')} className="h-4 w-4 text-[#134A79] focus:ring-[#134A79]"/>
+                                <span className="ml-2">Periodo Storico</span>
+                            </label>
+                        </div>
+                        {dateMode === 'date' ? (
+                            <div>
+                                <input id="poi-date" type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} className={inputStyle} required />
+                                {derivedPeriodIdFromDate && <p className="text-xs text-gray-600 mt-1 font-sans-display">Periodo dedotto: <span className="font-semibold">{periods.find(p => p.id === derivedPeriodIdFromDate)?.name}</span></p>}
+                            </div>
+                        ) : (
+                            <select id="poi-period" value={periodId || ''} onChange={e => setPeriodId(e.target.value)} className={inputStyle} required>
+                                <option value="" disabled>Seleziona un periodo...</option>
+                                {periods.map(p => <option key={p.id} value={p.id}>{p.name} ({p.start_year}-{p.end_year})</option>)}
+                            </select>
+                        )}
                     </div>
-                  <div className="grid grid-cols-1">
-                      <div>
+                  <div>
                         <label className={labelStyle}>Categoria/e *</label>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                            {categories.map(c => {
@@ -331,7 +331,6 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                            })}
                         </div>
                     </div>
-                  </div>
                   <div>
                       <label className={labelStyle}>Foto</label>
                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
@@ -363,7 +362,7 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {characters.map(char => (
                               <button key={char.id} onClick={() => handleToggleCharacter(char.id)} className={`p-2 text-left rounded-md flex items-center gap-2 transition-colors border ${linkedCharacterIds.includes(char.id) ? 'bg-[#134A79]/20 border-[#134A79]' : 'bg-white/50 border-gray-300/80 hover:bg-gray-200/50'}`}>
-                                  <img src={char.photos[0]?.url || 'https://picsum.photos/seed/placeholder/100/100'} alt={char.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                                  <img src={char.photos[0]?.url || 'https://placehold.co/100x100'} alt={char.name} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
                                   <span className="text-sm font-sans-display font-semibold text-gray-800">{char.name}</span>
                               </button>
                           ))}

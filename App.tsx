@@ -18,6 +18,8 @@ import TagDetailModal from './components/TagDetailModal';
 import AddPoiModal from './components/AddPoiModal';
 import AddCharacterModal from './components/AddCharacterModal';
 import AddItineraryModal from './components/AddItineraryModal';
+import AddCategoryModal from './components/AddCategoryModal';
+import AddPeriodModal from './components/AddPeriodModal';
 
 
 import BottomNav from './components/BottomNav';
@@ -35,6 +37,8 @@ const App: React.FC = () => {
   const [isAddPoiModalOpen, setIsAddPoiModalOpen] = useState(false);
   const [isAddCharacterModalOpen, setIsAddCharacterModalOpen] = useState(false);
   const [isAddItineraryModalOpen, setIsAddItineraryModalOpen] = useState(false);
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [isAddPeriodModalOpen, setIsAddPeriodModalOpen] = useState(false);
   
   const [session, setSession] = useState<Session | null>(null);
   const [sessionChecked, setSessionChecked] = useState(false);
@@ -168,7 +172,7 @@ const App: React.FC = () => {
 
 
   useEffect(() => {
-    const isModalOpen = selectedPoi || selectedItinerary || selectedCharacter || selectedTag || isAddPoiModalOpen || isAddCharacterModalOpen || isAddItineraryModalOpen;
+    const isModalOpen = selectedPoi || selectedItinerary || selectedCharacter || selectedTag || isAddPoiModalOpen || isAddCharacterModalOpen || isAddItineraryModalOpen || isAddCategoryModalOpen || isAddPeriodModalOpen;
     if (isModalOpen) {
       document.body.style.overflow = 'hidden';
     } else {
@@ -177,7 +181,7 @@ const App: React.FC = () => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [selectedPoi, selectedItinerary, selectedCharacter, selectedTag, isAddPoiModalOpen, isAddCharacterModalOpen, isAddItineraryModalOpen]);
+  }, [selectedPoi, selectedItinerary, selectedCharacter, selectedTag, isAddPoiModalOpen, isAddCharacterModalOpen, isAddItineraryModalOpen, isAddCategoryModalOpen, isAddPeriodModalOpen]);
 
   const openCharacterModal = (character: Character) => {
     setSelectedPoi(null);
@@ -396,6 +400,52 @@ const App: React.FC = () => {
         alert("Si è verificato un errore durante il salvataggio.");
     }
   };
+  
+  const handleSaveCategory = async (name: string) => {
+    try {
+      const id = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/--+/g, '-');
+      const { error } = await supabase.from('categories').insert({ id, name });
+      if (error) throw error;
+      alert("Categoria salvata con successo!");
+      setIsAddCategoryModalOpen(false);
+      await fetchData();
+    } catch (error) {
+      console.error("Errore nel salvataggio della Categoria:", error);
+      alert("Si è verificato un errore durante il salvataggio.");
+    }
+  };
+
+  const handleSavePeriod = async (name: string, start_year: number, end_year: number) => {
+    try {
+      const id = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/--+/g, '-');
+      const { error } = await supabase.from('periods').insert({ id, name, start_year, end_year });
+      if (error) throw error;
+      alert("Periodo salvato con successo!");
+      setIsAddPeriodModalOpen(false);
+      await fetchData();
+    } catch (error) {
+      console.error("Errore nel salvataggio del Periodo:", error);
+      alert("Si è verificato un errore durante il salvataggio.");
+    }
+  };
+
+  const handleDelete = async (table: string, id: string, name: string) => {
+    if (window.confirm(`Sei sicuro di voler eliminare "${name}"? Questa azione è irreversibile.`)) {
+      try {
+        const { error } = await supabase.from(table).delete().eq('id', id);
+        if (error) throw error;
+        alert("Elemento eliminato con successo.");
+        await fetchData();
+      } catch (error) {
+        console.error(`Errore nell'eliminazione da ${table}:`, error);
+        alert("Si è verificato un errore durante l'eliminazione.");
+      }
+    }
+  };
+
+  const handleModify = (type: string, id: string) => {
+    alert(`La funzione di modifica per ${type} con ID ${id} non è ancora implementata.`);
+  };
 
   const renderView = () => {
     switch (currentView) {
@@ -434,9 +484,15 @@ const App: React.FC = () => {
             onAddPoiClick={() => setIsAddPoiModalOpen(true)}
             onAddCharacterClick={() => setIsAddCharacterModalOpen(true)}
             onAddItineraryClick={() => setIsAddItineraryModalOpen(true)}
+            onAddCategoryClick={() => setIsAddCategoryModalOpen(true)}
+            onAddPeriodClick={() => setIsAddPeriodModalOpen(true)}
+            onDelete={handleDelete}
+            onModify={handleModify}
             pois={allPois}
             characters={characters}
             itineraries={itineraries}
+            categories={categories}
+            periods={periods}
         />;
       default:
         return <QuiView 
@@ -548,6 +604,18 @@ const App: React.FC = () => {
           onClose={() => setIsAddItineraryModalOpen(false)}
           onSave={handleSaveItinerary}
           allPois={allPois}
+        />
+      )}
+      {isAddCategoryModalOpen && (
+        <AddCategoryModal
+          onClose={() => setIsAddCategoryModalOpen(false)}
+          onSave={handleSaveCategory}
+        />
+      )}
+      {isAddPeriodModalOpen && (
+        <AddPeriodModal
+          onClose={() => setIsAddPeriodModalOpen(false)}
+          onSave={handleSavePeriod}
         />
       )}
     </div>

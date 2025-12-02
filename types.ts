@@ -12,6 +12,8 @@ export interface Category {
 export interface Period {
   id: string;
   name: string;
+  start_year: number;
+  end_year: number;
 }
 
 export interface Character {
