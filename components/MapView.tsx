@@ -267,8 +267,8 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
                 <ChevronDownIcon className={`w-4 h-4 transition-transform ${filtersVisible ? 'rotate-180' : ''}`} />
             </button>
         </div>
-        <div className={`${filtersVisible ? 'block' : 'hidden'} sm:block`}>
-            <div className="mb-4">
+        <div className={`${filtersVisible ? 'block' : 'hidden'} sm:grid sm:grid-cols-3 sm:gap-x-8 sm:items-start`}>
+            <div className="mb-4 sm:mb-0">
                 <h3 className="font-serif-display text-center text-lg italic text-gray-700 mb-3">Categorie</h3>
                 <div className="font-sans-display flex flex-wrap gap-2 justify-center">
                 {categories.map(category => (
@@ -283,7 +283,7 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
                 ))}
                 </div>
             </div>
-            <div className="mb-4">
+            <div className="mb-4 sm:mb-0">
                 <h3 className="font-serif-display text-center text-lg italic text-gray-700 mb-3">Tipologia</h3>
                 <div className="font-sans-display flex flex-wrap gap-2 justify-center">
                     {poiTypes.map(type => (
@@ -294,7 +294,7 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
                     ))}
                 </div>
             </div>
-             <div>
+             <div className="mb-4 sm:mb-0">
                 <h3 className="font-serif-display text-center text-lg italic text-gray-700 mb-3">Periodo Storico</h3>
                 <div className="font-sans-display flex flex-wrap gap-2 justify-center">
                     {periods.map(period => (
