@@ -215,9 +215,14 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
 
       const tags = tagsText.split(',').map(t => t.trim()).filter(Boolean);
       
-      const finalEventDate = dateMode === 'date' ? 
-        new Date(Date.UTC(parseInt(eventDate.split('-')[0]), parseInt(eventDate.split('-')[1]) - 1, parseInt(eventDate.split('-')[2]))).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' })
-        : periods.find(p => p.id === periodId)?.name || '';
+      let finalEventDate: string;
+      if (dateMode === 'date') {
+        const dateParts = eventDate.split('-');
+        finalEventDate = new Date(Date.UTC(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]))).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+      } else {
+        const selectedPeriod = periods.find(p => p.id === periodId);
+        finalEventDate = selectedPeriod ? `1 Gennaio ${selectedPeriod.start_year}` : '';
+      }
 
       let newPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos'>;
       const commonData = { title, description, location: derivedLocation, eventDate: finalEventDate, periodId: finalPeriodId!, categoryIds, linkedCharacterIds, tags };
