@@ -701,6 +701,7 @@ const App: React.FC = () => {
           onSelectItinerary={openItineraryModal}
           onSelectTag={openTagModal}
           categoryMap={categoryMap}
+          categories={categories}
         />;
       case 'qui':
         return <QuiView 

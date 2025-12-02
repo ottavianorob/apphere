@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Poi, Itinerary, User } from '../types';
+import { Poi, Itinerary, User, Category } from '../types';
 import PoiListItem from './PoiListItem';
 
 interface HomeViewProps {
@@ -10,9 +10,10 @@ interface HomeViewProps {
   onSelectItinerary: (itinerary: Itinerary) => void;
   onSelectTag: (tag: string) => void;
   categoryMap: Map<string, string>;
+  categories: Category[];
 }
 
-const HomeView: React.FC<HomeViewProps> = ({ allPois, allItineraries, allUsers, onSelectPoi, onSelectItinerary, onSelectTag, categoryMap }) => {
+const HomeView: React.FC<HomeViewProps> = ({ allPois, allItineraries, allUsers, onSelectPoi, onSelectItinerary, onSelectTag, categoryMap, categories }) => {
 
   const latestPois = useMemo(() => {
     return [...allPois]
@@ -86,7 +87,7 @@ const HomeView: React.FC<HomeViewProps> = ({ allPois, allItineraries, allUsers, 
               key={poi.id}
               poi={poi}
               onSelect={() => onSelectPoi(poi)}
-              categoryName={poi.categoryIds.length > 0 ? categoryMap.get(poi.categoryIds[0]) : undefined}
+              categories={categories}
             />
           ))}
         </div>

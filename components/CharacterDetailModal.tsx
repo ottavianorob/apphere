@@ -90,7 +90,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({ character, 
                           key={poi.id} 
                           poi={poi}
                           onSelect={() => handlePoiClick(poi)}
-                          categoryName={poi.categoryIds.length > 0 ? categoryMap.get(poi.categoryIds[0]) : undefined}
+                          categories={categories}
                       />
                       ))}
                   </div>

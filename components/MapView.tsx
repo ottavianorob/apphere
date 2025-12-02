@@ -316,8 +316,8 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
               poi={poi}
               distance={poi.distance}
               onSelect={() => onSelectPoi(poi)}
-              // FIX: Ottiene il nome della categoria dall'ID primario nell'array `categoryIds`.
-              categoryName={categoryMap.get(poi.categoryIds[0])}
+              // FIX: The `PoiListItem` component expects a `categories` prop, not `categoryName`.
+              categories={categories}
             />
           ))
         ) : (

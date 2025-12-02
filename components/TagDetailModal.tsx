@@ -74,8 +74,7 @@ const TagDetailModal: React.FC<TagDetailModalProps> = ({
                     key={poi.id}
                     poi={poi}
                     onSelect={() => onSelectPoi(poi)}
-                    // FIX: Usa il primo ID dall'array `categoryIds` per ottenere il nome della categoria.
-                    categoryName={categoryMap.get(poi.categoryIds[0])}
+                    categories={categories}
                   />
                 ))}
               </div>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Poi } from '../types';
+import { Poi, Category } from '../types';
 import MapPinIcon from './icons/MapPinIcon';
 import CalendarIcon from './icons/CalendarIcon';
 import CameraIcon from './icons/CameraIcon';
@@ -21,11 +21,10 @@ interface PoiListItemProps {
   poi: Poi;
   distance?: number | null;
   onSelect: () => void;
-  categoryName?: string;
+  categories: Category[];
 }
 
-const PoiListItem: React.FC<PoiListItemProps> = ({ poi, distance, onSelect, categoryName }) => {
-  const primaryCategoryId = poi.categoryIds[0];
+const PoiListItem: React.FC<PoiListItemProps> = ({ poi, distance, onSelect, categories }) => {
   const categoryPillColors: { [key: string]: string } = {
     'storia':   'bg-sky-700 text-white',
     'arte':     'bg-amber-600 text-white',
@@ -34,7 +33,6 @@ const PoiListItem: React.FC<PoiListItemProps> = ({ poi, distance, onSelect, cate
     'musica':   'bg-indigo-600 text-white',
   };
   const defaultPillColor = 'bg-gray-600 text-white';
-  const categoryColorClass = categoryPillColors[primaryCategoryId] || defaultPillColor;
 
   return (
     <div
@@ -74,12 +72,21 @@ const PoiListItem: React.FC<PoiListItemProps> = ({ poi, distance, onSelect, cate
       {/* Right: Info */}
       <div className="flex-grow">
         <div className="flex items-center gap-4 mb-1">
-          {categoryName && (
-            <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold font-sans-display rounded-full ${categoryColorClass}`}>
-              <CategoryIcon categoryId={primaryCategoryId} className="w-3.5 h-3.5" />
-              <span>{categoryName}</span>
-            </span>
-          )}
+            {poi.categoryIds.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                  {poi.categoryIds.map(catId => {
+                      const category = categories.find(c => c.id === catId);
+                      if (!category) return null;
+                      const categoryColorClass = categoryPillColors[catId] || defaultPillColor;
+                      return (
+                          <div key={catId} title={category.name} className={`w-6 h-6 rounded-full flex items-center justify-center ${categoryColorClass}`}>
+                              <CategoryIcon categoryId={catId} className="w-3.5 h-3.5" />
+                          </div>
+                      );
+                  })}
+              </div>
+            )}
+          
           {poi.photos && poi.photos.length > 0 && (
             <div className="flex items-center gap-1.5 text-sm text-gray-600 font-sans-display" title="Numero di fotografie">
               <CameraIcon className="w-4 h-4 flex-shrink-0 text-gray-500" />

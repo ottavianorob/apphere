@@ -92,7 +92,7 @@ const SearchView: React.FC<SearchViewProps> = ({ allPois, categories, periods, o
               key={poi.id}
               poi={poi}
               onSelect={() => onSelectPoi(poi)}
-              categoryName={poi.categoryIds.length > 0 ? categoryMap.get(poi.categoryIds[0]) : undefined}
+              categories={categories}
             />
           ))
         ) : (

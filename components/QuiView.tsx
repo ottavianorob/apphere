@@ -313,7 +313,7 @@ const QuiView: React.FC<QuiViewProps> = ({ pois, onSelectPoi, categories, period
               poi={poi}
               distance={poi.distance}
               onSelect={() => onSelectPoi(poi)}
-              categoryName={poi.categoryIds.length > 0 ? categoryMap.get(poi.categoryIds[0]) : undefined}
+              categories={categories}
             />
           ))
         ) : (
