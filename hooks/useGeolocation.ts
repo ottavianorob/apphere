@@ -51,10 +51,11 @@ const useGeolocation = () => {
       // If high accuracy fails, try with low accuracy. This can help on desktop.
       if (error.code === error.POSITION_UNAVAILABLE || error.code === error.TIMEOUT) {
         if (watcherId) navigator.geolocation.clearWatch(watcherId);
+        // Make the fallback more lenient for desktop browsers
         watcherId = navigator.geolocation.watchPosition(onSuccess, onFinalError, {
           enableHighAccuracy: false,
-          timeout: 10000,
-          maximumAge: 0,
+          timeout: 20000, // Increased timeout to 20s
+          maximumAge: 60000, // Allow a cached position up to 1 minute old
         });
       } else {
         onFinalError(error);
@@ -77,6 +78,7 @@ const useGeolocation = () => {
       return;
     }
 
+    // Initial attempt with high accuracy
     watcherId = navigator.geolocation.watchPosition(onSuccess, onErrorWithFallback, {
         enableHighAccuracy: true,
         timeout: 10000,
