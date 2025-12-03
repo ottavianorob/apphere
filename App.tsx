@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { Poi, Itinerary, Character, Category, Point, Path, Area, User, Period, Photo } from './types';
 import { supabase } from './services/supabaseClient';
@@ -59,7 +59,6 @@ const App: React.FC = () => {
   const [periods, setPeriods] = useState<Period[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const initialDataLoaded = useRef(false);
   
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
   
@@ -224,10 +223,9 @@ const App: React.FC = () => {
   };
   
   useEffect(() => {
-    if (session && !initialDataLoaded.current) {
-      initialDataLoaded.current = true;
+    if (session) {
       fetchData();
-    } else if (sessionChecked && !initialDataLoaded.current) {
+    } else if (sessionChecked) {
       setLoading(false);
     }
   }, [session, sessionChecked]);
