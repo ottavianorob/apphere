@@ -101,13 +101,11 @@ const TagDetailModal: React.FC<TagDetailModalProps> = ({
               <div className="space-y-2 mt-4">
                 {linkedCharacters.map(character => (
                   <button key={character.id} onClick={() => onSelectCharacter(character.id)} className="w-full text-left flex items-center gap-3 p-2 rounded-md hover:bg-[#134A79]/10 transition-colors">
-                     {character.photos.length > 0 ? (
-                        <img src={character.photos[0].url} alt={character.name} className="w-8 h-8 rounded-full object-cover" />
-                    ) : (
-                        <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                            <UsersIcon className="w-5 h-5 text-gray-500"/>
-                        </div>
-                    )}
+                     <img 
+                        src={character.photos[0]?.url || `https://placehold.co/32x32/e2e8f0/64748b?text=${encodeURIComponent(character.name.charAt(0))}`}
+                        alt={character.name} 
+                        className="w-8 h-8 rounded-full object-cover" 
+                     />
                     <p className="font-sans-display font-semibold text-gray-800">{character.name}</p>
                   </button>
                 ))}

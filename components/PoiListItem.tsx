@@ -43,25 +43,16 @@ const PoiListItem: React.FC<PoiListItemProps> = ({ poi, distance, onSelect, cate
       {/* Left: Circular Image with Type Icon */}
       <div className="flex-shrink-0 w-20 text-center">
         <div className="relative w-20 h-20 mx-auto">
-          {poi.photos && poi.photos.length > 0 ? (
-            <>
-              <img
-                src={poi.photos[0].url}
-                alt={`Immagine di copertina per ${poi.title}`}
-                className="w-full h-full rounded-full object-cover grayscale mix-blend-multiply group-hover:grayscale-0 group-hover:mix-blend-normal transition-all duration-300 ease-in-out"
-              />
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none" title={`Tipo: ${poi.type}`}>
-                {/* FIX: Moved inline style to a wrapper div as PoiTypeIcon does not accept a style prop. */}
-                <div style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.5))' }}>
-                  <PoiTypeIcon type={poi.type} className="w-10 h-10 text-white" />
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="w-full h-full bg-gray-200/50 rounded-full flex items-center justify-center border-2 border-gray-300/80">
-              <PoiTypeIcon type={poi.type} className="w-10 h-10 text-gray-400" />
+          <img
+            src={poi.photos?.[0]?.url || `https://placehold.co/80x80/e2e8f0/64748b?text=${encodeURIComponent(poi.title.charAt(0))}`}
+            alt={`Immagine di copertina per ${poi.title}`}
+            className="w-full h-full rounded-full object-cover grayscale mix-blend-multiply group-hover:grayscale-0 group-hover:mix-blend-normal transition-all duration-300 ease-in-out"
+          />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" title={`Tipo: ${poi.type}`}>
+            <div style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.5))' }}>
+              <PoiTypeIcon type={poi.type} className="w-10 h-10 text-white" />
             </div>
-          )}
+          </div>
         </div>
         {distance !== undefined && distance !== null && (
           <p className="font-sans-display text-xs text-gray-700 mt-1">

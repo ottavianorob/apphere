@@ -12,6 +12,8 @@ import ChevronRightIcon from './icons/ChevronRightIcon';
 import CategoryIcon from './icons/CategoryIcon';
 import CameraIcon from './icons/CameraIcon';
 import StarIcon from './icons/StarIcon';
+import PencilIcon from './icons/PencilIcon';
+import TrashIcon from './icons/TrashIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -34,9 +36,11 @@ interface PoiDetailModalProps {
   onSelectCharacter: (characterId: string) => void;
   onSelectTag: (tag: string) => void;
   onToggleFavorite: (poiId: string) => void;
+  onModify: (type: string, data: any) => void;
+  onDelete: (table: string, id: string, name: string) => void;
 }
 
-const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories, characters, onSelectCharacter, onSelectTag, onToggleFavorite }) => {
+const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categories, characters, onSelectCharacter, onSelectTag, onToggleFavorite, onModify, onDelete }) => {
   const mapRef = useRef<MapRef>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -160,35 +164,29 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
       <div className="bg-[#FAF7F0] w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10 relative" onClick={(e) => e.stopPropagation()}>
         <button onClick={onClose} className="absolute top-3 right-3 text-gray-800 bg-white/60 rounded-full p-1.5 hover:bg-white/90 backdrop-blur-sm transition-colors z-30"><CloseIcon className="w-5 h-5" /></button>
         <div className="overflow-y-auto">
-          <div className="p-6">
-            <div className="relative flex-shrink-0 group bg-black">
-              {poi.photos && poi.photos.length > 0 ? (
-                <>
-                  <img src={poi.photos[currentImageIndex].url} alt={poi.photos[currentImageIndex].caption} className="w-full h-64 object-contain" />
-                  {poi.photos.length > 1 && (
-                    <>
-                      <button onClick={handlePrevImage} disabled={currentImageIndex === 0} className="absolute top-1/2 left-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine precedente"><ChevronLeftIcon className="w-6 h-6" /></button>
-                      <button onClick={handleNextImage} disabled={currentImageIndex === poi.photos.length - 1} className="absolute top-1/2 right-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine successiva"><ChevronRightIcon className="w-6 h-6" /></button>
-                    </>
+          {poi.photos && poi.photos.length > 0 && (
+            <div className="p-6 pb-0">
+              <div className="relative flex-shrink-0 group bg-black">
+                <img src={poi.photos[currentImageIndex].url} alt={poi.photos[currentImageIndex].caption} className="w-full h-64 object-contain" />
+                {poi.photos.length > 1 && (
+                  <>
+                    <button onClick={handlePrevImage} disabled={currentImageIndex === 0} className="absolute top-1/2 left-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine precedente"><ChevronLeftIcon className="w-6 h-6" /></button>
+                    <button onClick={handleNextImage} disabled={currentImageIndex === poi.photos.length - 1} className="absolute top-1/2 right-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine successiva"><ChevronRightIcon className="w-6 h-6" /></button>
+                  </>
+                )}
+                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent flex justify-between items-end">
+                  {poi.photos[currentImageIndex].caption && (
+                    <p className="text-white text-sm font-sans-display drop-shadow-md max-w-[calc(100%-4rem)]">{poi.photos[currentImageIndex].caption}</p>
                   )}
-                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent flex justify-between items-end">
-                    {poi.photos[currentImageIndex].caption && (
-                      <p className="text-white text-sm font-sans-display drop-shadow-md max-w-[calc(100%-4rem)]">{poi.photos[currentImageIndex].caption}</p>
-                    )}
-                    {poi.photos.length > 1 && (
-                      <div className="bg-black/50 text-white text-xs font-sans-display font-semibold px-2 py-1 rounded-full ml-auto">{currentImageIndex + 1} / {poi.photos.length}</div>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <div className="w-full h-64 bg-gray-300 flex items-center justify-center">
-                    <CameraIcon className="w-12 h-12 text-gray-500" />
+                  {poi.photos.length > 1 && (
+                    <div className="bg-black/50 text-white text-xs font-sans-display font-semibold px-2 py-1 rounded-full ml-auto">{currentImageIndex + 1} / {poi.photos.length}</div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
-          </div>
+          )}
           
-          <div className="px-6 pb-6">
+          <div className="p-6">
             <h2 className="font-sans-display text-3xl font-bold text-[#134A79]">{poi.title}</h2>
             <div className="flex items-center gap-2 mt-3 text-sm text-gray-600"><div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center"><UserIcon className="w-4 h-4 text-gray-600" /></div><span className="font-sans-display">{poi.author}</span></div>
             <div className="mt-4 flex items-center flex-wrap gap-x-6 gap-y-2 text-sm text-gray-700 font-sans-display border-b border-t border-gray-300 py-3">
@@ -225,7 +223,7 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
                   <h3 className="font-serif-display text-xl italic text-gray-800 mb-3 border-b border-gray-300 pb-1">Personaggi Collegati</h3>
                   <div className="space-y-3">{linkedCharacters.map(char => (
                     <button key={char.id} onClick={() => onSelectCharacter(char.id)} className="flex items-center p-2 rounded-lg hover:bg-[#134A79]/10 transition-colors text-left w-full">
-                      {char.photos.length > 0 && <img src={char.photos[0].url} alt={char.name} className="w-10 h-10 rounded-full object-cover mr-4 border-2 border-white/50" />}
+                      <img src={char.photos[0]?.url || `https://placehold.co/40x40/e2e8f0/64748b?text=${char.name.charAt(0)}`} alt={char.name} className="w-10 h-10 rounded-full object-cover mr-4 border-2 border-white/50" />
                       <span className="font-sans-display text-[#134A79] text-base font-semibold">{char.name}</span>
                     </button>
                   ))}</div>
@@ -267,6 +265,29 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
               </div>
               <div>
                 <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 bg-[#134A79] text-white font-sans-display font-bold rounded-lg hover:bg-[#103a60] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#FAF7F0] focus:ring-[#134A79] transition-all duration-200"><NavigationIcon className="w-5 h-5 mr-2" /><span>Indicazioni</span></a>
+              </div>
+              {/* Admin Zone */}
+              <div className="mt-8 pt-4 border-t-2 border-dashed border-red-300 bg-red-50/50 rounded-md p-4">
+                <h3 className="font-sans-display text-sm font-bold text-red-800/80 mb-3 uppercase tracking-wider">Zona Admin</h3>
+                <div className="flex gap-4">
+                    <button 
+                        onClick={() => onModify('poi', poi)} 
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-yellow-500 text-white font-sans-display text-sm font-bold rounded-md hover:bg-yellow-600 transition-colors"
+                    >
+                        <PencilIcon className="w-4 h-4" />
+                        <span>Modifica</span>
+                    </button>
+                    <button 
+                        onClick={() => {
+                            onClose();
+                            setTimeout(() => onDelete('pois', poi.id, poi.title), 50);
+                        }} 
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white font-sans-display text-sm font-bold rounded-md hover:bg-red-700 transition-colors"
+                    >
+                        <TrashIcon className="w-4 h-4" />
+                        <span>Elimina</span>
+                    </button>
+                </div>
               </div>
             </div>
           </div>

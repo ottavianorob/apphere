@@ -11,6 +11,8 @@ import PathIcon from './icons/PathIcon';
 import AreaIcon from './icons/AreaIcon';
 import MapPinIcon from './icons/MapPinIcon';
 import StarIcon from './icons/StarIcon';
+import PencilIcon from './icons/PencilIcon';
+import TrashIcon from './icons/TrashIcon';
 
 // Fix for cross-origin error
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -42,9 +44,11 @@ interface ItineraryDetailModalProps {
   onSelectPoiInItinerary: (poi: Poi) => void;
   onSelectTag: (tag: string) => void;
   onToggleFavorite: (itineraryId: string) => void;
+  onModify: (type: string, data: any) => void;
+  onDelete: (table: string, id: string, name: string) => void;
 }
 
-const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, allPois, onClose, onSelectPoiInItinerary, onSelectTag, onToggleFavorite }) => {
+const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, allPois, onClose, onSelectPoiInItinerary, onSelectTag, onToggleFavorite, onModify, onDelete }) => {
   const mapRef = useRef<MapRef>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
 
@@ -74,13 +78,13 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
       <div className="bg-[#FAF7F0] w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10 relative" onClick={e => e.stopPropagation()}>
         <button onClick={onClose} className="absolute top-3 right-3 text-gray-800 bg-white/60 rounded-full p-1.5 hover:bg-white/90 backdrop-blur-sm transition-colors z-30"><CloseIcon className="w-5 h-5" /></button>
         <div className="overflow-y-auto">
-          <div className="p-6">
+          <div className="p-6 pb-0">
             <div className="relative flex-shrink-0">
               <img src={itinerary.coverPhoto.url} alt={itinerary.coverPhoto.caption} className="w-full h-64 object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
             </div>
           </div>
-          <div className="px-6 pb-6">
+          <div className="p-6">
             <h2 className="font-sans-display text-3xl font-bold text-[#134A79]">{itinerary.title}</h2>
             <div className="flex items-center gap-2 mt-3 text-sm text-gray-600">
               <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center"><UserIcon className="w-4 h-4 text-gray-600" /></div>
@@ -166,6 +170,29 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+               {/* Admin Zone */}
+              <div className="mt-8 pt-4 border-t-2 border-dashed border-red-300 bg-red-50/50 rounded-md p-4">
+                <h3 className="font-sans-display text-sm font-bold text-red-800/80 mb-3 uppercase tracking-wider">Zona Admin</h3>
+                <div className="flex gap-4">
+                    <button 
+                        onClick={() => onModify('itinerary', itinerary)} 
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-yellow-500 text-white font-sans-display text-sm font-bold rounded-md hover:bg-yellow-600 transition-colors"
+                    >
+                        <PencilIcon className="w-4 h-4" />
+                        <span>Modifica</span>
+                    </button>
+                    <button 
+                        onClick={() => {
+                            onClose();
+                            setTimeout(() => onDelete('itineraries', itinerary.id, itinerary.title), 50);
+                        }} 
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white font-sans-display text-sm font-bold rounded-md hover:bg-red-700 transition-colors"
+                    >
+                        <TrashIcon className="w-4 h-4" />
+                        <span>Elimina</span>
+                    </button>
                 </div>
               </div>
             </div>

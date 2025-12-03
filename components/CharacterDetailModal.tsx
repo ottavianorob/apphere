@@ -4,6 +4,8 @@ import CloseIcon from './icons/CloseIcon';
 import ChevronLeftIcon from './icons/ChevronLeftIcon';
 import ChevronRightIcon from './icons/ChevronRightIcon';
 import PoiListItem from './PoiListItem';
+import PencilIcon from './icons/PencilIcon';
+import TrashIcon from './icons/TrashIcon';
 
 interface CharacterDetailModalProps {
   character: Character;
@@ -12,9 +14,11 @@ interface CharacterDetailModalProps {
   onClose: () => void;
   onSelectPoi: (poi: Poi) => void;
   onSelectTag: (tag: string) => void;
+  onModify: (type: string, data: any) => void;
+  onDelete: (table: string, id: string, name: string) => void;
 }
 
-const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({ character, allPois, categories, onClose, onSelectPoi, onSelectTag }) => {
+const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({ character, allPois, categories, onClose, onSelectPoi, onSelectTag, onModify, onDelete }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const linkedPois = useMemo(() => 
@@ -54,27 +58,23 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({ character, 
       <div className="bg-[#FAF7F0] w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10 relative" onClick={e => e.stopPropagation()}>
         <button onClick={onClose} className="absolute top-3 right-3 text-gray-800 bg-white/60 rounded-full p-1.5 hover:bg-white/90 backdrop-blur-sm transition-colors z-30"><CloseIcon className="w-5 h-5" /></button>
         <div className="overflow-y-auto">
-          <div className="p-6">
-            <div className="relative flex-shrink-0 group bg-black">
-              {character.photos.length > 0 ? (
+          {character.photos && character.photos.length > 0 && (
+            <div className="p-6 pb-0">
+              <div className="relative flex-shrink-0 group bg-black">
                 <img src={character.photos[currentImageIndex].url} alt={character.photos[currentImageIndex].caption} className="w-full h-64 object-contain" />
-              ) : (
-                <div className="w-full h-64 bg-gray-300 flex items-center justify-center">
-                  <span className="font-serif-display text-gray-500">Nessuna immagine</span>
-                </div>
-              )}
-              {character.photos.length > 1 && (
-                <>
-                  <button onClick={handlePrevImage} disabled={currentImageIndex === 0} className="absolute top-1/2 left-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine precedente"><ChevronLeftIcon className="w-6 h-6" /></button>
-                  <button onClick={handleNextImage} disabled={currentImageIndex === character.photos.length - 1} className="absolute top-1/2 right-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine successiva"><ChevronRightIcon className="w-6 h-6" /></button>
-                  <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs font-sans-display font-semibold px-2 py-1 rounded-full z-10">{currentImageIndex + 1} / {character.photos.length}</div>
-                </>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+                {character.photos.length > 1 && (
+                  <>
+                    <button onClick={handlePrevImage} disabled={currentImageIndex === 0} className="absolute top-1/2 left-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine precedente"><ChevronLeftIcon className="w-6 h-6" /></button>
+                    <button onClick={handleNextImage} disabled={currentImageIndex === character.photos.length - 1} className="absolute top-1/2 right-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine successiva"><ChevronRightIcon className="w-6 h-6" /></button>
+                    <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs font-sans-display font-semibold px-2 py-1 rounded-full z-10">{currentImageIndex + 1} / {character.photos.length}</div>
+                  </>
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="space-y-6 px-6 pb-6">
+          <div className="space-y-6 p-6">
               <h2 className="font-sans-display text-3xl font-bold text-[#134A79]">{character.name}</h2>
               <p className="italic text-[#2D3748] whitespace-pre-wrap leading-relaxed text-lg">{character.description}</p>
               <p className="text-md text-gray-800 leading-relaxed font-sans-display">
@@ -109,6 +109,29 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({ character, 
                   </div>
                   </div>
               )}
+               {/* Admin Zone */}
+              <div className="mt-8 pt-4 border-t-2 border-dashed border-red-300 bg-red-50/50 rounded-md p-4">
+                <h3 className="font-sans-display text-sm font-bold text-red-800/80 mb-3 uppercase tracking-wider">Zona Admin</h3>
+                <div className="flex gap-4">
+                    <button 
+                        onClick={() => onModify('character', character)} 
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-yellow-500 text-white font-sans-display text-sm font-bold rounded-md hover:bg-yellow-600 transition-colors"
+                    >
+                        <PencilIcon className="w-4 h-4" />
+                        <span>Modifica</span>
+                    </button>
+                    <button 
+                        onClick={() => {
+                           onClose();
+                           setTimeout(() => onDelete('characters', character.id, character.name), 50);
+                        }} 
+                        className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white font-sans-display text-sm font-bold rounded-md hover:bg-red-700 transition-colors"
+                    >
+                        <TrashIcon className="w-4 h-4" />
+                        <span>Elimina</span>
+                    </button>
+                </div>
+              </div>
           </div>
         </div>
       </div>

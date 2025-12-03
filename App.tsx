@@ -598,6 +598,10 @@ const App: React.FC = () => {
   };
 
   const handleModify = (type: string, data: any) => {
+    // Chiudi qualsiasi modale di dettaglio aperto prima di aprire quello di modifica
+    setSelectedPoi(null);
+    setSelectedCharacter(null);
+    setSelectedItinerary(null);
     setEditingItem({ type, data });
   };
   
@@ -936,6 +940,8 @@ const App: React.FC = () => {
           }}
           onSelectTag={openTagModal}
           onToggleFavorite={handleToggleFavorite}
+          onModify={handleModify}
+          onDelete={handleDelete}
         />
       )}
       {selectedItinerary && (
@@ -946,6 +952,8 @@ const App: React.FC = () => {
           onSelectPoiInItinerary={openPoiModal}
           onSelectTag={openTagModal}
           onToggleFavorite={handleToggleItineraryFavorite}
+          onModify={handleModify}
+          onDelete={handleDelete}
         />
       )}
       {selectedCharacter && (
@@ -956,6 +964,8 @@ const App: React.FC = () => {
           onClose={() => setSelectedCharacter(null)}
           onSelectPoi={openPoiModal}
           onSelectTag={openTagModal}
+          onModify={handleModify}
+          onDelete={handleDelete}
         />
       )}
       {selectedTag && (
