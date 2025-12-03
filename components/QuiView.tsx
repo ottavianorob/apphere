@@ -85,6 +85,7 @@ const QuiView: React.FC<QuiViewProps> = ({ pois, onSelectPoi, categories, period
   const [filtersVisible, setFiltersVisible] = useState(false);
   const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
   const mapRef = useRef<MapRef>(null);
+  const [initialLocationSet, setInitialLocationSet] = useState(false);
   
   const [viewState, setViewState] = useState({
     longitude: 9.189982, // Milan
@@ -95,15 +96,16 @@ const QuiView: React.FC<QuiViewProps> = ({ pois, onSelectPoi, categories, period
   });
 
   useEffect(() => {
-    if (userLocation) {
+    if (userLocation && !initialLocationSet) {
       setViewState(current => ({
         ...current,
         longitude: userLocation.longitude,
         latitude: userLocation.latitude,
         zoom: 13,
       }));
+      setInitialLocationSet(true);
     }
-  }, [userLocation]);
+  }, [userLocation, initialLocationSet]);
 
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.name])), [categories]);
 
