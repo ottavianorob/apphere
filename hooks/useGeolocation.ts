@@ -16,10 +16,11 @@ const useGeolocation = () => {
 
   useEffect(() => {
     let watcherId: number;
+    let isMounted = true;
 
     const onSuccess = (position: GeolocationPosition) => {
+      if (!isMounted) return;
        setState(prevState => {
-        // Controlla se abbiamo già un heading più preciso da deviceorientation
         const hasDeviceOrientationHeading = prevState.data?.heading !== undefined && prevState.data.heading !== null;
         
         return {
@@ -30,22 +31,38 @@ const useGeolocation = () => {
             ...prevState.data,
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
-            // Usa l'heading dalla geolocalizzazione solo come fallback
             heading: hasDeviceOrientationHeading ? prevState.data.heading : position.coords.heading,
           } as Coordinates,
         };
       });
     };
+    
+    const onFinalError = (error: GeolocationPositionError) => {
+        if (!isMounted) return;
+        setState(prevState => ({
+            ...prevState,
+            loading: false,
+            error,
+        }));
+    };
 
-    const onError = (error: GeolocationPositionError) => {
-      setState(prevState => ({
-        ...prevState,
-        loading: false,
-        error,
-      }));
+    const onErrorWithFallback = (error: GeolocationPositionError) => {
+      if (!isMounted) return;
+      // If high accuracy fails, try with low accuracy. This can help on desktop.
+      if (error.code === error.POSITION_UNAVAILABLE || error.code === error.TIMEOUT) {
+        if (watcherId) navigator.geolocation.clearWatch(watcherId);
+        watcherId = navigator.geolocation.watchPosition(onSuccess, onFinalError, {
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 0,
+        });
+      } else {
+        onFinalError(error);
+      }
     };
 
     if (!navigator.geolocation) {
+      if (!isMounted) return;
       setState({
         loading: false,
         error: {
@@ -60,19 +77,17 @@ const useGeolocation = () => {
       return;
     }
 
-    watcherId = navigator.geolocation.watchPosition(onSuccess, onError, {
+    watcherId = navigator.geolocation.watchPosition(onSuccess, onErrorWithFallback, {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 0,
     });
 
-    // --- Integrazione Device Orientation ---
     const handleOrientation = (event: DeviceOrientationEvent) => {
-      // `webkitCompassHeading` è per iOS Safari. `alpha` è lo standard.
+      if (!isMounted) return;
       const heading = (event as any).webkitCompassHeading ?? event.alpha;
       if (heading !== null && heading !== undefined) {
         setState(prevState => {
-          // Aggiungi l'heading solo se abbiamo già i dati di posizione
           if (prevState.data) {
             return {
               ...prevState,
@@ -82,20 +97,17 @@ const useGeolocation = () => {
               }
             };
           }
-          return prevState; // Non fare nulla se non abbiamo ancora le coordinate
+          return prevState;
         });
       }
     };
     
     if (window.DeviceOrientationEvent) {
-      // Nota: Su iOS 13+ è richiesta l'interazione dell'utente per il permesso.
-      // Questa implementazione funzionerà su Android e altri dispositivi,
-      // ma potrebbe non funzionare su iOS senza un permesso preventivo.
-      // È comunque un miglioramento significativo rispetto all'inaffidabile `coords.heading`.
       window.addEventListener('deviceorientation', handleOrientation);
     }
     
     return () => {
+        isMounted = false;
         if (watcherId) {
             navigator.geolocation.clearWatch(watcherId);
         }
