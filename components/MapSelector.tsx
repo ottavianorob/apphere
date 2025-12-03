@@ -16,6 +16,7 @@ interface MapSelectorProps {
 const MapSelector = forwardRef<MapRef, MapSelectorProps>(({ type, coordinates, setCoordinates, userLocation, initialViewState }, ref) => {
     const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
     const mapContainerRef = useRef<HTMLDivElement>(null);
+    const initialLocationSet = useRef(false);
 
     const [viewState, setViewState] = useState(
         initialViewState || {
@@ -38,12 +39,13 @@ const MapSelector = forwardRef<MapRef, MapSelectorProps>(({ type, coordinates, s
     }, [ref]);
 
     useEffect(() => {
-        if (userLocation && (ref as React.RefObject<MapRef>).current && !initialViewState) {
+        if (userLocation && (ref as React.RefObject<MapRef>).current && !initialViewState && !initialLocationSet.current) {
             (ref as React.RefObject<MapRef>).current?.flyTo({
                 center: [userLocation.longitude, userLocation.latitude],
                 zoom: 15,
                 duration: 1500,
             });
+            initialLocationSet.current = true;
         }
     }, [userLocation, ref, initialViewState]);
 
