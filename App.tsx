@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Session } from '@supabase/supabase-js';
-import { Poi, Itinerary, Character, Category, User, Period, Photo } from './types';
+import { Poi, Itinerary, Character, Category, User, Period, Photo, Coordinates } from './types';
 import { supabase } from './services/supabaseClient';
 
 // Import Views
@@ -149,7 +149,7 @@ const App: React.FC = () => {
       const transformedCharacters: Character[] = (charactersData || []).map(c => ({ 
         ...c, 
         wikipediaUrl: c.wikipedia_url,
-        photos: (c.photos || []).map((p: any) => ({ id: p.id, url: p.url, caption: p.caption }))
+        photos: (c.photos || []).map((p: any) => ({ id: p.id, url: p.url, caption: p.caption, coordinates: p.coordinates }))
       }));
       setCharacters(transformedCharacters);
 
@@ -163,7 +163,7 @@ const App: React.FC = () => {
           location: p.location,
           eventDate: p.event_date,
           description: p.description,
-          photos: (p.photos || []).map((ph: any) => ({ id: ph.id, url: ph.url, caption: ph.caption })),
+          photos: (p.photos || []).map((ph: any) => ({ id: ph.id, url: ph.url, caption: ph.caption, coordinates: ph.coordinates })),
           linkedCharacterIds: (p.poi_characters || []).map((pch: any) => pch.characters.id),
           tags: p.tags || [],
           favoriteCount: p.user_poi_favorites[0]?.count || 0,
@@ -346,8 +346,8 @@ const App: React.FC = () => {
   
   const handleSavePoi = async (
     newPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'>,
-    photosToUpload: { file: File; caption: string }[],
-    urlPhotos: { url: string; caption: string }[]
+    photosToUpload: { file: File; caption: string, coordinates?: Coordinates | null }[],
+    urlPhotos: { url: string; caption: string, coordinates?: Coordinates | null }[]
   ) => {
       try {
           const { data: { user } } = await supabase.auth.getUser();
@@ -371,7 +371,7 @@ const App: React.FC = () => {
           if (poiError) throw poiError;
           const newPoiId = poiData.id;
 
-          let allNewPhotos: { url: string; caption: string; poi_id: string }[] = [];
+          let allNewPhotos: { url: string; caption: string; poi_id: string, coordinates?: Coordinates | null }[] = [];
 
           if (urlPhotos.length > 0) {
               allNewPhotos = urlPhotos.map(p => ({ ...p, poi_id: newPoiId }));
@@ -388,14 +388,14 @@ const App: React.FC = () => {
 
               const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
               
-              return { url: publicUrl, caption: photo.caption, poi_id: newPoiId };
+              return { url: publicUrl, caption: photo.caption, poi_id: newPoiId, coordinates: photo.coordinates };
             });
             const uploadedPhotosData = await Promise.all(photoUploadPromises);
             allNewPhotos = [...allNewPhotos, ...uploadedPhotosData];
           }
 
           if (allNewPhotos.length > 0) {
-            const { error: photosInsertError } = await supabase.from('photos').insert(allNewPhotos);
+            const { error: photosInsertError } = await supabase.from('photos').insert(allNewPhotos as any);
             if (photosInsertError) throw photosInsertError;
           }
 
@@ -422,8 +422,8 @@ const App: React.FC = () => {
 
   const handleSaveCharacter = async (
     newCharacterData: Omit<Character, 'id' | 'photos'>,
-    photosToUpload: { file: File; caption: string }[],
-    urlPhotos: { url: string; caption: string }[]
+    photosToUpload: { file: File; caption: string, coordinates?: Coordinates | null }[],
+    urlPhotos: { url: string; caption: string, coordinates?: Coordinates | null }[]
   ) => {
       try {
           const { data: { user } } = await supabase.auth.getUser();
@@ -441,7 +441,7 @@ const App: React.FC = () => {
           if (charError) throw charError;
           const newCharId = charData.id;
 
-          let allNewPhotos: { url: string; caption: string; character_id: string }[] = [];
+          let allNewPhotos: { url: string; caption: string; character_id: string, coordinates?: Coordinates | null }[] = [];
 
           if (urlPhotos.length > 0) {
               allNewPhotos = urlPhotos.map(p => ({ ...p, character_id: newCharId }));
@@ -457,14 +457,14 @@ const App: React.FC = () => {
                 if (uploadError) throw uploadError;
                 
                 const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
-                return { url: publicUrl, caption: photo.caption, character_id: newCharId };
+                return { url: publicUrl, caption: photo.caption, character_id: newCharId, coordinates: photo.coordinates };
             });
             const uploadedPhotosData = await Promise.all(photoUploadPromises);
             allNewPhotos = [...allNewPhotos, ...uploadedPhotosData];
           }
 
           if (allNewPhotos.length > 0) {
-            const { error: photosInsertError } = await supabase.from('photos').insert(allNewPhotos);
+            const { error: photosInsertError } = await supabase.from('photos').insert(allNewPhotos as any);
             if(photosInsertError) throw photosInsertError;
           }
 
@@ -613,9 +613,10 @@ const App: React.FC = () => {
   const handleUpdatePoi = async (
     poiId: string,
     updatedData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'>,
-    photosToUpload: { file: File; caption: string }[],
+    photosToUpload: { file: File; caption: string, coordinates?: Coordinates | null }[],
     photosToDelete: Photo[],
-    newUrlPhotos: { url: string; caption: string }[]
+    newUrlPhotos: { url: string; caption: string, coordinates?: Coordinates | null }[],
+    updatedExistingPhotos: Photo[]
   ) => {
       try {
           const poiToUpdate: any = {
@@ -658,7 +659,7 @@ const App: React.FC = () => {
               }
           }
           
-          let allNewPhotos: { url: string; caption: string; poi_id: string }[] = [];
+          let allNewPhotos: { url: string; caption: string; poi_id: string, coordinates?: Coordinates | null }[] = [];
 
           if (newUrlPhotos.length > 0) {
               allNewPhotos = newUrlPhotos.map(p => ({ ...p, poi_id: poiId }));
@@ -673,14 +674,19 @@ const App: React.FC = () => {
               await supabase.storage.from('media').upload(filePath, photo.file);
               const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
               
-              return { url: publicUrl, caption: photo.caption, poi_id: poiId };
+              return { url: publicUrl, caption: photo.caption, poi_id: poiId, coordinates: photo.coordinates };
             });
             const uploadedPhotosData = await Promise.all(photoUploadPromises);
             allNewPhotos = [...allNewPhotos, ...uploadedPhotosData];
           }
 
           if (allNewPhotos.length > 0) {
-              await supabase.from('photos').insert(allNewPhotos);
+              await supabase.from('photos').insert(allNewPhotos as any);
+          }
+          
+          if (updatedExistingPhotos) {
+              const updatePromises = updatedExistingPhotos.map(p => supabase.from('photos').update({ coordinates: p.coordinates, caption: p.caption }).eq('id', p.id));
+              await Promise.all(updatePromises);
           }
 
           setToast({ message: "Luogo aggiornato con successo!", type: 'success' });
@@ -695,9 +701,10 @@ const App: React.FC = () => {
   const handleUpdateCharacter = async (
     charId: string,
     updatedData: Omit<Character, 'id' | 'photos'>,
-    photosToUpload: { file: File; caption: string }[],
+    photosToUpload: { file: File; caption: string, coordinates?: Coordinates | null }[],
     photosToDelete: Photo[],
-    newUrlPhotos: { url: string; caption: string }[]
+    newUrlPhotos: { url: string; caption: string, coordinates?: Coordinates | null }[],
+    updatedExistingPhotos: Photo[]
   ) => {
       try {
           await supabase.from('characters').update({
@@ -715,7 +722,7 @@ const App: React.FC = () => {
               }
           }
           
-          let allNewPhotos: { url: string; caption: string; character_id: string }[] = [];
+          let allNewPhotos: { url: string; caption: string; character_id: string, coordinates?: Coordinates | null }[] = [];
 
           if (newUrlPhotos.length > 0) {
               allNewPhotos = newUrlPhotos.map(p => ({ ...p, character_id: charId }));
@@ -728,14 +735,19 @@ const App: React.FC = () => {
                 const filePath = `characters/${fileName}`;
                 await supabase.storage.from('media').upload(filePath, photo.file);
                 const { data: { publicUrl } } = supabase.storage.from('media').getPublicUrl(filePath);
-                return { url: publicUrl, caption: photo.caption, character_id: charId };
+                return { url: publicUrl, caption: photo.caption, character_id: charId, coordinates: photo.coordinates };
             });
             const uploadedPhotosData = await Promise.all(photoUploadPromises);
             allNewPhotos = [...allNewPhotos, ...uploadedPhotosData];
           }
           
           if(allNewPhotos.length > 0) {
-              await supabase.from('photos').insert(allNewPhotos);
+              await supabase.from('photos').insert(allNewPhotos as any);
+          }
+          
+          if (updatedExistingPhotos) {
+              const updatePromises = updatedExistingPhotos.map(p => supabase.from('photos').update({ coordinates: p.coordinates, caption: p.caption }).eq('id', p.id));
+              await Promise.all(updatePromises);
           }
 
           setToast({ message: "Personaggio aggiornato con successo!", type: 'success' });

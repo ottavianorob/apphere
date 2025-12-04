@@ -4,15 +4,17 @@ import { Poi, Category, Period, Character as CharacterType, Coordinates } from '
 import CloseIcon from './icons/CloseIcon';
 import CategoryIcon from './icons/CategoryIcon';
 import CameraIcon from './icons/CameraIcon';
+import MapPinIcon from './icons/MapPinIcon';
 import useGeolocation from '../hooks/useGeolocation';
 import MapSelector from './MapSelector';
+import PhotoLocationModal from './PhotoLocationModal';
 
-type NewPhoto = { type: 'file', file: File, dataUrl: string, caption: string } | { type: 'url', url: string, caption: string };
+type NewPhoto = { type: 'file', file: File, dataUrl: string, caption: string, coordinates?: Coordinates | null } | { type: 'url', url: string, caption: string, coordinates?: Coordinates | null };
 
 
 interface AddPoiModalProps {
   onClose: () => void;
-  onSave: (poiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'>, photosToUpload: { file: File, caption: string }[], urlPhotos: { url: string; caption: string }[]) => void;
+  onSave: (poiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'>, photosToUpload: { file: File, caption: string, coordinates?: Coordinates | null }[], urlPhotos: { url: string; caption: string, coordinates?: Coordinates | null }[]) => void;
   categories: Category[];
   periods: Period[];
   characters: CharacterType[];
@@ -51,6 +53,7 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
     const [photoInputMode, setPhotoInputMode] = useState<'upload' | 'url'>('upload');
     const [photoUrl, setPhotoUrl] = useState('');
     const [photoUrlCaption, setPhotoUrlCaption] = useState('');
+    const [photoLocationModal, setPhotoLocationModal] = useState<{ photoIndex: number; initialCoordinates: Coordinates | null } | null>(null);
 
 
     const formatAddress = (address: any): string | null => {
@@ -124,7 +127,7 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                 }
                 const reader = new FileReader();
                 reader.onloadend = () => {
-                    setPhotos(prev => [...prev, { type: 'file', file, dataUrl: reader.result as string, caption: '' }]);
+                    setPhotos(prev => [...prev, { type: 'file', file, dataUrl: reader.result as string, caption: '', coordinates: null }]);
                 };
                 reader.readAsDataURL(file);
             });
@@ -135,7 +138,7 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
         if (photoUrl.trim()) {
             try {
                 new URL(photoUrl); // Validate URL format
-                setPhotos(prev => [...prev, { type: 'url', url: photoUrl, caption: photoUrlCaption }]);
+                setPhotos(prev => [...prev, { type: 'url', url: photoUrl, caption: photoUrlCaption, coordinates: null }]);
                 setPhotoUrl('');
                 setPhotoUrlCaption('');
             } catch (_) {
@@ -170,6 +173,13 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
 
     const handleRemovePhoto = (index: number) => {
         setPhotos(prev => prev.filter((_, i) => i !== index));
+    };
+    
+    const handleSavePhotoLocation = (newCoords: Coordinates | null) => {
+        if (photoLocationModal) {
+            setPhotos(current => current.map((p, i) => i === photoLocationModal.photoIndex ? { ...p, coordinates: newCoords } : p));
+        }
+        setPhotoLocationModal(null);
     };
 
     const handleSubmit = () => {
@@ -211,8 +221,8 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
           coordinates: coordinates[0],
         };
 
-        const photosToUpload = photos.filter((p): p is Extract<NewPhoto, { type: 'file' }> => p.type === 'file').map(p => ({ file: p.file, caption: p.caption }));
-        const urlPhotos = photos.filter((p): p is Extract<NewPhoto, { type: 'url' }> => p.type === 'url').map(p => ({ url: p.url, caption: p.caption }));
+        const photosToUpload = photos.filter((p): p is Extract<NewPhoto, { type: 'file' }> => p.type === 'file').map(p => ({ file: p.file, caption: p.caption, coordinates: p.coordinates }));
+        const urlPhotos = photos.filter((p): p is Extract<NewPhoto, { type: 'url' }> => p.type === 'url').map(p => ({ url: p.url, caption: p.caption, coordinates: p.coordinates }));
       
         onSave(newPoiData, photosToUpload, urlPhotos);
     };
@@ -231,6 +241,13 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[60] p-4 animate-fade-in" onClick={onClose}>
+            {photoLocationModal !== null && (
+                <PhotoLocationModal 
+                    onClose={() => setPhotoLocationModal(null)}
+                    onSave={handleSavePhotoLocation}
+                    initialCoordinates={photoLocationModal.initialCoordinates}
+                />
+            )}
             <div className="bg-[#FAF7F0] w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10 relative" onClick={(e) => e.stopPropagation()}>
                 <header className="p-4 flex items-center justify-between border-b border-gray-300/80 sticky top-0 bg-[#FAF7F0]/80 backdrop-blur-sm z-10">
                   <h2 className="font-sans-display text-2xl font-bold text-[#134A79]">Aggiungi nuovo Luogo</h2>
@@ -306,9 +323,12 @@ const AddPoiModal: React.FC<AddPoiModalProps> = ({ onClose, onSave, categories, 
                       <label className={labelStyle}>Foto</label>
                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
                             {photos.map((photo, index) => (
-                                <div key={index} className="relative group border border-gray-300/80 p-1">
+                                <div key={index} className="relative group border border-gray-300/80 p-1 flex flex-col">
                                     <img src={photo.type === 'file' ? photo.dataUrl : photo.url} alt={`Anteprima ${index + 1}`} className="w-full h-24 object-cover"/>
                                     <input type="text" placeholder="Didascalia..." value={photo.caption} onChange={(e) => handlePhotoCaptionChange(index, e.target.value)} className="w-full text-xs p-1 border-t border-gray-300/80" />
+                                    <button onClick={() => setPhotoLocationModal({ photoIndex: index, initialCoordinates: photo.coordinates || null })} className={`text-xs p-1 flex items-center justify-center gap-1 w-full border-t border-gray-300/80 ${photo.coordinates ? 'text-green-700' : 'text-gray-500'}`}>
+                                      <MapPinIcon className="w-3 h-3" /> {photo.coordinates ? 'Posizione salvata' : 'Aggiungi posizione'}
+                                    </button>
                                     <button onClick={() => handleRemovePhoto(index)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"><CloseIcon className="w-3 h-3"/></button>
                                 </div>
                             ))}

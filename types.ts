@@ -28,6 +28,7 @@ export interface Photo {
   id:string;
   url: string;
   caption: string;
+  coordinates?: Coordinates | null;
 }
 
 export interface User {
@@ -53,7 +54,7 @@ export interface Poi {
   tags?: string[];
   favoriteCount: number;
   isFavorited: boolean;
-  // FIX: Add optional properties for different POI types.
+  // FIX: Add optional properties to support different POI types and resolve TypeScript errors.
   type?: 'point' | 'path' | 'area';
   pathCoordinates?: Coordinates[];
   bounds?: Coordinates[];

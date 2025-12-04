@@ -13,6 +13,7 @@ import CategoryIcon from './icons/CategoryIcon';
 import StarIcon from './icons/StarIcon';
 import PencilIcon from './icons/PencilIcon';
 import TrashIcon from './icons/TrashIcon';
+import CameraIcon from './icons/CameraIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
@@ -73,16 +74,7 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
   };
   const markerBg = mapMarkerBgColors[primaryCategoryId] || 'bg-[#B1352E]';
 
-  const mapContent = useMemo(() => {
-    const markerCoords = poi.coordinates;
-    return (
-        <Marker longitude={markerCoords.longitude} latitude={markerCoords.latitude} anchor="center">
-            <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75`}>
-                <CategoryIcon categoryId={primaryCategoryId} className="w-5 h-5 text-white" />
-            </div>
-        </Marker>
-    );
-  }, [poi, markerBg, primaryCategoryId]);
+  const photosWithLocation = useMemo(() => poi.photos.filter(p => p.coordinates), [poi.photos]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => event.key === 'Escape' && onClose();
@@ -186,9 +178,32 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
                       initialViewState={{ longitude: poi.coordinates.longitude, latitude: poi.coordinates.latitude, zoom: 15, pitch: 20 }}
                       style={{ width: '100%', height: '100%' }}
                       mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
-                      interactive={false}
+                      interactive={true}
                   >
-                    {mapContent}
+                    <Marker longitude={poi.coordinates.longitude} latitude={poi.coordinates.latitude} anchor="center">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75`}>
+                            <CategoryIcon categoryId={primaryCategoryId} className="w-5 h-5 text-white" />
+                        </div>
+                    </Marker>
+                    {photosWithLocation.map(photo => {
+                        const isCurrentPhoto = poi.photos[currentImageIndex]?.id === photo.id;
+                        return (
+                           <Marker key={photo.id} longitude={photo.coordinates!.longitude} latitude={photo.coordinates!.latitude} anchor="center">
+                                <button 
+                                    onClick={() => {
+                                        const photoIndex = poi.photos.findIndex(p => p.id === photo.id);
+                                        if (photoIndex !== -1) setCurrentImageIndex(photoIndex);
+                                    }}
+                                    className="transform transition-transform duration-200"
+                                    style={{ transform: isCurrentPhoto ? 'scale(1.5)' : 'scale(1)' }}
+                                >
+                                    <div className="w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center ring-1 ring-purple-500/50">
+                                      <CameraIcon className={`w-5 h-5 text-purple-600`} />
+                                    </div>
+                                </button>
+                            </Marker>
+                        )
+                    })}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
                   </ReactMapGL>
                 </div>

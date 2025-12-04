@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Character, Photo } from '../types';
+import { Character, Photo, Coordinates } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import CameraIcon from './icons/CameraIcon';
 import TrashIcon from './icons/TrashIcon';
+import MapPinIcon from './icons/MapPinIcon';
+import PhotoLocationModal from './PhotoLocationModal';
 
-type NewPhoto = { type: 'file', file: File, dataUrl: string, caption: string } | { type: 'url', url: string, caption: string };
+type NewPhoto = { type: 'file', file: File, dataUrl: string, caption: string, coordinates?: Coordinates | null } | { type: 'url', url: string, caption: string, coordinates?: Coordinates | null };
 
 interface EditCharacterModalProps {
   onClose: () => void;
   onSave: (
     charId: string,
     characterData: Omit<Character, 'id' | 'photos'>,
-    photosToUpload: { file: File, caption: string }[],
+    photosToUpload: { file: File, caption: string, coordinates?: Coordinates | null }[],
     photosToDelete: Photo[],
-    newUrlPhotos: { url: string; caption: string }[]
+    newUrlPhotos: { url: string; caption: string, coordinates?: Coordinates | null }[],
+    updatedExistingPhotos: Photo[]
   ) => void;
   character: Character;
 }
@@ -29,6 +32,7 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
     const [photoInputMode, setPhotoInputMode] = useState<'upload' | 'url'>('upload');
     const [photoUrl, setPhotoUrl] = useState('');
     const [photoUrlCaption, setPhotoUrlCaption] = useState('');
+    const [photoLocationModal, setPhotoLocationModal] = useState<{ photoIndex: number; isNew: boolean; initialCoordinates: Coordinates | null } | null>(null);
 
     useEffect(() => {
         if (character) {
@@ -50,7 +54,7 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
                 }
                 const reader = new FileReader();
                 reader.onloadend = () => {
-                    setNewPhotos(prev => [...prev, { type: 'file', file, dataUrl: reader.result as string, caption: '' }]);
+                    setNewPhotos(prev => [...prev, { type: 'file', file, dataUrl: reader.result as string, caption: '', coordinates: null }]);
                 };
                 reader.readAsDataURL(file);
             });
@@ -61,7 +65,7 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
         if (photoUrl.trim()) {
             try {
                 new URL(photoUrl);
-                setNewPhotos(prev => [...prev, { type: 'url', url: photoUrl, caption: photoUrlCaption }]);
+                setNewPhotos(prev => [...prev, { type: 'url', url: photoUrl, caption: photoUrlCaption, coordinates: null }]);
                 setPhotoUrl('');
                 setPhotoUrlCaption('');
             } catch (_) {
@@ -82,6 +86,17 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
         setExistingPhotos(prev => prev.filter(p => p.id !== photo.id));
         setPhotosToDelete(prev => [...prev, photo]);
     };
+    
+    const handleSavePhotoLocation = (newCoords: Coordinates | null) => {
+        if (photoLocationModal) {
+            if (photoLocationModal.isNew) {
+                setNewPhotos(current => current.map((p, i) => i === photoLocationModal.photoIndex ? { ...p, coordinates: newCoords } : p));
+            } else {
+                setExistingPhotos(current => current.map((p, i) => i === photoLocationModal.photoIndex ? { ...p, coordinates: newCoords } : p));
+            }
+        }
+        setPhotoLocationModal(null);
+    };
 
     const handleSubmit = () => {
         if (!name.trim()) {
@@ -90,10 +105,10 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
         }
 
         const updatedData: Omit<Character, 'id' | 'photos'> = { name, description, wikipediaUrl };
-        const photosToUpload = newPhotos.filter((p): p is Extract<NewPhoto, { type: 'file' }> => p.type === 'file').map(p => ({ file: p.file, caption: p.caption }));
-        const newUrlPhotos = newPhotos.filter((p): p is Extract<NewPhoto, { type: 'url' }> => p.type === 'url').map(p => ({ url: p.url, caption: p.caption }));
+        const photosToUpload = newPhotos.filter((p): p is Extract<NewPhoto, { type: 'file' }> => p.type === 'file').map(p => ({ file: p.file, caption: p.caption, coordinates: p.coordinates }));
+        const newUrlPhotos = newPhotos.filter((p): p is Extract<NewPhoto, { type: 'url' }> => p.type === 'url').map(p => ({ url: p.url, caption: p.caption, coordinates: p.coordinates }));
 
-        onSave(character.id, updatedData, photosToUpload, photosToDelete, newUrlPhotos);
+        onSave(character.id, updatedData, photosToUpload, photosToDelete, newUrlPhotos, existingPhotos);
     };
 
     const labelStyle = "font-sans-display text-sm font-semibold text-gray-700 mb-1 block";
@@ -101,6 +116,13 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
 
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-[60] p-4 animate-fade-in" onClick={onClose}>
+        {photoLocationModal !== null && (
+            <PhotoLocationModal 
+                onClose={() => setPhotoLocationModal(null)}
+                onSave={handleSavePhotoLocation}
+                initialCoordinates={photoLocationModal.initialCoordinates}
+            />
+        )}
         <div className="bg-[#FAF7F0] w-full max-w-lg max-h-[90vh] flex flex-col animate-slide-up border border-black/10 relative" onClick={(e) => e.stopPropagation()}>
             <header className="p-4 flex items-center justify-between border-b border-gray-300/80">
               <h2 className="font-sans-display text-2xl font-bold text-[#134A79]">Modifica Personaggio</h2>
@@ -122,22 +144,24 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
               <div>
                   <label className={labelStyle}>Foto</label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-2">
-                        {existingPhotos.map((photo) => (
-                            <div key={photo.id} className="relative group border border-gray-300/80 p-1">
+                        {existingPhotos.map((photo, index) => (
+                            <div key={photo.id} className="relative group border border-gray-300/80 p-1 flex flex-col">
                                 <img src={photo.url} alt={photo.caption} className="w-full h-24 object-cover"/>
-                                <p className="w-full text-xs p-1 border-t border-gray-300/80 truncate">{photo.caption || 'Nessuna didascalia'}</p>
-                                <button onClick={() => handleRemoveExistingPhoto(photo)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <TrashIcon className="w-3 h-3"/>
+                                <input type="text" placeholder="Didascalia..." defaultValue={photo.caption} onChange={e => setExistingPhotos(prev => prev.map(p => p.id === photo.id ? {...p, caption: e.target.value} : p))} className="w-full text-xs p-1 border-t border-gray-300/80" />
+                                <button onClick={() => setPhotoLocationModal({ photoIndex: index, isNew: false, initialCoordinates: photo.coordinates || null })} className={`text-xs p-1 flex items-center justify-center gap-1 w-full border-t border-gray-300/80 ${photo.coordinates ? 'text-green-700' : 'text-gray-500'}`}>
+                                    <MapPinIcon className="w-3 h-3" /> {photo.coordinates ? 'Posizione salvata' : 'Aggiungi posizione'}
                                 </button>
+                                <button onClick={() => handleRemoveExistingPhoto(photo)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><TrashIcon className="w-3 h-3"/></button>
                             </div>
                         ))}
                         {newPhotos.map((photo, index) => (
-                            <div key={index} className="relative group border border-blue-400 border-dashed p-1">
+                            <div key={index} className="relative group border border-blue-400 border-dashed p-1 flex flex-col">
                                 <img src={photo.type === 'file' ? photo.dataUrl : photo.url} alt={`Nuova foto ${index + 1}`} className="w-full h-24 object-cover"/>
                                 <input type="text" placeholder="Didascalia..." value={photo.caption} onChange={(e) => handleNewPhotoCaptionChange(index, e.target.value)} className="w-full text-xs p-1 border-t border-gray-300/80" />
-                                <button onClick={() => handleRemoveNewPhoto(index)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <CloseIcon className="w-3 h-3"/>
+                                <button onClick={() => setPhotoLocationModal({ photoIndex: index, isNew: true, initialCoordinates: photo.coordinates || null })} className={`text-xs p-1 flex items-center justify-center gap-1 w-full border-t border-gray-300/80 ${photo.coordinates ? 'text-green-700' : 'text-gray-500'}`}>
+                                      <MapPinIcon className="w-3 h-3" /> {photo.coordinates ? 'Posizione salvata' : 'Aggiungi posizione'}
                                 </button>
+                                <button onClick={() => handleRemoveNewPhoto(index)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"><CloseIcon className="w-3 h-3"/></button>
                             </div>
                         ))}
                     </div>
