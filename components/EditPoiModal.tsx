@@ -325,7 +325,7 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
                             {existingPhotos.map((photo, index) => (
                                 <div key={photo.id} className="relative group border border-gray-300/80 p-1 flex flex-col">
                                     <img src={photo.url} alt={photo.caption} className="w-full h-24 object-cover"/>
-                                    <input type="text" placeholder="Didascalia..." defaultValue={photo.caption} onChange={e => setExistingPhotos(prev => prev.map(p => p.id === photo.id ? {...p, caption: e.target.value} : p))} className="w-full text-xs p-1 border-t border-gray-300/80" />
+                                    <input type="text" placeholder="Didascalia..." value={photo.caption} onChange={e => setExistingPhotos(prev => prev.map(p => p.id === photo.id ? {...p, caption: e.target.value} : p))} className="w-full text-xs p-1 border-t border-gray-300/80" />
                                     <button onClick={() => setPhotoLocationModal({ photoIndex: index, isNew: false, initialCoordinates: photo.coordinates || null, poiCoordinates: coordinates.length > 0 ? coordinates[0] : null })} className={`text-xs p-1 flex items-center justify-center gap-1 w-full border-t border-gray-300/80 ${photo.coordinates ? 'text-green-700' : 'text-gray-500'}`}>
                                       <MapPinIcon className="w-3 h-3" /> {photo.coordinates ? 'Posizione salvata' : 'Aggiungi posizione'}
                                     </button>
