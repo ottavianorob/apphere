@@ -60,6 +60,7 @@ const App: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [periods, setPeriods] = useState<Period[]>([]);
   const [users, setUsers] = useState<User[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const initialDataLoaded = useRef(false);
   
@@ -215,6 +216,13 @@ const App: React.FC = () => {
         contributions: contributions.get(p.id) || 0,
       }));
       setUsers(transformedUsers);
+
+      if (user) {
+        const matchingUser = transformedUsers.find(u => u.id === user.id);
+        setCurrentUser(matchingUser || { id: user.id, name: 'Utente Anonimo', avatarUrl: `https://placehold.co/100x100/e2e8f0/64748b?text=A`, contributions: 0 });
+      } else {
+          setCurrentUser(null);
+      }
 
 
     } catch (error: any) {
@@ -935,6 +943,7 @@ const App: React.FC = () => {
         />;
       case 'profile':
         return <ProfileView 
+            currentUser={currentUser}
             onAddPoiClick={() => setIsAddPoiModalOpen(true)}
             onAddCharacterClick={() => setIsAddCharacterModalOpen(true)}
             onAddItineraryClick={() => setIsAddItineraryModalOpen(true)}

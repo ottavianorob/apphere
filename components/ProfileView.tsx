@@ -1,11 +1,12 @@
 import React from 'react';
 import PlusIcon from './icons/PlusIcon';
-import { Poi, Character, Itinerary, Category, Period } from '../types';
+import { Poi, Character, Itinerary, Category, Period, User } from '../types';
 import PencilIcon from './icons/PencilIcon';
 import TrashIcon from './icons/TrashIcon';
 import LinkIcon from './icons/LinkIcon';
 
 interface ProfileViewProps {
+  currentUser: User | null;
   onAddPoiClick: () => void;
   onAddCharacterClick: () => void;
   onAddItineraryClick: () => void;
@@ -21,6 +22,7 @@ interface ProfileViewProps {
 }
 
 const ProfileView: React.FC<ProfileViewProps> = ({ 
+  currentUser,
   onAddPoiClick, 
   onAddCharacterClick, 
   onAddItineraryClick,
@@ -42,8 +44,15 @@ const ProfileView: React.FC<ProfileViewProps> = ({
     <div>
       <header className="mb-8 border-b-2 border-[#2D3748] pb-4 text-center">
         <h1 className="font-sans-display text-4xl sm:text-5xl font-bold text-[#2D3748]">Profilo</h1>
-        <p className="font-sans-display text-sm text-gray-600 mt-2">Gestisci i contenuti e visualizza i dati dell'applicazione.</p>
       </header>
+      
+      {currentUser && (
+        <div className="mb-10 flex flex-col items-center justify-center text-center">
+          <img src={currentUser.avatarUrl} alt={currentUser.name} className="w-24 h-24 rounded-full object-cover mb-4 border-4 border-white shadow-lg" />
+          <h2 className="font-sans-display text-3xl font-bold text-gray-800">{currentUser.name}</h2>
+          <p className="font-sans-display text-md text-gray-600 mt-1">{currentUser.contributions} contributi</p>
+        </div>
+      )}
 
       <div className="max-w-4xl mx-auto space-y-8 font-sans-display">
         {/* Content Management */}
