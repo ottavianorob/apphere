@@ -290,7 +290,13 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
                     </div>
                   <div>
                       <label className={labelStyle}>Posizione Geografica *</label>
-                      <MapSelector ref={mapRef} coordinates={coordinates} setCoordinates={setCoordinates} userLocation={null} initialViewState={coordinates.length > 0 ? { longitude: coordinates[0].longitude, latitude: coordinates[0].latitude, zoom: 15 } : undefined} />
+                      <MapSelector 
+                        ref={mapRef} 
+                        coordinates={coordinates} 
+                        setCoordinates={setCoordinates} 
+                        userLocation={null} 
+                        initialViewState={poi.coordinates ? { longitude: poi.coordinates.longitude, latitude: poi.coordinates.latitude, zoom: 15 } : undefined} 
+                      />
                       <p className="text-xs text-gray-500 mt-1 font-sans-display">Clicca sulla mappa per riposizionare il marcatore.</p>
                   </div>
                   <div><label className={labelStyle}>Indirizzo Rilevato</label><div className="w-full px-3 py-2 bg-gray-100 border border-gray-200 text-sm font-sans-display text-gray-600 min-h-[40px] rounded-md">{isFetchingLocation ? 'Caricamento...' : location || 'Seleziona un punto sulla mappa.'}</div></div>
