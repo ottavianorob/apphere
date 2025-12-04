@@ -29,6 +29,8 @@ export interface Photo {
   url: string;
   caption: string;
   coordinates?: Coordinates | null;
+  location_author_id?: string | null;
+  location_set_at?: string | null;
 }
 
 export interface User {

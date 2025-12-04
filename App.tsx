@@ -32,6 +32,8 @@ import Toast from './components/Toast';
 
 export type View = 'home' | 'qui' | 'itineraries' | 'search' | 'profile';
 
+const TEST_USER_ID = '00000000-0000-0000-0000-000000000001';
+
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('qui');
   const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null);
@@ -71,7 +73,7 @@ const App: React.FC = () => {
       if (error) throw error;
       setSession(newSession);
     } catch (error: any) {
-      console.error("Errore durante il sign-in anonimo:", error);
+      console.error("Errore during il sign-in anonimo:", error);
       setConnectionError("Impossibile connettersi. Verifica la tua connessione a internet e riprova.");
     } finally {
       setSessionChecked(true);
@@ -145,11 +147,20 @@ const App: React.FC = () => {
 
       setCategories(categoriesData || []);
       setPeriods(periodsData || []);
+      
+      const mapPhotos = (p: any): Photo => ({
+        id: p.id,
+        url: p.url,
+        caption: p.caption,
+        coordinates: p.coordinates,
+        location_author_id: p.location_author_id,
+        location_set_at: p.location_set_at,
+      });
 
       const transformedCharacters: Character[] = (charactersData || []).map(c => ({ 
         ...c, 
         wikipediaUrl: c.wikipedia_url,
-        photos: (c.photos || []).map((p: any) => ({ id: p.id, url: p.url, caption: p.caption, coordinates: p.coordinates }))
+        photos: (c.photos || []).map(mapPhotos)
       }));
       setCharacters(transformedCharacters);
 
@@ -163,7 +174,7 @@ const App: React.FC = () => {
           location: p.location,
           eventDate: p.event_date,
           description: p.description,
-          photos: (p.photos || []).map((ph: any) => ({ id: ph.id, url: ph.url, caption: ph.caption, coordinates: ph.coordinates })),
+          photos: (p.photos || []).map(mapPhotos),
           linkedCharacterIds: (p.poi_characters || []).map((pch: any) => pch.characters.id),
           tags: p.tags || [],
           favoriteCount: p.user_poi_favorites[0]?.count || 0,
@@ -350,12 +361,6 @@ const App: React.FC = () => {
     urlPhotos: { url: string; caption: string, coordinates?: Coordinates | null }[]
   ) => {
       try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) {
-              setToast({ message: "Sessione non valida. Ricarica la pagina.", type: 'error' });
-              return;
-          }
-
           const poiToInsert: any = {
               title: newPoiData.title,
               description: newPoiData.description,
@@ -363,7 +368,7 @@ const App: React.FC = () => {
               event_date: newPoiData.eventDate,
               period_id: newPoiData.periodId,
               tags: newPoiData.tags,
-              user_id: user.id,
+              user_id: TEST_USER_ID,
               coordinates: newPoiData.coordinates,
           };
 
@@ -395,7 +400,15 @@ const App: React.FC = () => {
           }
 
           if (allNewPhotos.length > 0) {
-            const { error: photosInsertError } = await supabase.from('photos').insert(allNewPhotos as any);
+            const photosToInsert = allNewPhotos.map(p => {
+              const photoData: any = { ...p };
+              if (p.coordinates) {
+                  photoData.location_author_id = TEST_USER_ID;
+                  photoData.location_set_at = new Date().toISOString();
+              }
+              return photoData;
+            });
+            const { error: photosInsertError } = await supabase.from('photos').insert(photosToInsert);
             if (photosInsertError) throw photosInsertError;
           }
 
@@ -426,17 +439,11 @@ const App: React.FC = () => {
     urlPhotos: { url: string; caption: string, coordinates?: Coordinates | null }[]
   ) => {
       try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) {
-              setToast({ message: "Sessione non valida. Ricarica la pagina.", type: 'error' });
-              return;
-          }
-
           const { data: charData, error: charError } = await supabase.from('characters').insert({
               name: newCharacterData.name,
               description: newCharacterData.description,
               wikipedia_url: newCharacterData.wikipediaUrl,
-              user_id: user.id,
+              user_id: TEST_USER_ID,
           }).select().single();
           if (charError) throw charError;
           const newCharId = charData.id;
@@ -464,7 +471,15 @@ const App: React.FC = () => {
           }
 
           if (allNewPhotos.length > 0) {
-            const { error: photosInsertError } = await supabase.from('photos').insert(allNewPhotos as any);
+            const photosToInsert = allNewPhotos.map(p => {
+              const photoData: any = { ...p };
+              if (p.coordinates) {
+                  photoData.location_author_id = TEST_USER_ID;
+                  photoData.location_set_at = new Date().toISOString();
+              }
+              return photoData;
+            });
+            const { error: photosInsertError } = await supabase.from('photos').insert(photosToInsert);
             if(photosInsertError) throw photosInsertError;
           }
 
@@ -482,12 +497,6 @@ const App: React.FC = () => {
     coverPhotoFile: File | null
   ) => {
      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-            setToast({ message: "Sessione non valida. Ricarica la pagina.", type: 'error' });
-            return;
-        }
-
         if (!coverPhotoFile) {
           setToast({ message: "È necessaria una foto di copertina.", type: 'error' });
           return;
@@ -513,7 +522,7 @@ const App: React.FC = () => {
             estimated_duration: newItineraryData.estimatedDuration,
             tags: newItineraryData.tags,
             cover_photo_id: coverPhotoId,
-            user_id: user.id,
+            user_id: TEST_USER_ID,
         };
 
         const { data: itineraryData, error: itError } = await supabase.from('itineraries').insert(itineraryToInsert).select().single();
@@ -681,11 +690,37 @@ const App: React.FC = () => {
           }
 
           if (allNewPhotos.length > 0) {
-              await supabase.from('photos').insert(allNewPhotos as any);
+              const photosToInsert = allNewPhotos.map(p => {
+                const photoData: any = { ...p };
+                if (p.coordinates) {
+                    photoData.location_author_id = TEST_USER_ID;
+                    photoData.location_set_at = new Date().toISOString();
+                }
+                return photoData;
+              });
+              await supabase.from('photos').insert(photosToInsert);
           }
           
           if (updatedExistingPhotos) {
-              const updatePromises = updatedExistingPhotos.map(p => supabase.from('photos').update({ coordinates: p.coordinates, caption: p.caption }).eq('id', p.id));
+              const originalPoi = editingItem?.data as Poi;
+              if (!originalPoi) throw new Error("Original POI data not found for comparison.");
+
+              const updatePromises = updatedExistingPhotos.map(p => {
+                  const originalPhoto = originalPoi.photos.find(op => op.id === p.id);
+                  const updatePayload: any = { caption: p.caption, coordinates: p.coordinates || null };
+                  const coordsChanged = JSON.stringify(p.coordinates) !== JSON.stringify(originalPhoto?.coordinates);
+                  
+                  if (coordsChanged) {
+                      if (p.coordinates) {
+                          updatePayload.location_author_id = TEST_USER_ID;
+                          updatePayload.location_set_at = new Date().toISOString();
+                      } else {
+                          updatePayload.location_author_id = null;
+                          updatePayload.location_set_at = null;
+                      }
+                  }
+                  return supabase.from('photos').update(updatePayload).eq('id', p.id);
+              });
               await Promise.all(updatePromises);
           }
 
@@ -742,12 +777,38 @@ const App: React.FC = () => {
           }
           
           if(allNewPhotos.length > 0) {
-              await supabase.from('photos').insert(allNewPhotos as any);
+              const photosToInsert = allNewPhotos.map(p => {
+                const photoData: any = { ...p };
+                if (p.coordinates) {
+                    photoData.location_author_id = TEST_USER_ID;
+                    photoData.location_set_at = new Date().toISOString();
+                }
+                return photoData;
+              });
+              await supabase.from('photos').insert(photosToInsert);
           }
           
           if (updatedExistingPhotos) {
-              const updatePromises = updatedExistingPhotos.map(p => supabase.from('photos').update({ coordinates: p.coordinates, caption: p.caption }).eq('id', p.id));
-              await Promise.all(updatePromises);
+            const originalCharacter = editingItem?.data as Character;
+            if (!originalCharacter) throw new Error("Original Character data not found for comparison.");
+
+            const updatePromises = updatedExistingPhotos.map(p => {
+                const originalPhoto = originalCharacter.photos.find(op => op.id === p.id);
+                const updatePayload: any = { caption: p.caption, coordinates: p.coordinates || null };
+                const coordsChanged = JSON.stringify(p.coordinates) !== JSON.stringify(originalPhoto?.coordinates);
+                
+                if (coordsChanged) {
+                    if (p.coordinates) {
+                        updatePayload.location_author_id = TEST_USER_ID;
+                        updatePayload.location_set_at = new Date().toISOString();
+                    } else {
+                        updatePayload.location_author_id = null;
+                        updatePayload.location_set_at = null;
+                    }
+                }
+                return supabase.from('photos').update(updatePayload).eq('id', p.id);
+            });
+            await Promise.all(updatePromises);
           }
 
           setToast({ message: "Personaggio aggiornato con successo!", type: 'success' });

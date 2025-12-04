@@ -6,6 +6,7 @@ import ChevronRightIcon from './icons/ChevronRightIcon';
 import PoiListItem from './PoiListItem';
 import PencilIcon from './icons/PencilIcon';
 import TrashIcon from './icons/TrashIcon';
+import Lightbox from './Lightbox';
 
 interface CharacterDetailModalProps {
   character: Character;
@@ -20,6 +21,7 @@ interface CharacterDetailModalProps {
 
 const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({ character, allPois, categories, onClose, onSelectPoi, onSelectTag, onModify, onDelete }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const linkedPois = useMemo(() => 
     allPois.filter(p => p.linkedCharacterIds.includes(character.id)),
@@ -54,6 +56,14 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({ character, 
   };
 
   return (
+    <>
+    {isLightboxOpen && (
+        <Lightbox 
+            photos={character.photos}
+            currentIndex={currentImageIndex}
+            onClose={() => setIsLightboxOpen(false)}
+        />
+    )}
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 animate-fade-in" onClick={onClose}>
       <div className="bg-[#FAF7F0] w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10 relative" onClick={e => e.stopPropagation()}>
         <button onClick={onClose} className="absolute top-3 right-3 text-gray-800 bg-white/60 rounded-full p-1.5 hover:bg-white/90 backdrop-blur-sm transition-colors z-30"><CloseIcon className="w-5 h-5" /></button>
@@ -61,7 +71,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({ character, 
           {character.photos && character.photos.length > 0 && (
             <div className="p-6 pb-0">
               <div className="relative flex-shrink-0 group bg-black">
-                <img src={character.photos[currentImageIndex].url} alt={character.photos[currentImageIndex].caption} className="w-full h-64 object-contain" />
+                <img src={character.photos[currentImageIndex].url} alt={character.photos[currentImageIndex].caption} className="w-full h-64 object-contain cursor-zoom-in" onClick={() => setIsLightboxOpen(true)} />
                 {character.photos.length > 1 && (
                   <>
                     <button onClick={handlePrevImage} disabled={currentImageIndex === 0} className="absolute top-1/2 left-2 -translate-y-1/2 text-white bg-black/40 rounded-full p-1.5 hover:bg-black/60 transition-colors disabled:opacity-50 disabled:cursor-not-allowed z-10 opacity-0 group-hover:opacity-100" aria-label="Immagine precedente"><ChevronLeftIcon className="w-6 h-6" /></button>
@@ -137,6 +147,7 @@ const CharacterDetailModal: React.FC<CharacterDetailModalProps> = ({ character, 
       </div>
       <style>{`@keyframes fade-in{from{opacity:0}to{opacity:1}}.animate-fade-in{animation:fade-in .3s ease-out forwards}@keyframes slide-up{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}.animate-slide-up{animation:slide-up .3s ease-out forwards}`}</style>
     </div>
+    </>
   );
 };
 
