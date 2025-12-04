@@ -1,11 +1,10 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { MapRef } from 'react-map-gl';
-import { Poi, Category, Period, Character as CharacterType, Coordinates, Point, Path, Area, Photo } from '../types';
+import { Poi, Category, Period, Character as CharacterType, Coordinates, Photo } from '../types';
 import CloseIcon from './icons/CloseIcon';
 import CategoryIcon from './icons/CategoryIcon';
 import CameraIcon from './icons/CameraIcon';
 import MapSelector from './MapSelector';
-import useGeolocation from '../hooks/useGeolocation';
 import TrashIcon from './icons/TrashIcon';
 
 type NewPhoto = { type: 'file', file: File, dataUrl: string, caption: string } | { type: 'url', url: string, caption: string };
@@ -51,7 +50,6 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
     const [dateMode, setDateMode] = useState<'date' | 'period'>('date');
     const [eventDate, setEventDate] = useState('');
     const [periodId, setPeriodId] = useState<string | null>(null);
-    const [type, setType] = useState<'point' | 'path' | 'area'>('point');
     const [categoryIds, setCategoryIds] = useState<string[]>([]);
     const [coordinates, setCoordinates] = useState<Coordinates[]>([]);
     const [existingPhotos, setExistingPhotos] = useState<Photo[]>([]);
@@ -59,7 +57,6 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
     const [photosToDelete, setPhotosToDelete] = useState<Photo[]>([]);
     const [tagsText, setTagsText] = useState('');
     const [linkedCharacterIds, setLinkedCharacterIds] = useState<string[]>([]);
-    const { data: userLocation } = useGeolocation();
     const mapRef = useRef<MapRef>(null);
 
     const [addressQuery, setAddressQuery] = useState('');
@@ -87,16 +84,12 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
             setTitle(poi.title);
             setDescription(poi.description);
             setLocation(poi.location);
-            setType(poi.type);
             setCategoryIds(poi.categoryIds);
             setTagsText(poi.tags?.join(', ') || '');
             setLinkedCharacterIds(poi.linkedCharacterIds);
             setExistingPhotos(poi.photos);
             setAddressQuery(poi.location);
-
-            if (poi.type === 'point') setCoordinates([poi.coordinates]);
-            else if (poi.type === 'path') setCoordinates(poi.pathCoordinates);
-            else if (poi.type === 'area') setCoordinates(poi.bounds);
+            setCoordinates([poi.coordinates]);
             
             const isoDate = italianDateToISODate(poi.eventDate);
             const firstDayOfYear = poi.eventDate.startsWith('1 Gennaio');
@@ -124,9 +117,7 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
                         const formatted = formatAddress(data.address);
                         setLocation(formatted || data.display_name || `Coordinate: ${coord.latitude.toFixed(4)}, ${coord.longitude.toFixed(4)}`);
                     })
-                    .catch(() => {
-                        setLocation(`Coordinate: ${coord.latitude.toFixed(4)}, ${coord.longitude.toFixed(4)}`);
-                    })
+                    .catch(() => setLocation(`Coordinate: ${coord.latitude.toFixed(4)}, ${coord.longitude.toFixed(4)}`))
                     .finally(() => setIsFetchingLocation(false));
             } else {
                 setLocation('');
@@ -151,7 +142,7 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
                 const { lat, lon } = data[0];
                 const newCoords = { latitude: parseFloat(lat), longitude: parseFloat(lon) };
                 mapRef.current?.flyTo({ center: [newCoords.longitude, newCoords.latitude], zoom: 16 });
-                if (type === 'point') setCoordinates([newCoords]);
+                setCoordinates([newCoords]);
             } else {
                 alert('Indirizzo non trovato.');
             }
@@ -224,19 +215,9 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
             finalEventDate = selectedPeriod ? `1 Gennaio ${selectedPeriod.start_year}` : '';
         }
 
-        const commonData = { title, description, location, eventDate: finalEventDate, periodId: finalPeriodId!, categoryIds, linkedCharacterIds, tags };
-        let updatedPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'>;
-
-        if (type === 'point') {
-            const pointData: Omit<Point, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'> = { ...commonData, type: 'point', coordinates: coordinates[0] };
-            updatedPoiData = pointData;
-        } else if (type === 'path') {
-            const pathData: Omit<Path, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'> = { ...commonData, type: 'path', pathCoordinates: coordinates };
-            updatedPoiData = pathData;
-        } else {
-            const areaData: Omit<Area, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'> = { ...commonData, type: 'area', bounds: coordinates };
-            updatedPoiData = areaData;
-        }
+        const updatedPoiData: Omit<Poi, 'id' | 'creationDate' | 'author' | 'photos' | 'favoriteCount' | 'isFavorited'> = { 
+            title, description, location, eventDate: finalEventDate, periodId: finalPeriodId!, categoryIds, linkedCharacterIds, tags, coordinates: coordinates[0]
+        };
         
         const photosToUpload = newPhotos.filter((p): p is Extract<NewPhoto, { type: 'file' }> => p.type === 'file').map(p => ({ file: p.file, caption: p.caption }));
         const newUrlPhotos = newPhotos.filter((p): p is Extract<NewPhoto, { type: 'url' }> => p.type === 'url').map(p => ({ url: p.url, caption: p.caption }));
@@ -266,25 +247,14 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
                 <div className="overflow-y-auto p-6 space-y-4">
                   <div><label htmlFor="poi-title" className={labelStyle}>Titolo *</label><input id="poi-title" type="text" value={title} onChange={e => setTitle(e.target.value)} className={inputStyle} required/></div>
                   <div><label htmlFor="poi-desc" className={labelStyle}>Descrizione</label><textarea id="poi-desc" value={description} onChange={e => setDescription(e.target.value)} className={`${inputStyle} h-24`} /></div>
-                  <div>
-                      <label className={labelStyle}>Tipologia *</label>
-                      <div className="flex gap-4 font-sans-display">
-                          {(['point', 'path', 'area'] as const).map(t => (
-                              <label key={t} className="flex items-center cursor-pointer">
-                                <input type="radio" name="poi-type" value={t} checked={type === t} onChange={() => { setType(t); setCoordinates([]); }} className="h-4 w-4 text-[#134A79] focus:ring-[#134A79]"/>
-                                <span className="ml-2 capitalize">{t === 'point' ? 'Punto' : t}</span>
-                              </label>
-                          ))}
-                      </div>
-                  </div>
                    <div>
                         <label htmlFor="address-search" className={labelStyle}>Cerca Indirizzo sulla Mappa</label>
                         <div className="flex gap-2"><input id="address-search" type="text" value={addressQuery} onChange={e => setAddressQuery(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddressSearch(); } }} className={inputStyle} placeholder="Es. Via Duomo, Milano"/><button type="button" onClick={handleAddressSearch} className="px-4 py-2 text-white bg-[#134A79] font-sans-display font-semibold hover:bg-[#103a60] transition-colors rounded-md">Cerca</button></div>
                     </div>
                   <div>
                       <label className={labelStyle}>Posizione Geografica *</label>
-                      <MapSelector ref={mapRef} type={type} coordinates={coordinates} setCoordinates={setCoordinates} userLocation={userLocation} initialViewState={coordinates.length > 0 ? { longitude: coordinates[0].longitude, latitude: coordinates[0].latitude, zoom: 15 } : undefined} />
-                      <div className="flex gap-2 mt-2"><button onClick={() => setCoordinates(c => c.slice(0, -1))} className="text-xs font-sans-display px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-md">Annulla ultimo punto</button><button onClick={() => setCoordinates([])} className="text-xs font-sans-display px-2 py-1 bg-gray-200 hover:bg-gray-300 rounded-md">Pulisci</button></div>
+                      <MapSelector ref={mapRef} coordinates={coordinates} setCoordinates={setCoordinates} userLocation={null} initialViewState={coordinates.length > 0 ? { longitude: coordinates[0].longitude, latitude: coordinates[0].latitude, zoom: 15 } : undefined} />
+                      <p className="text-xs text-gray-500 mt-1 font-sans-display">Clicca sulla mappa per riposizionare il marcatore.</p>
                   </div>
                   <div><label className={labelStyle}>Indirizzo Rilevato</label><div className="w-full px-3 py-2 bg-gray-100 border border-gray-200 text-sm font-sans-display text-gray-600 min-h-[40px] rounded-md">{isFetchingLocation ? 'Caricamento...' : location || 'Seleziona un punto sulla mappa.'}</div></div>
                   <div>

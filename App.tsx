@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Session } from '@supabase/supabase-js';
-import { Poi, Itinerary, Character, Category, Point, Path, Area, User, Period, Photo } from './types';
+import { Poi, Itinerary, Character, Category, User, Period, Photo } from './types';
 import { supabase } from './services/supabaseClient';
 
 // Import Views
@@ -153,32 +153,23 @@ const App: React.FC = () => {
       }));
       setCharacters(transformedCharacters);
 
-      const transformedPois: Poi[] = (poisData || []).map((p: any) => {
-          const basePoi = {
-              id: p.id,
-              creationDate: p.created_at,
-              author: p.profiles?.name || 'Anonimo',
-              periodId: p.period_id,
-              categoryIds: (p.poi_categories || []).map((pc: any) => pc.categories.id),
-              title: p.title,
-              location: p.location,
-              eventDate: p.event_date,
-              description: p.description,
-              photos: (p.photos || []).map((ph: any) => ({ id: ph.id, url: ph.url, caption: ph.caption })),
-              linkedCharacterIds: (p.poi_characters || []).map((pch: any) => pch.characters.id),
-              tags: p.tags || [],
-              favoriteCount: p.user_poi_favorites[0]?.count || 0,
-              isFavorited: favoritePoiIds.has(p.id),
-          };
-          switch (p.type) {
-              case 'point': return { ...basePoi, type: 'point', coordinates: p.coordinates } as Point;
-              case 'path': return { ...basePoi, type: 'path', pathCoordinates: p.path_coordinates } as Path;
-              case 'area': return { ...basePoi, type: 'area', bounds: p.bounds } as Area;
-              default:
-                console.warn(`POI con ID ${p.id} ha un tipo non valido: '${p.type}'. Verrà ignorato.`);
-                return null;
-          }
-      }).filter((p): p is Poi => p !== null);
+      const transformedPois: Poi[] = (poisData || []).map((p: any) => ({
+          id: p.id,
+          creationDate: p.created_at,
+          author: p.profiles?.name || 'Anonimo',
+          periodId: p.period_id,
+          categoryIds: (p.poi_categories || []).map((pc: any) => pc.categories.id),
+          title: p.title,
+          location: p.location,
+          eventDate: p.event_date,
+          description: p.description,
+          photos: (p.photos || []).map((ph: any) => ({ id: ph.id, url: ph.url, caption: ph.caption })),
+          linkedCharacterIds: (p.poi_characters || []).map((pch: any) => pch.characters.id),
+          tags: p.tags || [],
+          favoriteCount: p.user_poi_favorites[0]?.count || 0,
+          isFavorited: favoritePoiIds.has(p.id),
+          coordinates: p.coordinates,
+      }));
       setAllPois(transformedPois);
       
       const transformedItineraries: Itinerary[] = (itinerariesData || []).map((it: any) => ({
@@ -365,7 +356,6 @@ const App: React.FC = () => {
               return;
           }
 
-          // 1. Insert POI data without photos, including user_id
           const poiToInsert: any = {
               title: newPoiData.title,
               description: newPoiData.description,
@@ -373,18 +363,14 @@ const App: React.FC = () => {
               event_date: newPoiData.eventDate,
               period_id: newPoiData.periodId,
               tags: newPoiData.tags,
-              type: newPoiData.type,
-              user_id: user.id, // Aggiunto user_id
+              user_id: user.id,
+              coordinates: newPoiData.coordinates,
           };
-          if (newPoiData.type === 'point') poiToInsert.coordinates = (newPoiData as Point).coordinates;
-          if (newPoiData.type === 'path') poiToInsert.path_coordinates = (newPoiData as Path).pathCoordinates;
-          if (newPoiData.type === 'area') poiToInsert.bounds = (newPoiData as Area).bounds;
 
           const { data: poiData, error: poiError } = await supabase.from('pois').insert(poiToInsert).select().single();
           if (poiError) throw poiError;
           const newPoiId = poiData.id;
 
-          // 2. Prepare all photos for insertion
           let allNewPhotos: { url: string; caption: string; poi_id: string }[] = [];
 
           if (urlPhotos.length > 0) {
@@ -413,7 +399,6 @@ const App: React.FC = () => {
             if (photosInsertError) throw photosInsertError;
           }
 
-          // 3. Link categories and characters
           if (newPoiData.categoryIds.length > 0) {
               const poiCategories = newPoiData.categoryIds.map(catId => ({ poi_id: newPoiId, category_id: catId }));
               const { error: catError } = await supabase.from('poi_categories').insert(poiCategories);
@@ -447,17 +432,15 @@ const App: React.FC = () => {
               return;
           }
 
-          // 1. Insert character data
           const { data: charData, error: charError } = await supabase.from('characters').insert({
               name: newCharacterData.name,
               description: newCharacterData.description,
               wikipedia_url: newCharacterData.wikipediaUrl,
-              user_id: user.id, // Aggiunto user_id
+              user_id: user.id,
           }).select().single();
           if (charError) throw charError;
           const newCharId = charData.id;
 
-          // 2. Prepare and insert all photos
           let allNewPhotos: { url: string; caption: string; character_id: string }[] = [];
 
           if (urlPhotos.length > 0) {
@@ -510,7 +493,6 @@ const App: React.FC = () => {
           return;
         }
 
-        // 1. Upload cover photo and insert it into photos table
         const sanitizedFileName = coverPhotoFile.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
         const fileName = `${Date.now()}_${sanitizedFileName}`;
         const filePath = `itineraries/${fileName}`;
@@ -525,21 +507,19 @@ const App: React.FC = () => {
         if (photoInsertError) throw photoInsertError;
         const coverPhotoId = photoData.id;
 
-        // 2. Insert itinerary with the cover photo id and user_id
         const itineraryToInsert = {
             title: newItineraryData.title,
             description: newItineraryData.description,
             estimated_duration: newItineraryData.estimatedDuration,
             tags: newItineraryData.tags,
             cover_photo_id: coverPhotoId,
-            user_id: user.id, // Aggiunto user_id
+            user_id: user.id,
         };
 
         const { data: itineraryData, error: itError } = await supabase.from('itineraries').insert(itineraryToInsert).select().single();
         if (itError) throw itError;
         const newItineraryId = itineraryData.id;
 
-        // 3. Link POIs
         if (newItineraryData.poiIds.length > 0) {
             const itineraryPois = newItineraryData.poiIds.map(poiId => ({ itinerary_id: newItineraryId, poi_id: poiId }));
             const { error: itPoisError } = await supabase.from('itinerary_pois').insert(itineraryPois);
@@ -598,7 +578,6 @@ const App: React.FC = () => {
   };
 
   const handleModify = (type: string, data: any) => {
-    // Chiudi qualsiasi modale di dettaglio aperto prima di aprire quello di modifica
     setSelectedPoi(null);
     setSelectedCharacter(null);
     setSelectedItinerary(null);
@@ -639,7 +618,6 @@ const App: React.FC = () => {
     newUrlPhotos: { url: string; caption: string }[]
   ) => {
       try {
-          // 1. Update main POI data
           const poiToUpdate: any = {
               title: updatedData.title,
               description: updatedData.description,
@@ -647,16 +625,12 @@ const App: React.FC = () => {
               event_date: updatedData.eventDate,
               period_id: updatedData.periodId,
               tags: updatedData.tags,
-              type: updatedData.type,
+              coordinates: updatedData.coordinates,
           };
-          if (updatedData.type === 'point') poiToUpdate.coordinates = (updatedData as Point).coordinates;
-          if (updatedData.type === 'path') poiToUpdate.path_coordinates = (updatedData as Path).pathCoordinates;
-          if (updatedData.type === 'area') poiToUpdate.bounds = (updatedData as Area).bounds;
 
           const { error: poiError } = await supabase.from('pois').update(poiToUpdate).eq('id', poiId);
           if (poiError) throw poiError;
 
-          // 2. Handle relations (delete all and re-insert)
           await supabase.from('poi_categories').delete().eq('poi_id', poiId);
           if (updatedData.categoryIds.length > 0) {
               const poiCategories = updatedData.categoryIds.map(catId => ({ poi_id: poiId, category_id: catId }));
@@ -671,7 +645,6 @@ const App: React.FC = () => {
               if (charError) throw charError;
           }
 
-          // 3. Handle photo deletions
           if (photosToDelete.length > 0) {
               const photoIds = photosToDelete.map(p => p.id);
               const filePaths = photosToDelete.map(p => new URL(p.url).pathname.split('/media/').pop() || '').filter(Boolean);
@@ -685,7 +658,6 @@ const App: React.FC = () => {
               }
           }
           
-          // 4. Handle new photos (files and URLs)
           let allNewPhotos: { url: string; caption: string; poi_id: string }[] = [];
 
           if (newUrlPhotos.length > 0) {
@@ -728,14 +700,12 @@ const App: React.FC = () => {
     newUrlPhotos: { url: string; caption: string }[]
   ) => {
       try {
-          // 1. Update main character data
           await supabase.from('characters').update({
               name: updatedData.name,
               description: updatedData.description,
               wikipedia_url: updatedData.wikipediaUrl
           }).eq('id', charId);
 
-          // 2. Handle photo deletions
           if (photosToDelete.length > 0) {
               const photoIds = photosToDelete.map(p => p.id);
               const filePaths = photosToDelete.map(p => new URL(p.url).pathname.split('/media/').pop() || '').filter(Boolean);
@@ -745,7 +715,6 @@ const App: React.FC = () => {
               }
           }
           
-          // 3. Handle new photos (files and URLs)
           let allNewPhotos: { url: string; caption: string; character_id: string }[] = [];
 
           if (newUrlPhotos.length > 0) {
@@ -786,16 +755,13 @@ const App: React.FC = () => {
       try {
           let coverPhotoId = editingItem?.data.coverPhoto.id;
 
-          // 1. Handle cover photo update
           if (coverPhotoFile) {
-              // Delete old photo if it exists
               const oldPhotoPath = new URL(editingItem?.data.coverPhoto.url).pathname.split('/media/').pop();
               if (oldPhotoPath && editingItem?.data.coverPhoto.url.includes('supabase')) {
                   await supabase.storage.from('media').remove([oldPhotoPath]);
                   await supabase.from('photos').delete().eq('id', coverPhotoId);
               }
 
-              // Upload new photo
               const sanitizedFileName = coverPhotoFile.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
               const fileName = `${Date.now()}_${sanitizedFileName}`;
               const filePath = `itineraries/${fileName}`;
@@ -810,7 +776,6 @@ const App: React.FC = () => {
               coverPhotoId = photoData.id;
           }
 
-          // 2. Update main itinerary data
           await supabase.from('itineraries').update({
               title: updatedData.title,
               description: updatedData.description,
@@ -819,7 +784,6 @@ const App: React.FC = () => {
               cover_photo_id: coverPhotoId,
           }).eq('id', itineraryId);
 
-          // 3. Update POI relations
           await supabase.from('itinerary_pois').delete().eq('itinerary_id', itineraryId);
           if (updatedData.poiIds.length > 0) {
               const itineraryPois = updatedData.poiIds.map(poiId => ({ itinerary_id: itineraryId, poi_id: poiId }));

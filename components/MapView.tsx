@@ -141,16 +141,20 @@ const MapView: React.FC<MapViewProps> = ({ pois, onSelectPoi, categories, period
   };
   
   const unifiedPois = useMemo(() => {
+    // FIX: Handle optional poi.type and safely access optional geometry fields to prevent runtime errors and fix type errors.
+    // Default to 'point' if type is not specified. Provide fallbacks for coordinates.
     return pois.map(poi => {
-      let coordinates: Coordinates;
-      if (poi.type === 'point') {
-        coordinates = poi.coordinates;
-      } else if (poi.type === 'path') {
-        coordinates = poi.pathCoordinates[0] || { latitude: 0, longitude: 0 };
+      const type = poi.type || 'point';
+      let markerCoordinates: Coordinates;
+      if (type === 'point') {
+        markerCoordinates = poi.coordinates;
+      } else if (type === 'path') {
+        markerCoordinates = poi.pathCoordinates?.[0] || poi.coordinates;
       } else { // area
-        coordinates = getAreaCentroid(poi.bounds);
+        markerCoordinates = (poi.bounds && poi.bounds.length > 0) ? getAreaCentroid(poi.bounds) : poi.coordinates;
       }
-      return { ...poi, markerCoordinates: coordinates };
+      // Ensure 'type' is explicitly passed to the new object for filtering.
+      return { ...poi, markerCoordinates, type };
     });
   }, [pois]);
 

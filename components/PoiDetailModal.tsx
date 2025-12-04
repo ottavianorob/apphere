@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import ReactMapGL, { Marker, Source, Layer, LngLatBounds, MapRef } from 'react-map-gl';
+import ReactMapGL, { Marker, MapRef } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { Poi, Category, Coordinates, Character } from '../types';
 import CloseIcon from './icons/CloseIcon';
@@ -10,23 +10,12 @@ import MapPinIcon from './icons/MapPinIcon';
 import ChevronLeftIcon from './icons/ChevronLeftIcon';
 import ChevronRightIcon from './icons/ChevronRightIcon';
 import CategoryIcon from './icons/CategoryIcon';
-import CameraIcon from './icons/CameraIcon';
 import StarIcon from './icons/StarIcon';
 import PencilIcon from './icons/PencilIcon';
 import TrashIcon from './icons/TrashIcon';
 
 // Fix for cross-origin error in sandboxed environments by setting worker URL
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
-
-// Calculates the geometric center of a set of coordinates (for areas)
-const getAreaCentroid = (bounds: Coordinates[]): Coordinates => {
-    if (!bounds || bounds.length === 0) return { latitude: 0, longitude: 0 };
-    const { latitude, longitude } = bounds.reduce((acc, curr) => ({
-        latitude: acc.latitude + curr.latitude,
-        longitude: acc.longitude + curr.longitude,
-    }), { latitude: 0, longitude: 0 });
-    return { latitude: latitude / bounds.length, longitude: longitude / bounds.length };
-};
 
 interface PoiDetailModalProps {
   poi: Poi;
@@ -56,14 +45,8 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
     setCurrentImageIndex(prev => Math.max(prev - 1, 0));
   };
   
-  const getMarkerCoordinates = (): Coordinates => {
-    if (poi.type === 'point') return poi.coordinates;
-    if (poi.type === 'path') return poi.pathCoordinates[0] || { latitude: 0, longitude: 0 };
-    return getAreaCentroid(poi.bounds);
-  }
-
   const getDirectionsUrl = () => {
-    const { latitude, longitude } = getMarkerCoordinates();
+    const { latitude, longitude } = poi.coordinates;
     const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera;
 
     if (/iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream) {
@@ -91,47 +74,7 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
   const markerBg = mapMarkerBgColors[primaryCategoryId] || 'bg-[#B1352E]';
 
   const mapContent = useMemo(() => {
-    const markerCoords = getMarkerCoordinates();
-    
-    if (poi.type === 'path') {
-        if (poi.pathCoordinates.length === 0) return null;
-        const pathGeoJSON = {
-            type: 'Feature' as const,
-            geometry: { type: 'LineString' as const, coordinates: poi.pathCoordinates.map(p => [p.longitude, p.latitude]) }
-        };
-        
-        return (
-            <>
-                <Source id="path" type="geojson" data={pathGeoJSON}>
-                    <Layer id="path-layer" type="line" paint={{ 'line-color': '#B1352E', 'line-width': 3, 'line-dasharray': [2, 2] }} />
-                </Source>
-                <Marker longitude={markerCoords.longitude} latitude={markerCoords.latitude} anchor="center">
-                     <div className={`w-5 h-5 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75`}></div>
-                </Marker>
-            </>
-        );
-    } else if (poi.type === 'area') {
-        if (poi.bounds.length === 0) return null;
-        const areaGeoJSON = {
-            type: 'Feature' as const,
-            geometry: { type: 'Polygon' as const, coordinates: [[...poi.bounds, poi.bounds[0]].map(c => [c.longitude, c.latitude])] }
-        };
-        
-        return (
-             <>
-                <Source id="area" type="geojson" data={areaGeoJSON}>
-                    <Layer id="area-layer" type="fill" paint={{ 'fill-color': '#134A79', 'fill-opacity': 0.2, 'fill-outline-color': '#134A79' }} />
-                </Source>
-                <Marker longitude={markerCoords.longitude} latitude={markerCoords.latitude} anchor="center">
-                    <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75`}>
-                        <CategoryIcon categoryId={primaryCategoryId} className="w-5 h-5 text-white" />
-                    </div>
-                </Marker>
-            </>
-        );
-    }
-
-    // Default case for 'point'
+    const markerCoords = poi.coordinates;
     return (
         <Marker longitude={markerCoords.longitude} latitude={markerCoords.latitude} anchor="center">
             <div className={`w-9 h-9 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75`}>
@@ -139,7 +82,6 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
             </div>
         </Marker>
     );
-
   }, [poi, markerBg, primaryCategoryId]);
 
   useEffect(() => {
@@ -241,22 +183,10 @@ const PoiDetailModal: React.FC<PoiDetailModalProps> = ({ poi, onClose, categorie
                    <ReactMapGL
                       ref={mapRef}
                       mapLib={maplibregl}
-                      initialViewState={{ longitude: getMarkerCoordinates().longitude, latitude: getMarkerCoordinates().latitude, zoom: 15, pitch: 20 }}
+                      initialViewState={{ longitude: poi.coordinates.longitude, latitude: poi.coordinates.latitude, zoom: 15, pitch: 20 }}
                       style={{ width: '100%', height: '100%' }}
                       mapStyle={`https://api.maptiler.com/maps/0197890d-f9ac-7f85-b738-4eecc9189544/style.json?key=${MAPTILER_KEY}`}
                       interactive={false}
-                      onLoad={event => {
-                          const map = event.target;
-                          let bounds: LngLatBounds | undefined;
-                          if(poi.type === 'path' && poi.pathCoordinates.length > 1) {
-                             bounds = poi.pathCoordinates.reduce((b, p) => b.extend([p.longitude, p.latitude]), new maplibregl.LngLatBounds([poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude],[poi.pathCoordinates[0].longitude, poi.pathCoordinates[0].latitude]));
-                          } else if(poi.type === 'area' && poi.bounds.length > 0) {
-                             bounds = poi.bounds.reduce((b, c) => b.extend([c.longitude, c.latitude]), new maplibregl.LngLatBounds([poi.bounds[0].longitude, poi.bounds[0].latitude],[poi.bounds[0].longitude, poi.bounds[0].latitude]));
-                          }
-                          if (bounds) {
-                             map.fitBounds(bounds, { padding: 40, duration: 0 });
-                          }
-                      }}
                   >
                     {mapContent}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>

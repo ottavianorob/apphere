@@ -6,17 +6,6 @@ import CameraIcon from './icons/CameraIcon';
 import UserIcon from './icons/UserIcon';
 import CategoryIcon from './icons/CategoryIcon';
 import StarIcon from './icons/StarIcon';
-import PathIcon from './icons/PathIcon';
-import AreaIcon from './icons/AreaIcon';
-
-const PoiTypeIcon: React.FC<{ type: 'point' | 'path' | 'area', className: string }> = ({ type, className }) => {
-  switch (type) {
-    case 'point': return <MapPinIcon className={className} />;
-    case 'path': return <PathIcon className={className} />;
-    case 'area': return <AreaIcon className={className} />;
-    default: return null;
-  }
-}
 
 interface PoiListItemProps {
   poi: Poi;
@@ -40,7 +29,6 @@ const PoiListItem: React.FC<PoiListItemProps> = ({ poi, distance, onSelect, cate
       className="border-b border-gray-300/80 group cursor-pointer flex items-center gap-4 py-3"
       onClick={onSelect}
     >
-      {/* Left: Circular Image with Type Icon */}
       <div className="flex-shrink-0 w-20 text-center">
         <div className="relative w-20 h-20 mx-auto">
           <img
@@ -48,11 +36,6 @@ const PoiListItem: React.FC<PoiListItemProps> = ({ poi, distance, onSelect, cate
             alt={`Immagine di copertina per ${poi.title}`}
             className="w-full h-full rounded-full object-cover grayscale mix-blend-multiply group-hover:grayscale-0 group-hover:mix-blend-normal transition-all duration-300 ease-in-out"
           />
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none" title={`Tipo: ${poi.type}`}>
-            <div style={{ filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.5))' }}>
-              <PoiTypeIcon type={poi.type} className="w-10 h-10 text-white" />
-            </div>
-          </div>
         </div>
         {distance !== undefined && distance !== null && (
           <p className="font-sans-display text-xs text-gray-700 mt-1">

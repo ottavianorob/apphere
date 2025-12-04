@@ -37,8 +37,7 @@ export interface User {
   contributions: number;
 }
 
-export interface Point {
-  type: 'point';
+export interface Poi {
   id: string;
   creationDate: string;
   author: string;
@@ -54,47 +53,11 @@ export interface Point {
   tags?: string[];
   favoriteCount: number;
   isFavorited: boolean;
+  // FIX: Add optional properties for different POI types.
+  type?: 'point' | 'path' | 'area';
+  pathCoordinates?: Coordinates[];
+  bounds?: Coordinates[];
 }
-
-export interface Path {
-  type: 'path';
-  id: string;
-  creationDate: string;
-  author: string;
-  pathCoordinates: Coordinates[];
-  periodId: string;
-  categoryIds: string[];
-  title: string;
-  location: string;
-  eventDate: string;
-  description: string;
-  photos: Photo[];
-  linkedCharacterIds: string[];
-  tags?: string[];
-  favoriteCount: number;
-  isFavorited: boolean;
-}
-
-export interface Area {
-  type: 'area';
-  id: string;
-  title: string;
-  description: string;
-  bounds: Coordinates[];
-  location: string;
-  eventDate: string;
-  creationDate: string;
-  author: string;
-  periodId: string;
-  categoryIds: string[];
-  photos: Photo[];
-  linkedCharacterIds: string[];
-  tags?: string[];
-  favoriteCount: number;
-  isFavorited: boolean;
-}
-
-export type Poi = Point | Path | Area;
 
 export interface Itinerary {
   id: string;

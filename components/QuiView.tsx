@@ -38,24 +38,6 @@ const getDistance = (coords1: Coordinates, coords2: Coordinates) => {
   return R * c;
 };
 
-// Calculates the geometric center of a set of coordinates (for areas)
-const getAreaCentroid = (bounds: Coordinates[]): Coordinates => {
-    if (!bounds || bounds.length === 0) {
-        return { latitude: 0, longitude: 0 };
-    }
-    const { latitude, longitude } = bounds.reduce(
-        (acc, curr) => ({
-            latitude: acc.latitude + curr.latitude,
-            longitude: acc.longitude + curr.longitude,
-        }),
-        { latitude: 0, longitude: 0 }
-    );
-    return {
-        latitude: latitude / bounds.length,
-        longitude: longitude / bounds.length,
-    };
-};
-
 // Color mapping for category buttons
 const categoryColors: { [key: string]: { selected: string; unselected: string; ring: string; } } = {
   'storia':   { selected: 'bg-sky-700 text-white', unselected: 'text-sky-700 border border-sky-700 bg-transparent', ring: 'focus:ring-sky-500' },
@@ -80,7 +62,6 @@ const QuiView: React.FC<QuiViewProps> = ({ pois, onSelectPoi, categories, period
   const { data: userLocation, loading, error } = useGeolocation();
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedPeriods, setSelectedPeriods] = useState<string[]>([]);
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [mapBounds, setMapBounds] = useState<LngLatBounds | null>(null);
   const [filtersVisible, setFiltersVisible] = useState(false);
   const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
@@ -141,37 +122,21 @@ const QuiView: React.FC<QuiViewProps> = ({ pois, onSelectPoi, categories, period
       });
     }
   };
-  
-  const unifiedPois = useMemo(() => {
-    return pois.map(poi => {
-      let coordinates: Coordinates;
-      if (poi.type === 'point') {
-        coordinates = poi.coordinates;
-      } else if (poi.type === 'path') {
-        coordinates = poi.pathCoordinates[0] || { latitude: 0, longitude: 0 };
-      } else { // area
-        coordinates = getAreaCentroid(poi.bounds);
-      }
-      return { ...poi, markerCoordinates: coordinates };
-    });
-  }, [pois]);
-
 
   const filteredPois = useMemo(() => {
-    return unifiedPois.filter(p => {
+    return pois.filter(p => {
         const categoryMatch = selectedCategories.length === 0 || p.categoryIds.some(id => selectedCategories.includes(id));
         const periodMatch = selectedPeriods.length === 0 || selectedPeriods.includes(p.periodId);
-        const typeMatch = selectedTypes.length === 0 || selectedTypes.includes(p.type);
-        return categoryMatch && periodMatch && typeMatch;
+        return categoryMatch && periodMatch;
     });
-  }, [unifiedPois, selectedCategories, selectedPeriods, selectedTypes]);
+  }, [pois, selectedCategories, selectedPeriods]);
 
   const listPois = useMemo(() => {
     let inViewPois = filteredPois;
     
     if (mapBounds) {
         inViewPois = filteredPois.filter(p => 
-            mapBounds.contains([p.markerCoordinates.longitude, p.markerCoordinates.latitude])
+            mapBounds.contains([p.coordinates.longitude, p.coordinates.latitude])
         );
     }
     
@@ -179,19 +144,13 @@ const QuiView: React.FC<QuiViewProps> = ({ pois, onSelectPoi, categories, period
       return inViewPois
         .map(poi => ({
           ...poi,
-          distance: getDistance(userLocation, poi.markerCoordinates),
+          distance: getDistance(userLocation, poi.coordinates),
         }))
         .sort((a, b) => a.distance - b.distance);
     }
     
     return inViewPois.map(poi => ({ ...poi, distance: undefined }));
   }, [filteredPois, mapBounds, userLocation]);
-
-  const poiTypes = [
-      {id: 'point', name: 'Punto'},
-      {id: 'path', name: 'Percorso'},
-      {id: 'area', name: 'Area'}
-  ];
 
   return (
     <div>
@@ -243,8 +202,8 @@ const QuiView: React.FC<QuiViewProps> = ({ pois, onSelectPoi, categories, period
             return (
               <Marker
                 key={poi.id}
-                longitude={poi.markerCoordinates.longitude}
-                latitude={poi.markerCoordinates.latitude}
+                longitude={poi.coordinates.longitude}
+                latitude={poi.coordinates.latitude}
                 anchor="center"
               >
                 <div onClick={() => onSelectPoi(poi)} className="cursor-pointer">
@@ -266,7 +225,7 @@ const QuiView: React.FC<QuiViewProps> = ({ pois, onSelectPoi, categories, period
                 <ChevronDownIcon className={`w-4 h-4 transition-transform ${filtersVisible ? 'rotate-180' : ''}`} />
             </button>
         </div>
-        <div className={`${filtersVisible ? 'block' : 'hidden'} sm:grid sm:grid-cols-3 sm:gap-x-8 sm:items-start`}>
+        <div className={`${filtersVisible ? 'block' : 'hidden'} sm:grid sm:grid-cols-2 sm:gap-x-8 sm:items-start`}>
             <div className="mb-4 sm:mb-0">
                 <h3 className="font-serif-display text-center text-lg italic text-gray-700 mb-3">Categorie</h3>
                 <div className="font-sans-display flex flex-wrap gap-2 justify-center">
@@ -280,17 +239,6 @@ const QuiView: React.FC<QuiViewProps> = ({ pois, onSelectPoi, categories, period
                         <span>{category.name}</span>
                     </button>
                 ))}
-                </div>
-            </div>
-            <div className="mb-4 sm:mb-0">
-                <h3 className="font-serif-display text-center text-lg italic text-gray-700 mb-3">Tipologia</h3>
-                <div className="font-sans-display flex flex-wrap gap-2 justify-center">
-                    {poiTypes.map(type => (
-                        <button key={type.id} onClick={() => handleFilterChange(setSelectedTypes)(type.id)}
-                            className={`px-4 py-2 text-sm font-semibold rounded-full transition-colors ${selectedTypes.includes(type.id) ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-800'}`}>
-                            {type.name}
-                        </button>
-                    ))}
                 </div>
             </div>
              <div className="mb-4 sm:mb-0">

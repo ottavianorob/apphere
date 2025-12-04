@@ -7,8 +7,6 @@ import UserIcon from './icons/UserIcon';
 import ClockIcon from './icons/ClockIcon';
 import RouteIcon from './icons/RouteIcon';
 import CategoryIcon from './icons/CategoryIcon';
-import PathIcon from './icons/PathIcon';
-import AreaIcon from './icons/AreaIcon';
 import MapPinIcon from './icons/MapPinIcon';
 import StarIcon from './icons/StarIcon';
 import PencilIcon from './icons/PencilIcon';
@@ -17,25 +15,7 @@ import TrashIcon from './icons/TrashIcon';
 // Fix for cross-origin error
 (maplibregl as any).workerURL = "https://aistudiocdn.com/maplibre-gl@^4.3.2/dist/maplibre-gl-csp-worker.js";
 
-const getPoiCentroid = (poi: Poi): Coordinates => {
-  if (poi.type === 'point') return poi.coordinates;
-  if (poi.type === 'path') return poi.pathCoordinates[0] || { latitude: 0, longitude: 0 };
-  if (!poi.bounds || poi.bounds.length === 0) return { latitude: 0, longitude: 0 };
-  const { latitude, longitude } = poi.bounds.reduce((acc, curr) => ({
-      latitude: acc.latitude + curr.latitude,
-      longitude: acc.longitude + curr.longitude,
-  }), { latitude: 0, longitude: 0 });
-  return { latitude: latitude / poi.bounds.length, longitude: longitude / poi.bounds.length };
-};
-
-const PoiTypeIcon: React.FC<{ type: 'point' | 'path' | 'area', className: string }> = ({ type, className }) => {
-  switch (type) {
-    case 'point': return <MapPinIcon className={className} />;
-    case 'path': return <PathIcon className={className} />;
-    case 'area': return <AreaIcon className={className} />;
-    default: return null;
-  }
-};
+const getPoiCentroid = (poi: Poi): Coordinates => poi.coordinates;
 
 interface ItineraryDetailModalProps {
   itinerary: Itinerary;
@@ -164,8 +144,8 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
                       <div>
                         <p className="font-sans-display font-bold text-gray-800">{poi.title}</p>
                         <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                          <PoiTypeIcon type={poi.type} className="w-3 h-3"/>
-                          <span className="capitalize">{poi.type === 'path' ? 'Percorso' : poi.type}</span>
+                          <MapPinIcon className="w-3 h-3"/>
+                          <span>Luogo</span>
                         </div>
                       </div>
                     </div>

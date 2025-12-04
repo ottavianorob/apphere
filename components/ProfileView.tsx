@@ -96,7 +96,8 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                       {pois.map(poi => (
                         <tr key={poi.id}>
                           <td className={tableCellStyle}>{poi.title}</td>
-                          <td className={tableCellStyle}>{poi.type}</td>
+                          {/* FIX: Default to 'point' if POI type is not defined to prevent rendering issues. */}
+                          <td className={tableCellStyle}>{poi.type || 'point'}</td>
                           <td className={tableCellStyle}>{poi.author}</td>
                           <td className={tableCellStyle}>{poi.eventDate}</td>
                           <td className={`${tableCellStyle} text-xs max-w-xs`}>{poi.categoryIds.map(id => categories.find(c=>c.id===id)?.name).join(', ')}</td>
