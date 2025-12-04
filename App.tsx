@@ -707,19 +707,32 @@ const App: React.FC = () => {
 
               const updatePromises = updatedExistingPhotos.map(p => {
                   const originalPhoto = originalPoi.photos.find(op => op.id === p.id);
-                  const updatePayload: any = { caption: p.caption, coordinates: p.coordinates || null };
-                  const coordsChanged = JSON.stringify(p.coordinates) !== JSON.stringify(originalPhoto?.coordinates);
                   
+                  const coordsChanged = JSON.stringify(p.coordinates) !== JSON.stringify(originalPhoto?.coordinates);
+                  const captionChanged = p.caption !== originalPhoto?.caption;
+          
+                  const finalUpdatePayload: any = {};
+          
+                  if (captionChanged) {
+                      finalUpdatePayload.caption = p.caption;
+                  }
+          
                   if (coordsChanged) {
+                      finalUpdatePayload.coordinates = p.coordinates || null;
                       if (p.coordinates) {
-                          updatePayload.location_author_id = TEST_USER_ID;
-                          updatePayload.location_set_at = new Date().toISOString();
+                          finalUpdatePayload.location_author_id = TEST_USER_ID;
+                          finalUpdatePayload.location_set_at = new Date().toISOString();
                       } else {
-                          updatePayload.location_author_id = null;
-                          updatePayload.location_set_at = null;
+                          finalUpdatePayload.location_author_id = null;
+                          finalUpdatePayload.location_set_at = null;
                       }
                   }
-                  return supabase.from('photos').update(updatePayload).eq('id', p.id);
+                  
+                  if (Object.keys(finalUpdatePayload).length > 0) {
+                      return supabase.from('photos').update(finalUpdatePayload).eq('id', p.id);
+                  }
+                  
+                  return Promise.resolve(); // No changes
               });
               await Promise.all(updatePromises);
           }
@@ -794,20 +807,34 @@ const App: React.FC = () => {
 
             const updatePromises = updatedExistingPhotos.map(p => {
                 const originalPhoto = originalCharacter.photos.find(op => op.id === p.id);
-                const updatePayload: any = { caption: p.caption, coordinates: p.coordinates || null };
+                
                 const coordsChanged = JSON.stringify(p.coordinates) !== JSON.stringify(originalPhoto?.coordinates);
+                const captionChanged = p.caption !== originalPhoto?.caption;
+        
+                const finalUpdatePayload: any = {};
+        
+                if (captionChanged) {
+                    finalUpdatePayload.caption = p.caption;
+                }
                 
                 if (coordsChanged) {
+                    finalUpdatePayload.coordinates = p.coordinates || null;
                     if (p.coordinates) {
-                        updatePayload.location_author_id = TEST_USER_ID;
-                        updatePayload.location_set_at = new Date().toISOString();
+                        finalUpdatePayload.location_author_id = TEST_USER_ID;
+                        finalUpdatePayload.location_set_at = new Date().toISOString();
                     } else {
-                        updatePayload.location_author_id = null;
-                        updatePayload.location_set_at = null;
+                        finalUpdatePayload.location_author_id = null;
+                        finalUpdatePayload.location_set_at = null;
                     }
                 }
-                return supabase.from('photos').update(updatePayload).eq('id', p.id);
+                
+                if (Object.keys(finalUpdatePayload).length > 0) {
+                    return supabase.from('photos').update(finalUpdatePayload).eq('id', p.id);
+                }
+        
+                return Promise.resolve();
             });
+            
             await Promise.all(updatePromises);
           }
 
