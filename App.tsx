@@ -113,15 +113,8 @@ const App: React.FC = () => {
       const poisPromise = supabase.from('pois').select(`*, user_id, profiles:profiles!user_id(name), poi_categories(categories(id)), poi_characters(characters(id)), photos(*), user_poi_favorites(count)`);
       const itinerariesPromise = supabase.from('itineraries').select(`*, user_id, profiles:profiles!user_id(name), itinerary_pois(poi_id), coverPhoto:photos!cover_photo_id(*), user_itinerary_favorites(count)`);
       
-      const { data: { user } } = await supabase.auth.getUser();
-
-      const userPoiFavoritesPromise = user
-          ? supabase.from('user_poi_favorites').select('poi_id').eq('user_id', user.id)
-          : Promise.resolve({ data: [], error: null });
-
-      const userItineraryFavoritesPromise = user
-          ? supabase.from('user_itinerary_favorites').select('itinerary_id').eq('user_id', user.id)
-          : Promise.resolve({ data: [], error: null });
+      const userPoiFavoritesPromise = supabase.from('user_poi_favorites').select('poi_id').eq('user_id', USER_ID);
+      const userItineraryFavoritesPromise = supabase.from('user_itinerary_favorites').select('itinerary_id').eq('user_id', USER_ID);
 
       const [
           { data: categoriesData, error: catError },
@@ -217,12 +210,8 @@ const App: React.FC = () => {
       }));
       setUsers(transformedUsers);
 
-      if (user) {
-        const matchingUser = transformedUsers.find(u => u.id === user.id);
-        setCurrentUser(matchingUser || { id: user.id, name: 'Utente Anonimo', avatarUrl: `https://placehold.co/100x100/e2e8f0/64748b?text=A`, contributions: 0 });
-      } else {
-          setCurrentUser(null);
-      }
+      const activeUser = transformedUsers.find(u => u.id === USER_ID);
+      setCurrentUser(activeUser || null);
 
 
     } catch (error: any) {
@@ -284,12 +273,6 @@ const App: React.FC = () => {
   };
 
   const handleToggleFavorite = async (poiId: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-        setToast({ message: "Devi essere autenticato per aggiungere preferiti.", type: 'error' });
-        return;
-    }
-
     const originalPois = [...allPois];
     const targetPoi = originalPois.find(p => p.id === poiId);
     if (!targetPoi) return;
@@ -310,10 +293,10 @@ const App: React.FC = () => {
 
     try {
         if (targetPoi.isFavorited) {
-            const { error } = await supabase.from('user_poi_favorites').delete().match({ user_id: user.id, poi_id: poiId });
+            const { error } = await supabase.from('user_poi_favorites').delete().match({ user_id: USER_ID, poi_id: poiId });
             if (error) throw error;
         } else {
-            const { error } = await supabase.from('user_poi_favorites').insert({ user_id: user.id, poi_id: poiId });
+            const { error } = await supabase.from('user_poi_favorites').insert({ user_id: USER_ID, poi_id: poiId });
             if (error) throw error;
         }
     } catch (error: any) {
@@ -324,12 +307,6 @@ const App: React.FC = () => {
   };
   
   const handleToggleItineraryFavorite = async (itineraryId: string) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-        setToast({ message: "Devi essere autenticato per aggiungere preferiti.", type: 'error' });
-        return;
-    }
-
     const originalItineraries = [...itineraries];
     const targetItinerary = originalItineraries.find(i => i.id === itineraryId);
     if (!targetItinerary) return;
@@ -350,10 +327,10 @@ const App: React.FC = () => {
 
     try {
         if (targetItinerary.isFavorited) {
-            const { error } = await supabase.from('user_itinerary_favorites').delete().match({ user_id: user.id, itinerary_id: itineraryId });
+            const { error } = await supabase.from('user_itinerary_favorites').delete().match({ user_id: USER_ID, itinerary_id: itineraryId });
             if (error) throw error;
         } else {
-            const { error } = await supabase.from('user_itinerary_favorites').insert({ user_id: user.id, itinerary_id: itineraryId });
+            const { error } = await supabase.from('user_itinerary_favorites').insert({ user_id: USER_ID, itinerary_id: itineraryId });
             if (error) throw error;
         }
     } catch (error: any) {
