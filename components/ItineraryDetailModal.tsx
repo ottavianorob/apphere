@@ -1,5 +1,5 @@
-import React, { useMemo, useRef, useEffect } from 'react';
-import ReactMapGL, { Marker, LngLatBounds, MapRef } from 'react-map-gl';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
+import ReactMapGL, { Marker, LngLatBounds, MapRef, Source, Layer } from 'react-map-gl';
 import maplibregl from 'maplibre-gl';
 import { Itinerary, Poi, Coordinates } from '../types';
 import CloseIcon from './icons/CloseIcon';
@@ -31,12 +31,15 @@ interface ItineraryDetailModalProps {
 const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, allPois, onClose, onSelectPoiInItinerary, onSelectTag, onToggleFavorite, onModify, onDelete }) => {
   const mapRef = useRef<MapRef>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const [routeGeoJson, setRouteGeoJson] = useState<any>(null);
 
   const poisInItinerary = useMemo(() => 
     itinerary.poiIds.map(id => allPois.find(p => p.id === id)).filter((p): p is Poi => !!p),
     [itinerary, allPois]
   );
   
+  const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
+
   useEffect(() => {
     const container = mapContainerRef.current;
     if (!container) return;
@@ -46,8 +49,42 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
     resizeObserver.observe(container);
     return () => resizeObserver.disconnect();
   }, []);
+  
+  useEffect(() => {
+    const fetchRoute = async () => {
+      if (poisInItinerary.length < 2) {
+        setRouteGeoJson(null);
+        return;
+      }
 
-  const MAPTILER_KEY = 'FyvyDlvVMDaQNPtxRXIa';
+      const coordinatesString = poisInItinerary
+        .map(poi => `${poi.coordinates.longitude},${poi.coordinates.latitude}`)
+        .join(';');
+
+      const routingUrl = `https://api.maptiler.com/routing/walking/${coordinatesString}.json?alternatives=false&steps=false&overview=full&geometries=geojson&key=${MAPTILER_KEY}`;
+
+      try {
+        const response = await fetch(routingUrl);
+        if (!response.ok) throw new Error(`Routing API failed: ${response.statusText}`);
+        
+        const data = await response.json();
+        
+        if (data.routes && data.routes.length > 0) {
+          const routeGeometry = data.routes[0].geometry;
+          setRouteGeoJson({
+            type: 'Feature',
+            properties: {},
+            geometry: routeGeometry,
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching walking route:", error);
+      }
+    };
+
+    fetchRoute();
+  }, [poisInItinerary, MAPTILER_KEY]);
+
   const mapMarkerBgColors: { [key: string]: string } = {
     'storia': 'bg-sky-700', 'arte': 'bg-amber-600', 'societa': 'bg-red-700',
     'cinema': 'bg-emerald-600', 'musica': 'bg-indigo-600',
@@ -120,14 +157,32 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
                       }
                     }}
                   >
-                    {poisInItinerary.map(poi => {
+                    {routeGeoJson && (
+                      <Source id="route" type="geojson" data={routeGeoJson}>
+                        <Layer
+                          id="route-layer"
+                          type="line"
+                          paint={{
+                            'line-color': '#B1352E',
+                            'line-width': 4,
+                            'line-opacity': 0.85,
+                            'line-dasharray': [2, 2],
+                          }}
+                          layout={{
+                            'line-join': 'round',
+                            'line-cap': 'round',
+                          }}
+                        />
+                      </Source>
+                    )}
+                    {poisInItinerary.map((poi, index) => {
                       const coords = getPoiCentroid(poi);
                       const primaryCategoryId = poi.categoryIds[0];
                       const markerBg = mapMarkerBgColors[primaryCategoryId] || 'bg-[#B1352E]';
                       return (
                         <Marker key={poi.id} longitude={coords.longitude} latitude={coords.latitude} anchor="center">
-                          <div className={`w-7 h-7 rounded-full flex items-center justify-center ${markerBg} ring-2 ring-white/75`}>
-                            <CategoryIcon categoryId={primaryCategoryId} className="w-4 h-4 text-white" />
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-white font-sans-display ${markerBg} ring-2 ring-white/75 shadow-md`}>
+                            {index + 1}
                           </div>
                         </Marker>
                       );
@@ -145,7 +200,7 @@ const ItineraryDetailModal: React.FC<ItineraryDetailModalProps> = ({ itinerary, 
                         <p className="font-sans-display font-bold text-gray-800">{poi.title}</p>
                         <div className="flex items-center gap-1.5 text-xs text-gray-600">
                           <MapPinIcon className="w-3 h-3"/>
-                          <span>Luogo</span>
+                          <span>{poi.location}</span>
                         </div>
                       </div>
                     </div>

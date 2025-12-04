@@ -6,7 +6,7 @@ import TrashIcon from './icons/TrashIcon';
 import MapPinIcon from './icons/MapPinIcon';
 import PhotoLocationModal from './PhotoLocationModal';
 
-type NewPhoto = { type: 'file', file: File, dataUrl: string, caption: string, coordinates?: Coordinates | null } | { type: 'url', url: string, caption: string, coordinates?: Coordinates | null };
+type NewPhoto = { type: 'file', file: File, dataUrl: string, caption: string, coordinates?: Coordinates | null } | { type: 'url', url: string, caption: string, coordinates?: Coordinates | null, error?: string };
 
 interface EditCharacterModalProps {
   onClose: () => void;
@@ -98,7 +98,21 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
         setPhotoLocationModal(null);
     };
 
+    const handleImageError = (index: number) => {
+        setNewPhotos(prev => prev.map((p, i) =>
+            i === index && p.type === 'url'
+                ? { ...p, error: "Impossibile caricare l'immagine a causa delle restrizioni del sito di origine (CORS). Prova a scaricare l'immagine e a caricarla direttamente." }
+                : p
+        ));
+    };
+
     const handleSubmit = () => {
+        const newPhotosWithErrors = newPhotos.filter(p => 'error' in p && p.error);
+        if (newPhotosWithErrors.length > 0) {
+            alert("Una o più delle nuove immagini da URL non possono essere caricate. Rimuovile o correggi l'URL prima di salvare.");
+            return;
+        }
+
         if (!name.trim()) {
             alert("Il nome è obbligatorio.");
             return;
@@ -156,7 +170,19 @@ const EditCharacterModal: React.FC<EditCharacterModalProps> = ({ onClose, onSave
                         ))}
                         {newPhotos.map((photo, index) => (
                             <div key={index} className="relative group border border-blue-400 border-dashed p-1 flex flex-col">
-                                <img src={photo.type === 'file' ? photo.dataUrl : photo.url} alt={`Nuova foto ${index + 1}`} className="w-full h-24 object-cover"/>
+                                {photo.type === 'url' && photo.error ? (
+                                    <div className="w-full h-24 bg-red-100 flex items-center justify-center p-2 text-center">
+                                        <p className="text-xs text-red-700 font-sans-display">{photo.error}</p>
+                                    </div>
+                                ) : (
+                                    <img
+                                        src={photo.type === 'file' ? photo.dataUrl : photo.url}
+                                        alt={`Nuova foto ${index + 1}`}
+                                        className="w-full h-24 object-cover"
+                                        onError={photo.type === 'url' ? () => handleImageError(index) : undefined}
+                                        crossOrigin="anonymous"
+                                    />
+                                )}
                                 <input type="text" placeholder="Didascalia..." value={photo.caption} onChange={(e) => handleNewPhotoCaptionChange(index, e.target.value)} className="w-full text-xs p-1 border-t border-gray-300/80" />
                                 <button onClick={() => setPhotoLocationModal({ photoIndex: index, isNew: true, initialCoordinates: photo.coordinates || null })} className={`text-xs p-1 flex items-center justify-center gap-1 w-full border-t border-gray-300/80 ${photo.coordinates ? 'text-green-700' : 'text-gray-500'}`}>
                                       <MapPinIcon className="w-3 h-3" /> {photo.coordinates ? 'Posizione salvata' : 'Aggiungi posizione'}
