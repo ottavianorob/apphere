@@ -32,8 +32,6 @@ import Toast from './components/Toast';
 
 export type View = 'home' | 'qui' | 'itineraries' | 'search' | 'profile';
 
-const TEST_USER_ID = '00000000-0000-0000-0000-000000000001';
-
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<View>('qui');
   const [selectedPoi, setSelectedPoi] = useState<Poi | null>(null);
@@ -361,6 +359,12 @@ const App: React.FC = () => {
     urlPhotos: { url: string; caption: string, coordinates?: Coordinates | null }[]
   ) => {
       try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+              setToast({ message: "Devi essere autenticato per salvare.", type: 'error' });
+              return;
+          }
+
           const poiToInsert: any = {
               title: newPoiData.title,
               description: newPoiData.description,
@@ -368,7 +372,7 @@ const App: React.FC = () => {
               event_date: newPoiData.eventDate,
               period_id: newPoiData.periodId,
               tags: newPoiData.tags,
-              user_id: TEST_USER_ID,
+              user_id: user.id,
               coordinates: newPoiData.coordinates,
           };
 
@@ -403,7 +407,7 @@ const App: React.FC = () => {
             const photosToInsert = allNewPhotos.map(p => {
               const photoData: any = { ...p };
               if (p.coordinates) {
-                  photoData.location_author_id = TEST_USER_ID;
+                  photoData.location_author_id = user.id;
                   photoData.location_set_at = new Date().toISOString();
               }
               return photoData;
@@ -439,11 +443,17 @@ const App: React.FC = () => {
     urlPhotos: { url: string; caption: string, coordinates?: Coordinates | null }[]
   ) => {
       try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+              setToast({ message: "Devi essere autenticato per salvare.", type: 'error' });
+              return;
+          }
+
           const { data: charData, error: charError } = await supabase.from('characters').insert({
               name: newCharacterData.name,
               description: newCharacterData.description,
               wikipedia_url: newCharacterData.wikipediaUrl,
-              user_id: TEST_USER_ID,
+              user_id: user.id,
           }).select().single();
           if (charError) throw charError;
           const newCharId = charData.id;
@@ -474,7 +484,7 @@ const App: React.FC = () => {
             const photosToInsert = allNewPhotos.map(p => {
               const photoData: any = { ...p };
               if (p.coordinates) {
-                  photoData.location_author_id = TEST_USER_ID;
+                  photoData.location_author_id = user.id;
                   photoData.location_set_at = new Date().toISOString();
               }
               return photoData;
@@ -502,6 +512,12 @@ const App: React.FC = () => {
           return;
         }
 
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setToast({ message: "Devi essere autenticato per salvare.", type: 'error' });
+          return;
+        }
+
         const sanitizedFileName = coverPhotoFile.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9._-]/g, '');
         const fileName = `${Date.now()}_${sanitizedFileName}`;
         const filePath = `itineraries/${fileName}`;
@@ -522,7 +538,7 @@ const App: React.FC = () => {
             estimated_duration: newItineraryData.estimatedDuration,
             tags: newItineraryData.tags,
             cover_photo_id: coverPhotoId,
-            user_id: TEST_USER_ID,
+            user_id: user.id,
         };
 
         const { data: itineraryData, error: itError } = await supabase.from('itineraries').insert(itineraryToInsert).select().single();
@@ -628,6 +644,12 @@ const App: React.FC = () => {
     updatedExistingPhotos: Photo[]
   ) => {
       try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+              setToast({ message: "Devi essere autenticato per modificare.", type: 'error' });
+              return;
+          }
+
           const poiToUpdate: any = {
               title: updatedData.title,
               description: updatedData.description,
@@ -693,7 +715,7 @@ const App: React.FC = () => {
               const photosToInsert = allNewPhotos.map(p => {
                 const photoData: any = { ...p };
                 if (p.coordinates) {
-                    photoData.location_author_id = TEST_USER_ID;
+                    photoData.location_author_id = user.id;
                     photoData.location_set_at = new Date().toISOString();
                 }
                 return photoData;
@@ -720,7 +742,7 @@ const App: React.FC = () => {
                   if (coordsChanged) {
                       finalUpdatePayload.coordinates = p.coordinates || null;
                       if (p.coordinates) {
-                          finalUpdatePayload.location_author_id = TEST_USER_ID;
+                          finalUpdatePayload.location_author_id = user.id;
                           finalUpdatePayload.location_set_at = new Date().toISOString();
                       } else {
                           finalUpdatePayload.location_author_id = null;
@@ -755,6 +777,12 @@ const App: React.FC = () => {
     updatedExistingPhotos: Photo[]
   ) => {
       try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+              setToast({ message: "Devi essere autenticato per modificare.", type: 'error' });
+              return;
+          }
+
           await supabase.from('characters').update({
               name: updatedData.name,
               description: updatedData.description,
@@ -793,7 +821,7 @@ const App: React.FC = () => {
               const photosToInsert = allNewPhotos.map(p => {
                 const photoData: any = { ...p };
                 if (p.coordinates) {
-                    photoData.location_author_id = TEST_USER_ID;
+                    photoData.location_author_id = user.id;
                     photoData.location_set_at = new Date().toISOString();
                 }
                 return photoData;
@@ -820,7 +848,7 @@ const App: React.FC = () => {
                 if (coordsChanged) {
                     finalUpdatePayload.coordinates = p.coordinates || null;
                     if (p.coordinates) {
-                        finalUpdatePayload.location_author_id = TEST_USER_ID;
+                        finalUpdatePayload.location_author_id = user.id;
                         finalUpdatePayload.location_set_at = new Date().toISOString();
                     } else {
                         finalUpdatePayload.location_author_id = null;
