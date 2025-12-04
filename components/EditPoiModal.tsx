@@ -68,7 +68,7 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
     const [photoInputMode, setPhotoInputMode] = useState<'upload' | 'url'>('upload');
     const [photoUrl, setPhotoUrl] = useState('');
     const [photoUrlCaption, setPhotoUrlCaption] = useState('');
-    const [photoLocationModal, setPhotoLocationModal] = useState<{ photoIndex: number; isNew: boolean; initialCoordinates: Coordinates | null } | null>(null);
+    const [photoLocationModal, setPhotoLocationModal] = useState<{ photoIndex: number; isNew: boolean; initialCoordinates: Coordinates | null, poiCoordinates: Coordinates | null } | null>(null);
 
 
     const formatAddress = (address: any): string | null => {
@@ -259,6 +259,7 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
                     onClose={() => setPhotoLocationModal(null)}
                     onSave={handleSavePhotoLocation}
                     initialCoordinates={photoLocationModal.initialCoordinates}
+                    poiCoordinates={photoLocationModal.poiCoordinates}
                 />
             )}
             <div className="bg-[#FAF7F0] w-full max-w-2xl max-h-[90vh] flex flex-col animate-slide-up border border-black/10 relative" onClick={(e) => e.stopPropagation()}>
@@ -311,7 +312,7 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
                                 <div key={photo.id} className="relative group border border-gray-300/80 p-1 flex flex-col">
                                     <img src={photo.url} alt={photo.caption} className="w-full h-24 object-cover"/>
                                     <input type="text" placeholder="Didascalia..." defaultValue={photo.caption} onChange={e => setExistingPhotos(prev => prev.map(p => p.id === photo.id ? {...p, caption: e.target.value} : p))} className="w-full text-xs p-1 border-t border-gray-300/80" />
-                                    <button onClick={() => setPhotoLocationModal({ photoIndex: index, isNew: false, initialCoordinates: photo.coordinates || null })} className={`text-xs p-1 flex items-center justify-center gap-1 w-full border-t border-gray-300/80 ${photo.coordinates ? 'text-green-700' : 'text-gray-500'}`}>
+                                    <button onClick={() => setPhotoLocationModal({ photoIndex: index, isNew: false, initialCoordinates: photo.coordinates || null, poiCoordinates: coordinates.length > 0 ? coordinates[0] : null })} className={`text-xs p-1 flex items-center justify-center gap-1 w-full border-t border-gray-300/80 ${photo.coordinates ? 'text-green-700' : 'text-gray-500'}`}>
                                       <MapPinIcon className="w-3 h-3" /> {photo.coordinates ? 'Posizione salvata' : 'Aggiungi posizione'}
                                     </button>
                                     <button onClick={() => handleRemoveExistingPhoto(photo)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><TrashIcon className="w-3 h-3"/></button>
@@ -321,7 +322,7 @@ const EditPoiModal: React.FC<EditPoiModalProps> = ({ onClose, onSave, poi, categ
                                 <div key={index} className="relative group border border-blue-400 border-dashed p-1 flex flex-col">
                                     <img src={photo.type === 'file' ? photo.dataUrl : photo.url} alt={`Nuova foto ${index + 1}`} className="w-full h-24 object-cover"/>
                                     <input type="text" placeholder="Didascalia..." value={photo.caption} onChange={(e) => handleNewPhotoCaptionChange(index, e.target.value)} className="w-full text-xs p-1 border-t border-gray-300/80" />
-                                    <button onClick={() => setPhotoLocationModal({ photoIndex: index, isNew: true, initialCoordinates: photo.coordinates || null })} className={`text-xs p-1 flex items-center justify-center gap-1 w-full border-t border-gray-300/80 ${photo.coordinates ? 'text-green-700' : 'text-gray-500'}`}>
+                                    <button onClick={() => setPhotoLocationModal({ photoIndex: index, isNew: true, initialCoordinates: photo.coordinates || null, poiCoordinates: coordinates.length > 0 ? coordinates[0] : null })} className={`text-xs p-1 flex items-center justify-center gap-1 w-full border-t border-gray-300/80 ${photo.coordinates ? 'text-green-700' : 'text-gray-500'}`}>
                                       <MapPinIcon className="w-3 h-3" /> {photo.coordinates ? 'Posizione salvata' : 'Aggiungi posizione'}
                                     </button>
                                     <button onClick={() => handleRemoveNewPhoto(index)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"><CloseIcon className="w-3 h-3"/></button>

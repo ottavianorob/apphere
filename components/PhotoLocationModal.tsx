@@ -8,9 +8,10 @@ interface PhotoLocationModalProps {
   onClose: () => void;
   onSave: (coordinates: Coordinates | null) => void;
   initialCoordinates: Coordinates | null;
+  poiCoordinates?: Coordinates | null;
 }
 
-const PhotoLocationModal: React.FC<PhotoLocationModalProps> = ({ onClose, onSave, initialCoordinates }) => {
+const PhotoLocationModal: React.FC<PhotoLocationModalProps> = ({ onClose, onSave, initialCoordinates, poiCoordinates }) => {
     const [coords, setCoords] = useState<Coordinates[]>(initialCoordinates ? [initialCoordinates] : []);
     const mapRef = useRef<MapRef>(null);
 
@@ -36,7 +37,13 @@ const PhotoLocationModal: React.FC<PhotoLocationModalProps> = ({ onClose, onSave
                         coordinates={coords}
                         setCoordinates={setCoords}
                         userLocation={null}
-                        initialViewState={initialCoordinates ? { longitude: initialCoordinates.longitude, latitude: initialCoordinates.latitude, zoom: 16 } : undefined}
+                        initialViewState={
+                            initialCoordinates
+                                ? { longitude: initialCoordinates.longitude, latitude: initialCoordinates.latitude, zoom: 16 }
+                                : poiCoordinates
+                                ? { longitude: poiCoordinates.longitude, latitude: poiCoordinates.latitude, zoom: 16 }
+                                : undefined
+                        }
                     />
                 </div>
                  <footer className="p-4 border-t border-gray-300/80 flex justify-between items-center">
